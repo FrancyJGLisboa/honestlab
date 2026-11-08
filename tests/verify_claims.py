@@ -159,6 +159,25 @@ if cal.exists():
 else:
     report("V11", None, "calibration", "stress/calibration.json not present")
 
+# V12 "does not fit" excludes only data that does not exist yet, and the skill fetches public data
+frame = (KIT / "honestlab/skill/frame.md").read_text(encoding="utf-8")
+skill = (KIT / "honestlab/skill/SKILL.md").read_text(encoding="utf-8")
+pt = (KIT / "README.pt-BR.md").read_text(encoding="utf-8")
+rules = {
+    "README row": readme_has("Anything whose data does not exist yet"),
+    "README.pt-BR row": "cujos dados ainda não existem" in pt,
+    "search public sources": "search public\n     sources" in frame or "search public sources" in re.sub(r"\s+", " ", frame),
+    "fetch script in notes/": "notes/fetch_" in frame,
+    "only values published before the forecast date": "published before each forecast date" in re.sub(r"\s+", " ", frame),
+    "record URL, publisher, download date": "the URL, the publisher, the download date" in re.sub(r"\s+", " ", frame),
+    "stop when data does not exist yet": "Data that does not exist yet" in frame,
+    "approval page names downloaded sources": "De onde vêm os dados" in frame,
+    "SKILL.md does not reject missing data": "do not reject the idea" in re.sub(r"\s+", " ", skill),
+}
+missing = [k for k, v in rules.items() if not v]
+report("V12", not missing, "missing data: README limit matches the skill's public-data rules",
+       "all present" if not missing else "missing: " + ", ".join(missing))
+
 print()
 print(f"{results.count('PASS')} passed, {results.count('FAIL')} failed, {results.count('SKIP')} skipped")
 sys.exit(1 if "FAIL" in results else 0)

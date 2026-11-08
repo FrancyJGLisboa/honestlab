@@ -29,6 +29,7 @@ source it rests on.
 | V9 | Installs as a Claude Code plugin | `claude plugin validate` passes (skipped when the `claude` command is not installed). |
 | V10 | 51 hook decisions, 71 end-to-end cases, 37 approval and plugin cases, 17 attack replays, 44 robustness cases | A fresh run of `tests/run_all.sh` passes all of them, with exactly those counts. |
 | V11 | With no real effect honestlab never said "found" in 400 simulated labs per scenario; below-margin effects were called "found" up to 15% of the time | The rates are read from `stress/calibration.json`, written by `python3 stress/calibration.py 400` (fixed seed, so the run reproduces exactly). |
+| V12 | Only questions whose data does not exist yet are out of scope; the agent looks for data the person lacks in public sources | The README row and the skill rules are read from `README.md`, `README.pt-BR.md`, `honestlab/skill/SKILL.md` and `honestlab/skill/frame.md`: search public sources, fetch with a script in `notes/`, use only values published before each forecast date, record each source, show downloaded sources on the approval page, stop when the data does not exist yet. |
 
 ## Claims checked by the test suite
 

@@ -114,7 +114,7 @@ TODO: name, unit and direction (minimize or maximize). Must match lab.json.
 TODO: what eval/evaluate.py computes, how it validates a solution, runtime per evaluation.
 
 ## Data
-TODO: source and provenance of data/dev (iteration) and data/holdout (final confirmation only), and how the splits were drawn.
+TODO: source and provenance of data/dev (iteration) and data/holdout (final confirmation only), and how the splits were drawn. For downloaded data: URL, publisher, download date, terms of use, fetch script, and what the cleaning changed.
 
 ## Baseline
 TODO: what the starting solution in src/ does. `honestlab baseline` records its score.

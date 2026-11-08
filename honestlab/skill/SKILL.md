@@ -45,6 +45,8 @@ there.
   (por exemplo, errar 10% menos)", "Quais dados você tem e de que período?", "Existe um
   método conhecido na sua área que você gostaria de bater?". Skip questions whose answer
   you can find in their files.
+- If the idea needs data that the person does not have, do not reject the idea. Public
+  sources often have it (`frame.md`, step 1). Stop only when the data does not exist yet.
 
 ## Phase 2: build the contract (you do it)
 Follow `frame.md`. It ends with `honestlab check-spec` passing, `honestlab baseline` done, the

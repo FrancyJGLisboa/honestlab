@@ -73,7 +73,7 @@ um programa para calcular essa nota.
 | "O tempo melhora minha previsão de vendas?" | "Qual logo é mais bonito?" (não há número que o computador calcule) |
 | "Existe um jeito mais rápido de programar estas entregas?" | "Essa lei vai passar?" (não há dados para testar) |
 | "Este modelo de safra consegue prever a produtividade melhor?" | "Meu plano de negócios é bom?" (muitos objetivos, nenhuma medida única) |
-| "Esta função pode rodar mais rápido com nossos dados reais?" | Qualquer coisa que exija coletar dados novos antes |
+| "Esta função pode rodar mais rápido com nossos dados reais?" | Qualquer coisa cujos dados ainda não existem (uma pesquisa, um teste de campo, a próxima safra) |
 
 ## O que o veredito quer dizer
 

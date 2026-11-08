@@ -75,7 +75,7 @@ score it on.
 | "Can the weather improve my sales forecast?" | "Which logo looks better?" (no number a computer can calculate) |
 | "Is there a faster way to schedule these deliveries?" | "Will this law pass?" (no data to test against) |
 | "Can this crop model predict yields better?" | "Is my business plan good?" (many goals, no single measure) |
-| "Can this function run faster on our real inputs?" | Anything that needs new data to be collected first |
+| "Can this function run faster on our real inputs?" | Anything whose data does not exist yet (a survey, a field trial, next season's harvest) |
 
 ## What the verdict means
 

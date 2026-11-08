@@ -8,6 +8,23 @@ data" and "holdout data" mean the paths it prints.
    time, other places or items otherwise. Write the split with a small script that writes
    the holdout file directly (`honestlab data add <file> --split holdout` for a file you
    created), and never open, print or summarize the holdout data, not even to check it.
+   - **Data the person does not have.** If the question needs data that the person did
+     not bring (weather, prices, official statistics, open datasets), search public
+     sources for it. Do not stop before you search. Prefer the publisher's own source (a
+     government agency, a weather service, an exchange) to copies. Check the terms of use.
+   - **Download with a script.** Write the script in `notes/` (for example
+     `notes/fetch_weather.py`), so the person can run it again. Let the same script write
+     the dev and holdout files directly. Then add them with `honestlab data add`. Do not
+     look at the holdout part.
+   - **Use only what was known at the time.** For a forecast, use only values that were
+     published before each forecast date. Many sources revise old values or publish them
+     days later (official statistics, reanalysis weather). If only revised values exist,
+     use them and write this as a limitation.
+   - **Record each source** in SPEC "Data": the URL, the publisher, the download date, the
+     terms of use, the fetch script, and what the cleaning changed.
+   - **Data that does not exist yet** (a survey, a field trial, a test with real
+     customers, next season's harvest): no agent can produce it. Stop. Explain this in
+     plain words. Tell the person how to collect it. honestlab fits after the data exists.
 2. **Find an automatic check.** List measures a program can compute without human
    judgment. Prefer one the person already cares about (their error in their units, in
    money, in time). If no automatic check exists, stop and explain in plain words, and
@@ -47,6 +64,8 @@ data" and "holdout data" mean the paths it prints.
    no jargon, no TODO:
    - **A pergunta:** one sentence.
    - **Como vamos medir:** one sentence in their units, and whether lower or higher is better.
+   - **De onde vêm os dados:** for each file you downloaded, the source and the download
+     date, in plain words. Omit this line if all data came from the person.
    - **Com o que vamos comparar:** what they do today and the best known methods, with
      their current numbers from `honestlab reference list`.
    - **O que conta como sucesso:** the margin in plain words, on the development data and
