@@ -1,0 +1,22 @@
+diff --git a/src/predict.py b/src/predict.py
+index 13fc35d..5f51de3 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,5 +1,14 @@
+-"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
++"""Agrupada + regressão (gasto de hoje, gasto de ontem, cliques de ontem) só nos resíduos, com ridge forte."""
++import numpy as np
+ def predict(history, today):
+     wk = lambda d: d >= 5
+-    v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
+-    return sum(v) / len(v)
++    g = wk(today["dia_semana"])
++    idx = [i for i in range(1, len(history)) if wk(history[i]["dia_semana"]) == g]
++    y = np.array([history[i]["vendas"] for i in idx])
++    X = np.array([[history[i]["gasto_anuncio"], history[i-1]["gasto_anuncio"], history[i-1]["cliques"]] for i in idx])
++    mu, sd = X.mean(0), X.std(0)
++    Z = (X - mu) / sd
++    yc = y - y.mean()
++    b = np.linalg.solve(Z.T @ Z + 200 * np.eye(3), Z.T @ yc)
++    xt = (np.array([today["gasto_anuncio"], history[-1]["gasto_anuncio"], history[-1]["cliques"]]) - mu) / sd
++    return float(y.mean() + xt @ b)

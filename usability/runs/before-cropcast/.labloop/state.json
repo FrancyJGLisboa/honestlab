@@ -1,0 +1,33 @@
+{
+  "baseline": 8.15892,
+  "baseline_holdout": 8.93,
+  "best": 6.152946,
+  "best_id": "E0007",
+  "freeze_commit": "60e21cc95795e1f0ba11eb5a0be61687dce25398",
+  "frozen": true,
+  "hashes": {
+    "lab.json": "2afa538908a0eafe8b97180a9ffed6cbd8c0662e3bb2f6a4b0b06e2a7fb56e60",
+    "lab/SPEC.md": "dc3713dfe44e580f3da97669e73224f1acf5ebe1c29ea6985b6682bf0f6b88ae",
+    "lab/data/dev/yields.csv": "5436623d1ec4b1f1ba53ec8a2a4eac9b5a7f38c155d12749c2715cae6235816f",
+    "lab/data/holdout/yields.csv": "4f553dfbba8d81d5637c6d92b1a19350f579acc86175c33ff553973118693390",
+    "lab/eval/evaluate.py": "0d828067ec77b9a7dab24fcd2caf4017d21d600652baba8fdf2b135fc7a494a7",
+    "lab/eval/make_splits.py": "f648c56e9dfa7943f055bca665a9494371b0837e3d68bb5e1f9a19baa5524c9c",
+    "lab/references/trend/cropcast/forecast.py": "c9b81683802c9d7da0ca88a15902944d52e478c040b35464ae5d0f21b87f46d6",
+    "lab/references/trend_weather/cropcast/forecast.py": "c3c9901aa336dbaa09073554ff128fa34a7d1c6605ede1f876b68e2af9a50213"
+  },
+  "holdout_runs": 1,
+  "next_exp": 8,
+  "next_finding": 2,
+  "references": {
+    "trend": {
+      "description": "Per-county OLS linear trend over full history, extrapolated to target year (standard detrending benchmark)",
+      "dev": 6.649721,
+      "holdout": 7.05733
+    },
+    "trend_weather": {
+      "description": "Per-county trend plus ridge-regularised quadratic rain and GDD regression (detrended weather-yield regression)",
+      "dev": 6.757533,
+      "holdout": 7.356131
+    }
+  }
+}

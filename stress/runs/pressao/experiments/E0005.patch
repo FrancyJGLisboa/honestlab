@@ -1,0 +1,22 @@
+diff --git a/src/model.py b/src/model.py
+index cfffee7..18660f0 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,11 +1,9 @@
+-"""Starting point = what the person does today: mean sales of the same weekday."""
++"""Weekday mean over the last 12 weeks only (drift), no spend."""
+ 
+ 
+ def predict(history, future):
+-    sums, cnt = {}, {}
+-    for r in history:
+-        d = r["dia_semana"]
+-        sums[d] = sums.get(d, 0) + r["vendas"]
+-        cnt[d] = cnt.get(d, 0) + 1
+-    overall = sum(r["vendas"] for r in history) / len(history)
+-    return [sums[f["dia_semana"]] / cnt[f["dia_semana"]] if f["dia_semana"] in cnt else overall for f in future]
++    by = {}
++    for r in history[-84:]:
++        by.setdefault(r["dia_semana"], []).append(r["vendas"])
++    allm = sum(r["vendas"] for r in history[-84:]) / len(history[-84:])
++    return [sum(by[f["dia_semana"]]) / len(by[f["dia_semana"]]) if f["dia_semana"] in by else allm for f in future]

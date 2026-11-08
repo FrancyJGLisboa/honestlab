@@ -1,0 +1,20 @@
+diff --git a/src/predict.py b/src/predict.py
+index 13fc35d..39b7ece 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,5 +1,12 @@
+-"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
++"""Agrupada útil/fim de semana + ajuste por faixa de gasto (tercis), com encolhimento."""
++import numpy as np
+ def predict(history, today):
+     wk = lambda d: d >= 5
+-    v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
+-    return sum(v) / len(v)
++    g = wk(today["dia_semana"])
++    h = [r for r in history if wk(r["dia_semana"]) == g]
++    y = np.array([r["vendas"] for r in h]); x = np.array([r["gasto_anuncio"] for r in h])
++    cuts = np.quantile(x, [1/3, 2/3])
++    bin_ = np.searchsorted(cuts, x); tb = int(np.searchsorted(cuts, today["gasto_anuncio"]))
++    sel = y[bin_ == tb]
++    n = len(sel); k = 30.0
++    return (n * sel.mean() + k * y.mean()) / (n + k)

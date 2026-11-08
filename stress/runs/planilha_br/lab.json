@@ -1,0 +1,26 @@
+{
+  "project": "planilha_br",
+  "language": "pt",
+  "metric": "score",
+  "direction": "minimize",
+  "evaluator": "{python} eval/evaluate.py",
+  "timeout_sec": 600,
+  "min_improvement": 0.0,
+  "editable": [
+    "src"
+  ],
+  "protected": [
+    "eval",
+    "data",
+    "lab.json",
+    "SPEC.md"
+  ],
+  "holdout_dir": "data/holdout",
+  "max_holdout_runs": 3,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 0.1,
+    "effect": "relative",
+    "alpha": 0.05
+  }
+}

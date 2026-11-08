@@ -1,0 +1,17 @@
+diff --git a/src/predict.py b/src/predict.py
+index 574a416..13fc35d 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,8 +1,5 @@
+-"""Método de hoje: média de vendas do mesmo dia da semana (todo o histórico)."""
+-
+-
++"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
+ def predict(history, today):
+-    same = [r["vendas"] for r in history if r["dia_semana"] == today["dia_semana"]]
+-    if not same:
+-        same = [r["vendas"] for r in history]
+-    return sum(same) / len(same)
++    wk = lambda d: d >= 5
++    v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
++    return sum(v) / len(v)

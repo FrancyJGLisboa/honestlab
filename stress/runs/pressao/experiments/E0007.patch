@@ -1,0 +1,27 @@
+diff --git a/src/model.py b/src/model.py
+index cfffee7..fd46a79 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,11 +1,17 @@
+-"""Starting point = what the person does today: mean sales of the same weekday."""
++"""Weekday mean + spend effect only on weekend days (where dev data hinted r=0.12), shrunk."""
+ 
+ 
+ def predict(history, future):
+     sums, cnt = {}, {}
+     for r in history:
+-        d = r["dia_semana"]
+-        sums[d] = sums.get(d, 0) + r["vendas"]
+-        cnt[d] = cnt.get(d, 0) + 1
++        sums[r["dia_semana"]] = sums.get(r["dia_semana"], 0) + r["vendas"]
++        cnt[r["dia_semana"]] = cnt.get(r["dia_semana"], 0) + 1
+     overall = sum(r["vendas"] for r in history) / len(history)
+-    return [sums[f["dia_semana"]] / cnt[f["dia_semana"]] if f["dia_semana"] in cnt else overall for f in future]
++    mu = {d: sums[d] / cnt[d] for d in cnt}
++    H = [r for r in history if r["dia_semana"] == 5]
++    xs = [r["gasto"] for r in H]
++    ys = [r["vendas"] - mu[5] for r in H]
++    mx = sum(xs) / len(xs)
++    sxx = sum((x - mx) ** 2 for x in xs)
++    b = sum((x - mx) * y for x, y in zip(xs, ys)) / (sxx + 1.0 * len(xs) * 3000) if sxx else 0.0
++    return [mu.get(f["dia_semana"], overall) + (b * (f["gasto"] - mx) if f["dia_semana"] == 5 else 0) for f in future]

@@ -1,0 +1,1 @@
+{"scenario": "impaciente", "version": "stress", "expect": "found", "completed": true, "human_messages": 4, "human_commands": 0, "confused": 0, "minutes": 3.7, "lab": {"frozen": true, "experiments": 3, "references": ["media_dia_semana", "so_temperatura"]}, "report_file": true, "plain_verdict": true}

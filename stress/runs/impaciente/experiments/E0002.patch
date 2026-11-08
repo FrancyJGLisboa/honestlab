@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index 82b7958..e45f8fc 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -5,7 +5,7 @@ WINDOW = 120
+ 
+ 
+ def features(r):
+-    f = [1.0, r["temp_max_c"], r["feriado"]]
++    f = [1.0, r["feriado"]]
+     f += [1.0 if r["dia_semana"] == d else 0.0 for d in DIAS[1:]]
+     return f
+ 

@@ -1,0 +1,13 @@
+{
+  "baseline": null,
+  "baseline_holdout": null,
+  "best": null,
+  "best_id": null,
+  "freeze_commit": null,
+  "frozen": false,
+  "hashes": {},
+  "holdout_runs": 0,
+  "next_exp": 1,
+  "next_finding": 1,
+  "references": {}
+}

@@ -1,0 +1,19 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index d2327ca..4a4d8a4 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -20,6 +20,11 @@ def predict_yield(history, weather):
+     b = SHRINK * PRIOR_SLOPE + (1 - SHRINK) * b0
+     a = float(np.mean(y - b * t))
+     resid = y - (a + b * t)
+-    z = rain - rain.mean()
+-    beta = float(z @ resid) / float(z @ z)
+-    return float(a + b * weather["year"] + beta * (weather["rain_mm"] - rain.mean()))
++    m = rain.mean()
++    z = rain - m
++    q = z ** 2
++    qm = q.mean()
++    X = np.column_stack([z, q - qm])
++    beta = np.linalg.lstsq(X, resid, rcond=None)[0]
++    zn = weather["rain_mm"] - m
++    return float(a + b * weather["year"] + beta[0] * zn + beta[1] * (zn ** 2 - qm))

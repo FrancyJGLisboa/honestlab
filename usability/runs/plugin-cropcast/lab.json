@@ -1,0 +1,27 @@
+{
+  "project": "plugin-cropcast",
+  "language": "pt",
+  "lab_dir": "lab",
+  "metric": "mae",
+  "direction": "minimize",
+  "evaluator": "{python} lab/eval/evaluate.py",
+  "timeout_sec": 600,
+  "min_improvement": 0.0,
+  "editable": [
+    "cropcast/forecast.py"
+  ],
+  "protected": [
+    "lab/eval",
+    "lab/data",
+    "lab.json",
+    "lab/SPEC.md"
+  ],
+  "holdout_dir": "lab/data/holdout",
+  "max_holdout_runs": 3,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 0.1,
+    "effect": "relative",
+    "alpha": 0.05
+  }
+}

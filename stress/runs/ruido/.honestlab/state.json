@@ -1,0 +1,40 @@
+{
+  "baseline": 13.861015360329406,
+  "baseline_holdout": 13.889235321016017,
+  "best": 13.62863184514942,
+  "best_id": "E0003",
+  "fingerprint": "ee75f10a7b88c2c221d0c183046da419e25e40a11816486b1a134a43e053459d",
+  "freeze_commit": "fb0d6452ef79568fa419083d83efe5341fd8b457",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "02518a7028629488ddec628362b1c1103019f2b528d45d0f9911baad206ac005",
+    "SPEC.md": "5e2959131d1b757f7f17c449a91a411493b93bd1f12ec077cd66061d632dfe5d",
+    "data/dev/part_a.csv": "a929fe0853f52b70a711ccd719d2d75ab1b2b7bf555a0acf44d8c6856616a3a4",
+    "data/holdout/part_b.csv": "848fa5990c3eee1448c0311a283691829ce1622e059b4bc7f56d8d477f80bde9",
+    "eval/evaluate.py": "078689571094880c98ca177e7521a10dab0621945caec821c91d028ea5f1f871",
+    "lab.json": "1dfd113e75c58f51fb926323d7d47f0a80be792c078e5fc25d7365bb5a8a3112",
+    "references/media_recente/src/predict.py": "71261436aaf7a43e5c02eb5b461bd0b6db9bbe7c26813edbb3bdeee9bcc829a5",
+    "references/semana_passada/src/predict.py": "8994250fcb81911d915a3398039c24a115755a007bed678bde1108bbfd00719d",
+    "references/suavizacao/src/predict.py": "5119b255ad1e6363c0f8969a97eee84402655ab570197f256067af032f56473a"
+  },
+  "holdout_runs": 0,
+  "next_exp": 16,
+  "next_finding": 1,
+  "references": {
+    "media_recente": {
+      "description": "M\u00e9dia das \u00faltimas 8 ocorr\u00eancias do mesmo dia da semana",
+      "dev": 14.489754098360656,
+      "holdout": 14.639266304347826
+    },
+    "semana_passada": {
+      "description": "Ing\u00eanuo sazonal: vendas do mesmo dia da semana, 7 dias atr\u00e1s (m\u00e9todo padr\u00e3o de previs\u00e3o)",
+      "dev": 18.40983606557377,
+      "holdout": 18.255434782608695
+    },
+    "suavizacao": {
+      "description": "Suaviza\u00e7\u00e3o exponencial simples por dia da semana (alfa 0,15)",
+      "dev": 14.24390122186786,
+      "holdout": 14.146555136796026
+    }
+  }
+}

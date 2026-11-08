@@ -1,0 +1,54 @@
+diff --git a/src/model.py b/src/model.py
+index cfffee7..d09e1b7 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,11 +1,44 @@
+-"""Starting point = what the person does today: mean sales of the same weekday."""
++"""Weekday mean + spend slope separately for weekend and weekdays, plus carry-over of yesterday's spend."""
++
++
++def _ols(X, y):
++    n, k = len(X), len(X[0])
++    A = [[sum(X[i][a] * X[i][b] for i in range(n)) + (1e-6 if a == b else 0) for b in range(k)] for a in range(k)]
++    c = [sum(X[i][a] * y[i] for i in range(n)) for a in range(k)]
++    for i in range(k):
++        p = A[i][i]
++        for j in range(i, k): A[i][j] /= p
++        c[i] /= p
++        for r in range(k):
++            if r != i:
++                f = A[r][i]
++                for j in range(i, k): A[r][j] -= f * A[i][j]
++                c[r] -= f * c[i]
++    return c
++
++
++def _row(d, g, gprev, gm):
++    we = 1.0 if d >= 5 else 0.0
++    return [(g - gm) * (1 - we), (g - gm) * we, (gprev - gm)]
+ 
+ 
+ def predict(history, future):
+     sums, cnt = {}, {}
+     for r in history:
+-        d = r["dia_semana"]
+-        sums[d] = sums.get(d, 0) + r["vendas"]
+-        cnt[d] = cnt.get(d, 0) + 1
++        sums[r["dia_semana"]] = sums.get(r["dia_semana"], 0) + r["vendas"]
++        cnt[r["dia_semana"]] = cnt.get(r["dia_semana"], 0) + 1
+     overall = sum(r["vendas"] for r in history) / len(history)
+-    return [sums[f["dia_semana"]] / cnt[f["dia_semana"]] if f["dia_semana"] in cnt else overall for f in future]
++    mu = {d: sums[d] / cnt[d] for d in cnt}
++    gm = sum(r["gasto"] for r in history) / len(history)
++    X, y = [], []
++    for i in range(1, len(history)):
++        r = history[i]
++        X.append(_row(r["dia_semana"], r["gasto"], history[i - 1]["gasto"], gm))
++        y.append(r["vendas"] - mu[r["dia_semana"]])
++    w = _ols(X, y)
++    out, prev = [], history[-1]["gasto"]
++    for f in future:
++        x = _row(f["dia_semana"], f["gasto"], prev, gm)
++        out.append(mu.get(f["dia_semana"], overall) + sum(a * b for a, b in zip(w, x)))
++        prev = f["gasto"]
++    return out

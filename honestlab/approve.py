@@ -1,0 +1,157 @@
+"""Approve the lab from inside the chat (Claude Code UserPromptSubmit hook).
+
+Two messages from the person, never from the agent:
+
+1. The person types ``aprovar`` / ``approve``. If the lab is ready, the hook blocks that
+   message (so the agent never sees it) and shows the person the real APPROVAL.md
+   together with a one-time code. Claude Code shows a block reason to the person
+   only; it is not added to the model's context.
+2. The person types ``sim 4821`` / ``yes 4821``. The hook checks the code, that it has
+   not expired and that nothing measured changed in between, then freezes exactly as
+   ``honestlab freeze`` does in a terminal, records ``approved_via: chat`` in the ledger
+   and lets the message through with a note telling the agent to continue.
+
+The agent cannot type a user message. The guard also blocks the agent from running
+``honestlab guard prompt`` itself. As with every rule that depends on the agent's
+environment, a determined agent running as the same OS user could still work around
+it (for example by reading the session transcript); the attempt would be visible in its
+tool calls, and the hashes still catch any change to protected files.
+"""
+import contextlib
+import hashlib
+import io
+import json
+import re
+import secrets
+import time
+
+from . import core
+from .core import LabError
+
+APPROVE_RE = re.compile(r"^\s*(?:honestlab\s+)?(aprovar|aprovo|aprova|approve|i approve)\s*[.!]?\s*$", re.I)
+CONFIRM_RE = re.compile(r"^\s*(sim|s|yes|y)[\s,:-]+(\d{4})\s*[.!]?\s*$", re.I)
+PENDING = "pending_approval.json"
+TTL_SECONDS = 15 * 60
+
+
+def _pending_path(root):
+    return root / core.STATE_DIR / PENDING
+
+
+def _digest(code: str, salt: str, expires: float) -> str:
+    # Deliberately slow, so trying all 10,000 codes against a copied file outlasts the code's 15 minutes.
+    # The expiry is part of the input, so editing it in the file voids the code.
+    return hashlib.pbkdf2_hmac("sha256", code.encode(), f"{salt}:{expires:.0f}".encode(), 400_000).hex()
+
+
+def _snapshot(root, cfg) -> str:
+    ap = root / core.approval_rel(cfg)
+    text = ap.read_text(encoding="utf-8") if ap.is_file() else ""
+    spec = root / core.spec_rel(cfg)
+    stext = spec.read_text(encoding="utf-8") if spec.is_file() else ""
+    blob = json.dumps([text, stext, core.measurement_fingerprint(root, cfg)], sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _context(msg: str) -> int:
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}))
+    return 0
+
+
+def _show_person(msg: str, extra: dict = None) -> int:
+    out = {"decision": "block", "reason": msg,
+           "hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "suppressOriginalPrompt": True}}
+    if extra:
+        out.update(extra)
+    print(json.dumps(out))
+    return 0
+
+
+def handle(payload: dict) -> int:
+    prompt = payload.get("prompt") or ""
+    asks = APPROVE_RE.match(prompt)
+    confirms = CONFIRM_RE.match(prompt)
+    if not (asks or confirms):
+        return 0
+    root = core.find_root(payload.get("cwd")) or core.find_root()
+    if root is None:
+        return 0
+    cfg, st = core.load_config(root), core.load_state(root)
+    pt = core.is_pt(cfg)
+    if st.get("frozen"):
+        return 0
+    from .cli import freeze_preflight, freeze_lock  # late import: cli imports this module lazily too
+
+    if asks:
+        try:
+            freeze_preflight(root, cfg, st)
+        except LabError as e:
+            return _context(
+                "honestlab: the person typed 'approve', but the lab cannot be approved yet: "
+                f"{e}. Fix this, show the person the approval page again, and ask them to type "
+                + ("'aprovar'." if pt else "'approve'."))
+        code = f"{secrets.randbelow(10000):04d}"
+        salt = secrets.token_hex(8)
+        p = _pending_path(root)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        core.exclude_local(root)
+        expires = round(time.time() + TTL_SECONDS)
+        core.write_file(p, json.dumps({"salt": salt, "digest": _digest(code, salt, expires),
+                                       "expires": expires,
+                                       "snapshot": _snapshot(root, cfg)}))
+        page = (root / core.approval_rel(cfg)).read_text(encoding="utf-8").strip()
+        if pt:
+            msg = (f"honestlab: PARA APROVAR, ENVIE  sim {code}   (leia a página abaixo antes)\n\n"
+                   f"{page}\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\n"
+                   "Ao aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; "
+                   "o agente não poderá mudá-los depois.\n\n"
+                   f"Para aprovar, envie exatamente:  sim {code}\n"
+                   "(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa.")
+        else:
+            msg = (f"honestlab: TO APPROVE, SEND  yes {code}   (read the page below first)\n\n"
+                   f"{page}\n\n---\nThis is the real page, read from the file by honestlab (not by the agent).\n"
+                   "Approving locks the question, the measure, the data and the success rule; "
+                   "the agent cannot change them afterwards.\n\n"
+                   f"To approve, send exactly:  yes {code}\n"
+                   "(The code is valid for 15 minutes and the agent cannot see it.) To not approve, just keep talking.")
+        return _show_person(msg)
+
+    # confirmation
+    p = _pending_path(root)
+    try:
+        pend = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return 0  # "sim 1234" with nothing pending is an ordinary message
+    code = confirms.group(2)
+    if time.time() > pend.get("expires", 0):
+        p.unlink(missing_ok=True)
+        return _show_person("O código expirou. Envie 'aprovar' de novo." if pt
+                            else "The code expired. Send 'approve' again.")
+    if _digest(code, pend.get("salt", ""), float(pend.get("expires", 0))) != pend.get("digest"):
+        return _show_person("Código errado. Confira o código na mensagem de aprovação." if pt
+                            else "Wrong code. Check the code in the approval message.")
+    if _snapshot(root, cfg) != pend.get("snapshot"):
+        p.unlink()
+        return _show_person("A página ou o que é medido mudou depois que você a viu. Envie 'aprovar' de novo "
+                            "para ver a versão atual." if pt else
+                            "The page or what is measured changed after you saw it. Send 'approve' again "
+                            "to see the current version.")
+    p.unlink()
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf), core.lab_lock(root):
+            freeze_preflight(root, cfg, st)
+            n = freeze_lock(root, cfg, st, "chat", evidence={
+                "transcript_path": payload.get("transcript_path"),
+                "session_id": payload.get("session_id"),
+                "prompt_sha256": hashlib.sha256(prompt.strip().encode()).hexdigest()})
+    except LabError as e:
+        return _show_person(("Não foi possível trancar: " if pt else "Could not lock: ") + str(e))
+    note = (f"honestlab: the person approved in the chat. The lab is frozen ({n} protected files are "
+            "hash-locked and read-only). Tell the person in one sentence that it is approved and locked, "
+            "then continue with the experiments (phase 4 of the honestlab skill). "
+            + ("The person speaks Portuguese: reply in Portuguese." if pt else "Reply in the person's language."))
+    print(json.dumps({"systemMessage": ("Aprovado e trancado pelo honestlab." if pt else
+                                        "Approved and locked by honestlab."),
+                      "hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": note}}))
+    return 0

@@ -1,0 +1,21 @@
+{
+  "baseline": 13.308766859344894,
+  "baseline_holdout": 19.601092896174862,
+  "best": 9.960792478949138,
+  "best_id": "E0004",
+  "fingerprint": "e40db5294dcef2b4bfc4ad6be4a280e6f62780ae6545f2735996670d70901353",
+  "freeze_commit": "bc9a973b91f8ead73aa5b7388d7218827b3fdc19",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "4d3348ca6f875cb201dc666b48de68792a51ea3bed26d1905a06dc9b3dd2d22f",
+    "SPEC.md": "6c4e2d24cce31791b8d8375085a6f5d06768247cb1efcce50d97b80367623c64",
+    "data/dev/dev.csv": "90cc2480dfa2d5bb505e3f8a66ef5305a8ca8b0f87b55861b25b8f810a1c10c1",
+    "data/holdout/kept.csv": "f9be4ebb743870ef4ba6110aed4f2143349b1d0f30d7f7e22fc925200843e289",
+    "eval/evaluate.py": "98ae5b644ea22c412f2982e25f78406ccc459186822a246dc001b50479769003",
+    "lab.json": "8dae155ddfae87722e123f9df79d5e891a6f4140d242614b5c2a5023502a08ef"
+  },
+  "holdout_runs": 1,
+  "next_exp": 6,
+  "next_finding": 2,
+  "references": {}
+}

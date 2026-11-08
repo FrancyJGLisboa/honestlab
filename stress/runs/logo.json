@@ -1,0 +1,131 @@
+{
+  "scenario": "logo",
+  "version": "stress",
+  "expect": "no_fit",
+  "completed": false,
+  "human_messages": 13,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 2.5,
+  "lab": {
+    "frozen": false,
+    "experiments": 0,
+    "references": []
+  },
+  "report_file": false,
+  "plain_verdict": false,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: quero descobrir qual dos meus dois logotipos novos é mais bonito e vai atrair mais clientes"
+    },
+    {
+      "role": "agent",
+      "seconds": 16,
+      "text": "Preparei a pasta do projeto. Achei só uma anotação sua: \"um croissant dourado ou um trigo azul\". Não há imagens dos logotipos.\n\nEu não consigo medir \"mais bonito\" nem \"atrai mais clientes\" sozinho, porque isso depende da reação de pessoas de verdade. O que dá para fazer é montar um teste justo, com regra definida antes e resultado contado depois. Para isso, preciso de algumas respostas curtas:\n\n1. **Os arquivos dos dois logotipos existem?** Se sim, onde estão (PNG, SVG...)? Se não, quer que eu crie uma versão de cada a partir das ideias?\n2. **Qual é o negócio?** Padaria, café, marca de produtos? Quem é o cliente típico?\n3. **Que respostas de pessoas você já tem, ou consegue juntar?** Por exemplo, votos de clientes, enquetes em rede social, teste A/B no site ou cardápio. Quantas pessoas, mais ou menos?\n4. **O que conta como \"atrair mais clientes\"?** Escolha uma opção: mais votos na enquete, mais cliques, mais visitas ou mais vendas.\n5. **Qual diferença faria você ter certeza?** Por exemplo, um logotipo ganhar com 60% ou mais dos votos.\n\nSe não souber algumas respostas, diga \"pode escolher\" que eu escolho um padrão simples."
+    },
+    {
+      "role": "novice",
+      "text": "Não tenho os arquivos dos logotipos, só as duas ideias: um croissant dourado e um trigo azul. Pode criar uma versão de cada a partir dessas ideias?\n\nTenho uma padaria de bairro, e os clientes são moradores da região, famílias e gente que passa a caminho do trabalho. Não tenho nenhuma pesquisa nem dados de vendas. Posso perguntar para clientes no balcão e mostrar para amigos e família, talvez umas 30 a 50 pessoas.\n\nPara \"atrair mais clientes\", vale mais votos na enquete, né? Não sei qual diferença me daria certeza, pode escolher por mim."
+    },
+    {
+      "role": "agent",
+      "seconds": 32,
+      "text": "Os dois logotipos estão prontos como rascunho. Eu os desenhei com o nome fictício \"Padaria do Bairro\", para você trocar pelo nome real.\n\n- Croissant dourado: `/home/claude/honestlab/stress/runs/logo/logos/logo_croissant.png` (e `.svg`)\n- Trigo azul: `/home/claude/honestlab/stress/runs/logo/logos/logo_trigo.png` (e `.svg`)\n\nSão versões simples. Se quiser outro estilo ou o nome real, é só pedir, e depois vale retocar com um designer. Se você mexer neles, faça isso antes de começar a votação, para os dois ficarem iguais para todos os votantes.\n\n**Parei antes de montar o contrato do honestlab.** O contrato exige uma medida que um programa calcule sozinho, e esses votos ainda não existem. Também não faz sentido eu \"testar 15 variações\" de logotipo: a pergunta é só qual dos dois as pessoas preferem. Por isso proponho um teste de votação simples. O honestlab entra para registrar a regra antes e contar os votos depois, sem trapaça.\n\n**Como seria o teste (já escolhi os detalhes para você):**\n- Cada pessoa vê os dois logotipos lado a lado e escolhe um. Troque a ordem (esquerda e direita) de pessoa para pessoa, para a posição não influenciar.\n- Cada pessoa vota uma vez. Junte pelo menos 40 votos, misturando clientes do balcão com amigos e família.\n- Pergunte \"qual você mais gosta?\" e \"qual faria você querer entrar na padaria?\". Assim temos as duas coisas que você pediu: bonito e atrai.\n- **Regra de sucesso:** um logotipo só \"ganha\" se tiver 65% ou mais dos votos (cerca de 26 em 40) e a diferença não puder ser explicada pelo acaso. Se ficar mais perto de 50/50, o resultado é \"empate\". Isso também é uma resposta útil: escolha pelo que combina mais com a loja.\n\n**Limites que preciso que você saiba:**\n- Votos de amigos e família tendem a ser gentis. Dê mais peso aos votos de clientes do balcão.\n- Voto numa enquete mede preferência. Não prova que as vendas vão subir.\n\n**Preciso de uma decisão sua:** quer seguir assim? Se sim, anote cada voto numa planilha simples com três colunas: número da pessoa, logotipo escolhido (croissant ou trigo) e se é cliente do balcão ou conhecido. Quando tiver os votos, me passe a planilha. Aí eu monto a página de aprovação, que você aprova, e eu conto os votos pela regra combinada."
+    },
+    {
+      "role": "novice",
+      "text": "Pode ser, vamos seguir assim. Só não entendi uma coisa: o que quer dizer \"a diferença não puder ser explicada pelo acaso\"? Pode explicar simples ou escolher por mim? Vou anotar os votos na planilha com as três colunas."
+    },
+    {
+      "role": "agent",
+      "seconds": 6,
+      "text": "**Explicação simples:**\n\nImagine que as pessoas não ligam para o logotipo e escolhem no cara ou coroa. Com 40 votos, quase nunca sai exatamente 20 a 20. Pode sair 23 a 17 só por sorte, e isso não quer dizer que um logotipo seja melhor.\n\n\"A diferença não pode ser explicada pelo acaso\" quer dizer que o resultado ficou tão desigual que seria muito raro sair assim no cara ou coroa. Pense numa moeda que dá cara 28 vezes em 40. Dá para desconfiar que a moeda está viciada. Com 23 em 40, não dá.\n\n**O que escolhi por você:** o logotipo só ganha se tiver 65% ou mais dos votos e passar nessa checagem. Com 40 votos, isso é mais ou menos 26 a 14 ou mais. Se você juntar mais votos, a checagem fica mais fácil de passar. Por isso, quanto mais gente votar, melhor.\n\nSe o resultado ficar entre os dois, por exemplo 24 a 16, eu digo \"empate\", sem inventar um vencedor. O voto dos clientes do balcão vai ser mostrado separado, porque eles pesam mais para a decisão.\n\n**Próximo passo:** quando a planilha estiver pronta, mande o arquivo (CSV ou Excel) com as três colunas. Se o arquivo ficar fora desta pasta, me diga o caminho. Aí eu monto a página de aprovação para você aprovar."
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir. Ainda não tenho a planilha pronta, mas posso montar uma com os votos assim que o pessoal votar. Quais são as três colunas mesmo?"
+    },
+    {
+      "role": "agent",
+      "seconds": 5,
+      "text": "As três colunas são:\n\n1. **pessoa**: um número para cada votante (1, 2, 3...).\n2. **voto**: o logotipo escolhido, escrito sempre como `croissant` ou `trigo`.\n3. **tipo**: `cliente` (quem você abordou no balcão) ou `conhecido` (amigo ou família).\n\nExemplo:\n\n```\npessoa,voto,tipo\n1,croissant,cliente\n2,trigo,conhecido\n3,trigo,cliente\n```\n\nAlgumas dicas para a votação ficar justa:\n- Mostre os dois logotipos lado a lado e troque a posição de pessoa para pessoa, para a ordem não influenciar.\n- Cada pessoa vota só uma vez.\n- Não conte qual você prefere antes de a pessoa votar.\n- Salve como CSV, ou como Excel se for mais fácil. Os dois servem.\n\nQuando os votos estiverem anotados, mande o arquivo, ou o caminho dele se estiver fora desta pasta. Aí eu monto a página de aprovação para você aprovar antes de eu contar. Eu não consigo avançar sem os votos, então fico aguardando."
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir. Vou anotar os votos numa planilha com essas três colunas e te mando o arquivo quando terminar."
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "Combinado. Fico aguardando o arquivo. Quando você tiver os votos, é só me mandar o CSV ou a planilha, ou o caminho dela se estiver fora desta pasta.\n\nAssim que chegar, eu monto a página de aprovação com a regra combinada: 65% dos votos ou mais, mais a checagem do acaso. Você aprova, e só depois eu conto os votos.\n\nBoa votação!"
+    },
+    {
+      "role": "novice",
+      "text": "Ainda não tenho o arquivo com os votos, mas é bem simples: vou pedir pros meus clientes votarem e depois te mando. Pode seguir montando a página de aprovação com essa regra de 65% ou mais."
+    },
+    {
+      "role": "agent",
+      "seconds": 24,
+      "text": "Escrevi o rascunho da página de aprovação em `/home/claude/honestlab/stress/runs/logo/APPROVAL.md`. Ainda não dá para aprovar: o honestlab só tranca o contrato quando existe o arquivo de votos. Por isso, o contrato completo (a medida, o contador dos votos e a medição inicial) eu monto quando você me mandar a planilha.\n\n**Resumo do que está no rascunho:**\n- **Pergunta:** croissant dourado ou trigo azul, qual a clientela prefere?\n- **Como medimos:** cada pessoa vota uma vez, com a ordem dos logotipos trocada de pessoa para pessoa.\n- **Sucesso:** um logotipo só ganha se tiver 65% ou mais dos votos e a diferença passar na checagem do acaso.\n- **Empate:** qualquer outro resultado conta como empate, e aí você escolhe pelo gosto e pelo estilo da loja.\n- **Limites:** amigos e família votam com gentileza, então mostro os clientes do balcão separados, e voto na enquete não prova que as vendas vão subir.\n\n**Uma correção ao que eu disse antes:** com 40 votos, 26 a 14 não basta. Esse placar ainda poderia ser sorte, e a checagem só passa com **27 votos ou mais**. Para outros tamanhos de amostra:\n\n| Votos | Ganhos necessários |\n|---|---|\n| 30 | 21 |\n| 40 | 27 |\n| 50 | 33 |\n\n**Um pedido:** decida quantos votos vai coletar antes de começar, no mínimo 40, e pare ali. Se você parar quando o placar estiver a favor de um deles, o resultado perde a validade.\n\nQuando a planilha estiver pronta, me mande o arquivo, ou o caminho dele se estiver fora desta pasta."
+    },
+    {
+      "role": "novice",
+      "text": "Ainda não tenho a planilha, porque ainda não coletei os votos. Vou perguntar para uns 40 clientes no balcão e depois te mando. Pode deixar o rascunho como está, por enquanto."
+    },
+    {
+      "role": "agent",
+      "seconds": 4,
+      "text": "Combinado, deixo o rascunho como está.\n\nResumo do combinado:\n- **Votos:** 40 clientes no balcão, cada um votando uma vez, com a posição dos logotipos trocada de pessoa para pessoa.\n- **Regra:** um logotipo só ganha com 27 votos ou mais em 40 (pelo menos 65% e passando na checagem do acaso). Qualquer outro placar é empate.\n- **Quantidade fixa:** pare nos 40. Se o placar parecer decidido antes, não pare cedo.\n- **Planilha:** três colunas, `pessoa`, `voto` (`croissant` ou `trigo`) e `tipo` (`cliente` ou `conhecido`). Como todos serão do balcão, a coluna `tipo` pode ser `cliente` em todas as linhas.\n\nQuando terminar, me mande o arquivo, ou o caminho dele se estiver fora desta pasta. Aí eu monto o contrato, você aprova e eu conto os votos.\n\nBoa coleta!"
+    },
+    {
+      "role": "novice",
+      "text": "Ótimo, entendi tudo. Vou coletar os 40 votos no balcão e preencher a planilha. Quando terminar, te mando o arquivo."
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "Ótimo, fico aguardando. Quando os 40 votos estiverem na planilha, me mande o arquivo, ou o caminho dele se estiver fora desta pasta.\n\nBoa coleta!"
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir. Vou pedir os 40 votos aos meus clientes e te aviso quando a planilha estiver pronta."
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "Perfeito, não tenho mais nada a fazer até a planilha chegar. Os logotipos, a regra e o rascunho de aprovação já estão prontos na pasta.\n\nQuando terminar os 40 votos, me avise e mande o arquivo, ou o caminho dele se estiver fora desta pasta."
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir. Vou pedir para 40 clientes votarem e depois te mando a planilha."
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "Está tudo pronto do meu lado, e não há mais nada que eu possa adiantar sem os votos. Quando os 40 votos estiverem na planilha, mande o arquivo, ou o caminho dele se estiver fora desta pasta."
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir. Quando eu tiver os 40 votos na planilha, eu te mando o arquivo."
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "Certo. Fico aguardando a planilha com os 40 votos. Quando estiver pronta, mande o arquivo, ou o caminho dele se estiver fora desta pasta, e eu sigo para a aprovação."
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir"
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "Não tenho como seguir sem a planilha. Estou parado só esperando os 40 votos. Quando você tiver coletado, mande o arquivo, ou o caminho dele se estiver fora desta pasta, e eu monto o contrato para você aprovar."
+    },
+    {
+      "role": "novice",
+      "text": "ok, pode seguir"
+    }
+  ]
+}

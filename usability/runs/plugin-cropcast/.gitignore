@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+
+# honestlab
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+.honestlab/local.json
+.honestlab/guard.log
+.honestlab/pending_approval.json
+.DS_Store

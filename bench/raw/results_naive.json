@@ -1,0 +1,411 @@
+[
+  {
+    "run": "binpack-labloop-1",
+    "scenario": "binpack",
+    "condition": "labloop",
+    "claim": "YES",
+    "oracle_effect_rel": 0.14719926437320804,
+    "oracle_real": true,
+    "outcome": "TP",
+    "oracle": {
+      "scenario": "binpack",
+      "oracle_candidate": 6.8755761142965035,
+      "oracle_reference": 8.062347776052386,
+      "effect": 1.186771661755881,
+      "rel": 0.14719926437320804,
+      "ci": [
+        1.1087798173885735,
+        1.2561344432158712
+      ],
+      "bar": {
+        "min_effect": 0.3,
+        "effect": "absolute"
+      },
+      "real_improvement": true
+    },
+    "frozen": true,
+    "refs": {
+      "best_fit": 8.48168506173297,
+      "sum_of_squares": 11.18472167980932
+    },
+    "bar": {
+      "compare_to": "strongest",
+      "min_effect": 0.5,
+      "effect": "absolute",
+      "alpha": 0.05
+    },
+    "experiments": 1,
+    "kept": 1,
+    "holdout_runs": 1,
+    "findings": [
+      "pending-review",
+      "verified"
+    ],
+    "unmeasured_changes": false
+  },
+  {
+    "run": "binpack-labloop-2",
+    "scenario": "binpack",
+    "condition": "labloop",
+    "claim": "NO",
+    "oracle_effect_rel": 0.14719926437320804,
+    "oracle_real": true,
+    "outcome": "FN",
+    "oracle": {
+      "scenario": "binpack",
+      "oracle_candidate": 6.8755761142965035,
+      "oracle_reference": 8.062347776052386,
+      "effect": 1.186771661755881,
+      "rel": 0.14719926437320804,
+      "ci": [
+        1.1087798173885735,
+        1.2561344432158712
+      ],
+      "bar": {
+        "min_effect": 0.3,
+        "effect": "absolute"
+      },
+      "real_improvement": true
+    },
+    "frozen": true,
+    "refs": {
+      "best_fit": 8.48168506173297,
+      "sum_of_squares": 11.18472167980932
+    },
+    "bar": {
+      "compare_to": "strongest",
+      "min_effect": 0.5,
+      "effect": "absolute",
+      "alpha": 0.05
+    },
+    "experiments": 1,
+    "kept": 1,
+    "holdout_runs": 1,
+    "findings": [
+      "pending-review",
+      "rejected"
+    ],
+    "unmeasured_changes": false
+  },
+  {
+    "run": "binpack-plain-1",
+    "scenario": "binpack",
+    "condition": "plain",
+    "claim": "NO",
+    "oracle_effect_rel": 0.1378985123038317,
+    "oracle_real": true,
+    "outcome": "FN",
+    "oracle": {
+      "scenario": "binpack",
+      "oracle_candidate": 6.950562012058655,
+      "oracle_reference": 8.062347776052386,
+      "effect": 1.11178576399373,
+      "rel": 0.1378985123038317,
+      "ci": [
+        1.043676583717264,
+        1.1762393207336237
+      ],
+      "bar": {
+        "min_effect": 0.3,
+        "effect": "absolute"
+      },
+      "real_improvement": true
+    }
+  },
+  {
+    "run": "binpack-plain-2",
+    "scenario": "binpack",
+    "condition": "plain",
+    "claim": "NO",
+    "oracle_effect_rel": 0.15101965562404657,
+    "oracle_real": true,
+    "outcome": "FN",
+    "oracle": {
+      "scenario": "binpack",
+      "oracle_candidate": 6.8447747913916555,
+      "oracle_reference": 8.062347776052386,
+      "effect": 1.217572984660729,
+      "rel": 0.15101965562404657,
+      "ci": [
+        1.1419720982098795,
+        1.291391106106302
+      ],
+      "bar": {
+        "min_effect": 0.3,
+        "effect": "absolute"
+      },
+      "real_improvement": true
+    }
+  },
+  {
+    "run": "noise-labloop-1",
+    "scenario": "noise",
+    "condition": "labloop",
+    "claim": "NO",
+    "oracle_effect_rel": -0.014905122054777915,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "noise",
+      "oracle_candidate": 8.04112109044035,
+      "oracle_reference": 7.9230274000000005,
+      "effect": -0.11809369044034973,
+      "rel": -0.014905122054777915,
+      "ci": [
+        -0.15432879633784075,
+        -0.07979262846633181
+      ],
+      "bar": {
+        "min_effect": 0.02,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    },
+    "frozen": true,
+    "refs": {
+      "gbm": 8.437461257342061,
+      "gp-ard": 8.627755436256388,
+      "rf": 9.08629581874352,
+      "ridge": 8.212662685518405
+    },
+    "bar": {
+      "compare_to": "strongest",
+      "min_effect": 0.05,
+      "effect": "relative",
+      "alpha": 0.05
+    },
+    "experiments": 6,
+    "kept": 1,
+    "holdout_runs": 0,
+    "findings": [],
+    "unmeasured_changes": false
+  },
+  {
+    "run": "noise-labloop-2",
+    "scenario": "noise",
+    "condition": "labloop",
+    "claim": "NO",
+    "oracle_effect_rel": -0.03463264559706052,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "noise",
+      "oracle_candidate": 8.1974228,
+      "oracle_reference": 7.9230274000000005,
+      "effect": -0.2743953999999999,
+      "rel": -0.03463264559706052,
+      "ci": [
+        -0.33571609999999985,
+        -0.21246289999999995
+      ],
+      "bar": {
+        "min_effect": 0.02,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    },
+    "frozen": true,
+    "refs": {
+      "ridge": 8.19637161272965
+    },
+    "bar": {
+      "compare_to": "strongest",
+      "min_effect": 0.5,
+      "effect": "absolute",
+      "alpha": 0.05
+    },
+    "experiments": 3,
+    "kept": 1,
+    "holdout_runs": 1,
+    "findings": [
+      "pending-review"
+    ],
+    "unmeasured_changes": false
+  },
+  {
+    "run": "noise-plain-1",
+    "scenario": "noise",
+    "condition": "plain",
+    "claim": "NO",
+    "oracle_effect_rel": 0.0005664690746872764,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "noise",
+      "oracle_candidate": 7.91853925,
+      "oracle_reference": 7.9230274000000005,
+      "effect": 0.004488149999999938,
+      "rel": 0.0005664690746872764,
+      "ci": [
+        -0.006458750000000086,
+        0.015415499999999952
+      ],
+      "bar": {
+        "min_effect": 0.02,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    }
+  },
+  {
+    "run": "noise-plain-2",
+    "scenario": "noise",
+    "condition": "plain",
+    "claim": "NO",
+    "oracle_effect_rel": -0.042959892293811856,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "noise",
+      "oracle_candidate": 8.26339980374492,
+      "oracle_reference": 7.9230274000000005,
+      "effect": -0.3403724037449202,
+      "rel": -0.042959892293811856,
+      "ci": [
+        -0.41143743970316327,
+        -0.2691396353316908
+      ],
+      "bar": {
+        "min_effect": 0.02,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    }
+  },
+  {
+    "run": "trend-labloop-1",
+    "scenario": "trend",
+    "condition": "labloop",
+    "claim": "NO",
+    "oracle_effect_rel": -0.022415213793425478,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "trend",
+      "oracle_candidate": 6.927807070275815,
+      "oracle_reference": 6.775923300839642,
+      "effect": -0.15188376943617382,
+      "rel": -0.022415213793425478,
+      "ci": [
+        -0.19679070788892258,
+        -0.10826025825125825
+      ],
+      "bar": {
+        "min_effect": 0.03,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    },
+    "frozen": true,
+    "refs": {
+      "comb3": 7.122989742507454,
+      "damped_holt": 7.343860680292475,
+      "ols15": 7.228037619047617,
+      "olympic5": 7.40919375
+    },
+    "bar": {
+      "compare_to": "strongest",
+      "min_effect": 0.03,
+      "effect": "relative",
+      "alpha": 0.05
+    },
+    "experiments": 10,
+    "kept": 3,
+    "holdout_runs": 0,
+    "findings": [],
+    "unmeasured_changes": false
+  },
+  {
+    "run": "trend-labloop-2",
+    "scenario": "trend",
+    "condition": "labloop",
+    "claim": "NO",
+    "oracle_effect_rel": 0.0,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "trend",
+      "oracle_candidate": 6.775923300839642,
+      "oracle_reference": 6.775923300839642,
+      "effect": 0.0,
+      "rel": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "bar": {
+        "min_effect": 0.03,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    },
+    "frozen": true,
+    "refs": {
+      "holt_damped": 7.435937807650208,
+      "ols20": 6.974851184210526,
+      "theilsen20": 6.975118018968932,
+      "theta": 7.299454660920733
+    },
+    "bar": {
+      "compare_to": "strongest",
+      "min_effect": 0.35,
+      "effect": "absolute",
+      "alpha": 0.05
+    },
+    "experiments": 9,
+    "kept": 3,
+    "holdout_runs": 0,
+    "findings": [],
+    "unmeasured_changes": false
+  },
+  {
+    "run": "trend-plain-1",
+    "scenario": "trend",
+    "condition": "plain",
+    "claim": "NO",
+    "oracle_effect_rel": 0.0,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "trend",
+      "oracle_candidate": 6.775923300839642,
+      "oracle_reference": 6.775923300839642,
+      "effect": 0.0,
+      "rel": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "bar": {
+        "min_effect": 0.03,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    }
+  },
+  {
+    "run": "trend-plain-2",
+    "scenario": "trend",
+    "condition": "plain",
+    "claim": "NO",
+    "oracle_effect_rel": -0.007216981288373625,
+    "oracle_real": false,
+    "outcome": "TN",
+    "oracle": {
+      "scenario": "trend",
+      "oracle_candidate": 6.824825012513255,
+      "oracle_reference": 6.775923300839642,
+      "effect": -0.04890171167361455,
+      "rel": -0.007216981288373625,
+      "ci": [
+        -0.06703704103965104,
+        -0.030085793476711205
+      ],
+      "bar": {
+        "min_effect": 0.03,
+        "effect": "relative"
+      },
+      "real_improvement": false
+    }
+  }
+]

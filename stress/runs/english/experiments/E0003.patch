@@ -1,0 +1,13 @@
+diff --git a/src/forecast.py b/src/forecast.py
+index 4f4635d..1a5948e 100644
+--- a/src/forecast.py
++++ b/src/forecast.py
+@@ -1,7 +1,7 @@
+ def predict(history, target):
+     """Same-weekday mean of last 4 NON-release days, times a release lift if tomorrow is a release day."""
+     wd, rel = target[1], target[2]
+-    base = [h[4] for h in history if h[1] == wd and h[2] == 0][-4:]
++    base = [h[4] for h in history if h[1] == wd and h[2] == 0][-10:]
+     level = sum(base) / len(base)
+     if not rel:
+         return level

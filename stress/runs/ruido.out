@@ -1,0 +1,1 @@
+{"scenario": "ruido", "version": "stress", "expect": "not_found", "completed": true, "human_messages": 4, "human_commands": 0, "confused": 0, "minutes": 4.2, "lab": {"frozen": true, "experiments": 15, "references": ["media_recente", "semana_passada", "suavizacao"]}, "report_file": true, "plain_verdict": true}

@@ -1,0 +1,34 @@
+{
+  "baseline": 34.1170431211499,
+  "baseline_holdout": 38.377049180327866,
+  "best": 12.036882805899571,
+  "best_id": "E0003",
+  "fingerprint": "bf737b279a8ba4f751a9a75f927a7cf072c03a587c8a5d80f9d37376b19175aa",
+  "freeze_commit": "bb378e3e3ff5e036387b593c8549eee594bfc449",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "23cc4dde67380903da2de528c2562505af8a13785a3d6ad6ea02d6d5243dae97",
+    "SPEC.md": "625fd68c3b4afcde9f151b4ecd1feeffb287996b34cb99fd48d2e8bea44b03ce",
+    "data/dev/vendas_dev.csv": "76c02525a90e2d677a744b25c07d6a237ac7f41791ad543d44259ad132b10973",
+    "data/holdout/vendas.csv": "d4993172545904ebb3bba229352c5edbf2c4d206a0ca9129fb6b75c920f7400a",
+    "eval/evaluate.py": "f63db167f63c9fd3377a2a9119517cd75ca4edd49dd1188a4bc6ae592f61d312",
+    "lab.json": "e68e484a230714f49b2ec3bb83739f770fbacfc578642a4fa9b7d39ce07b45d1",
+    "references/media_dia_semana/src/model.py": "4279307516c00a147945062ee6cd7f5b937545717b5f36a596a75620366baabb",
+    "references/so_temperatura/src/model.py": "a5db2a0f4acc6c11d244a534fe95f6b5365153c515a7fdc1a7c463d78dad0832"
+  },
+  "holdout_runs": 1,
+  "next_exp": 4,
+  "next_finding": 2,
+  "references": {
+    "media_dia_semana": {
+      "description": "m\u00e9dia dos \u00faltimos 8 mesmos dias da semana, sem tempo",
+      "dev": 29.50924024640657,
+      "holdout": 33.29644808743169
+    },
+    "so_temperatura": {
+      "description": "reta de vendas contra temperatura, \u00faltimos 90 dias (ideia de livro-texto)",
+      "dev": 17.806555915929156,
+      "holdout": 19.569486790158255
+    }
+  }
+}

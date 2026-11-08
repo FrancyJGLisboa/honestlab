@@ -1,0 +1,102 @@
+{
+  "settings": {
+    "n_dev": 200,
+    "n_holdout": 100,
+    "experiments": 15,
+    "holdout_budget": 3,
+    "finding": {
+      "min_effect": 0.1,
+      "effect": "relative",
+      "alpha": 0.05
+    },
+    "keep_alpha": 0.1,
+    "bootstrap": 400,
+    "seed": 2026
+  },
+  "results": [
+    {
+      "scenario": "no effect at all, quiet measurement",
+      "mean_effect": 0.0,
+      "spread": 0.0,
+      "noise": 1.5,
+      "labs": 400,
+      "found_one_look": 0.0,
+      "false_found_one_look": 0.0,
+      "found_three_looks": 0.0,
+      "false_found_three_looks": 0.0,
+      "a_change_truly_reaches_bar": 0.0
+    },
+    {
+      "scenario": "no effect at all, noisy measurement",
+      "mean_effect": 0.0,
+      "spread": 0.0,
+      "noise": 6.0,
+      "labs": 400,
+      "found_one_look": 0.0,
+      "false_found_one_look": 0.0,
+      "found_three_looks": 0.0,
+      "false_found_three_looks": 0.0,
+      "a_change_truly_reaches_bar": 0.0
+    },
+    {
+      "scenario": "small effects (mean 5%), noisy",
+      "mean_effect": 0.05,
+      "spread": 0.03,
+      "noise": 6.0,
+      "labs": 400,
+      "found_one_look": 0.105,
+      "false_found_one_look": 0.035,
+      "found_three_looks": 0.1525,
+      "false_found_three_looks": 0.0575,
+      "a_change_truly_reaches_bar": 0.555
+    },
+    {
+      "scenario": "effects just below the bar (8%), noisy",
+      "mean_effect": 0.08,
+      "spread": 0.0,
+      "noise": 6.0,
+      "labs": 400,
+      "found_one_look": 0.0875,
+      "false_found_one_look": 0.0875,
+      "found_three_looks": 0.145,
+      "false_found_three_looks": 0.145,
+      "a_change_truly_reaches_bar": 0.0
+    },
+    {
+      "scenario": "effect at the bar (10%), noisy",
+      "mean_effect": 0.1,
+      "spread": 0.0,
+      "noise": 6.0,
+      "labs": 400,
+      "found_one_look": 0.1675,
+      "false_found_one_look": 0.0,
+      "found_three_looks": 0.39,
+      "false_found_three_looks": 0.0,
+      "a_change_truly_reaches_bar": 1.0
+    },
+    {
+      "scenario": "effect above the bar (15%), noisy",
+      "mean_effect": 0.15,
+      "spread": 0.0,
+      "noise": 6.0,
+      "labs": 400,
+      "found_one_look": 0.46,
+      "false_found_one_look": 0.0,
+      "found_three_looks": 0.835,
+      "false_found_three_looks": 0.0,
+      "a_change_truly_reaches_bar": 1.0
+    },
+    {
+      "scenario": "effect well above the bar (20%), quiet",
+      "mean_effect": 0.2,
+      "spread": 0.0,
+      "noise": 1.5,
+      "labs": 400,
+      "found_one_look": 1.0,
+      "false_found_one_look": 0.0,
+      "found_three_looks": 1.0,
+      "false_found_three_looks": 0.0,
+      "a_change_truly_reaches_bar": 1.0
+    }
+  ]
+}

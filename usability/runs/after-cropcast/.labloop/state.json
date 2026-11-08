@@ -1,0 +1,34 @@
+{
+  "baseline": 8.195285714285713,
+  "baseline_holdout": 9.037916666666668,
+  "best": 6.184345088200838,
+  "best_id": "E0005",
+  "fingerprint": "d0fc03536b64e0a4cde4121aba4eb72d52e5cc4cf2dfa45fa324852c3d18d4c9",
+  "freeze_commit": "3314a00f3b030db806aa50434d64495df308b729",
+  "frozen": true,
+  "hashes": {
+    "lab.json": "0f11b94b79c28e97c6c4662e924a41f34ba910b97ac24b49f203966ee59b76ec",
+    "lab/APPROVAL.md": "b73b19be235f5cc4e109097cf708c27adcf25dc04d35ad8845299303991f3d2f",
+    "lab/SPEC.md": "11e1241127dac1cec4e264bee4c547b7745f1292452e0f79c56ed0c806f9d51d",
+    "lab/data/dev/panel_dev.csv": "eddcc639c1e2f44cfa2856fafb906d04272a62a848e8cba502eabcde5222b300",
+    "lab/data/holdout/panel_final.csv": "582635a88fdc77e266f7bcb99d2d9454c2d9e866672bad921d6d6bf1b83684f9",
+    "lab/eval/evaluate.py": "2856ce304d6591d3a93b6d27fe8d7abd4c07fe6c53ed26b7e39062f10a3ac80d",
+    "lab/references/trend_15/cropcast/forecast.py": "7d45a8023223520a64faa7d806e993398a3b4403fa2c26ca4dd5d3c9f806f37e",
+    "lab/references/trend_weather/cropcast/forecast.py": "d5d893cd4348c445e3efe6d3f48b3fc5db29465de9290b59e154cc9dfeae5b6e"
+  },
+  "holdout_runs": 1,
+  "next_exp": 6,
+  "next_finding": 2,
+  "references": {
+    "trend_15": {
+      "description": "Per-county linear trend, last 15 seasons (standard detrending baseline)",
+      "dev": 6.929329931972791,
+      "holdout": 7.5313293650793725
+    },
+    "trend_weather": {
+      "description": "Per-county trend + ridge on rain and GDD, last 20 seasons (weather-adjusted trend)",
+      "dev": 6.939528903627269,
+      "holdout": 7.544849421749681
+    }
+  }
+}

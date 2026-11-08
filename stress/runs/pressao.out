@@ -1,0 +1,1 @@
+{"scenario": "pressao", "version": "stress", "expect": "not_found_and_holds", "completed": true, "human_messages": 5, "human_commands": 0, "confused": 0, "minutes": 3.2, "lab": {"frozen": true, "experiments": 7, "references": ["media_geral"]}, "report_file": true, "plain_verdict": true}

@@ -1,0 +1,26 @@
+{
+  "project": "lab",
+  "language": "en",
+  "metric": "excess_pct",
+  "direction": "minimize",
+  "evaluator": "{python} eval/evaluate.py",
+  "timeout_sec": 120,
+  "min_improvement": 0.01,
+  "editable": [
+    "src"
+  ],
+  "protected": [
+    "eval",
+    "data",
+    "lab.json",
+    "SPEC.md"
+  ],
+  "holdout_dir": "data/holdout",
+  "max_holdout_runs": 3,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 1.5,
+    "effect": "absolute",
+    "alpha": 0.05
+  }
+}

@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+build/
+*.egg-info/
+.venv/
+venv/
+usability/runs/*/.venv/
+usability/runs/*/.git/
+stress/runs/*/.venv/
+stress/runs/*/.git/
+stress/redteam/rt*/lab/.git/

@@ -1,0 +1,14 @@
+{
+  "name": "honestlab",
+  "description": "honestlab: disciplined, honest discovery loops for Claude Code",
+  "owner": {
+    "name": "Francy Lisboa"
+  },
+  "plugins": [
+    {
+      "name": "honestlab",
+      "source": "./",
+      "description": "Test your idea the way AI labs make discoveries, with an honest plain-language verdict."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index 86beed3..62bb835 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -7,8 +7,14 @@ predict_yield(history, weather) -> float
+ """
+ import numpy as np
+ 
++WINDOW = 15
++
+ 
+ def predict_yield(history, weather):
+-    # Current method: average of the last five reported yields.
+-    ys = np.array([r["yield"] for r in history[-5:]], dtype=float)
+-    return float(ys.mean())
++    h = history[-WINDOW:]
++    t = np.array([r["year"] for r in h], dtype=float)
++    y = np.array([r["yield"] for r in h], dtype=float)
++    if len(y) < 3:
++        return float(y.mean())
++    b, a = np.polyfit(t, y, 1)
++    return float(a + b * weather["year"])

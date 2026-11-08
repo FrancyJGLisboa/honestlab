@@ -1,0 +1,16 @@
+diff --git a/src/model.py b/src/model.py
+index a0abc73..5549b85 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -6,8 +6,10 @@ HOURS = list(range(10, 23))
+ 
+ def feats(r):
+     h = r["hora"]
++    mo = int(r["data"][5:7])
+     return ([1.0, r["distancia_km"], r["chuva_mm"], 1.0 if r["chuva_mm"] > 0 else 0.0]
+-            + [1.0 if h == k else 0.0 for k in HOURS[1:]])
++            + [1.0 if h == k else 0.0 for k in HOURS[1:]]
++            + [1.0 if mo == k else 0.0 for k in range(2, 13)])
+ 
+ 
+ def solve(A, b):

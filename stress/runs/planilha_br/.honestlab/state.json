@@ -1,0 +1,34 @@
+{
+  "baseline": 11.241907344518221,
+  "baseline_holdout": 10.832409951200503,
+  "best": 4.846615668105433,
+  "best_id": "E0001",
+  "fingerprint": "46a9bf21ee6152c41c202740eb4158dbe47af4ab1cc801e844faac3ac21e8482",
+  "freeze_commit": "38a7cae0e4d1375f1bc7c4f83136e109412175e0",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "e97a84d96a05d42bec9934f3cc38a05ab821db83d2b81f4bc09c33dbaafa121e",
+    "SPEC.md": "2c5cda246ed5fe81e94857b415200826107f998d9c2c2214c62dca2050837f68",
+    "data/dev/entregas_dev.csv": "e2f1eda25a34913d55ebafc6abac379c9c86f049c5232936fb86e447fc222a2d",
+    "data/holdout/entregas_holdout.csv": "fc38d70f6dbd14e2544dc08d559e81d06895bf64c3960d5ea9f043e16f0c77ff",
+    "eval/evaluate.py": "9a5b59e33e115b40cd9394d896e7d6cf8e6e1e4dfabb7d011463eb7c313168f4",
+    "lab.json": "93ea8bb49bc1f24ef0f2939e89e7fc54dceaaf4d558bd6c63e84c484d46435fe",
+    "references/aditivo/src/model.py": "710d8e5f29252dbd6da40c323714fbe2b560669d278beef4fbe6b733a94fed35",
+    "references/mediana/src/model.py": "622a153335a4e92d1869a2218b4f651588d1eee220bca23890adde68b3882238"
+  },
+  "holdout_runs": 0,
+  "next_exp": 9,
+  "next_finding": 1,
+  "references": {
+    "aditivo": {
+      "description": "Modelo aditivo: dist\u00e2ncia + chuva + efeito da hora (regress\u00e3o cl\u00e1ssica)",
+      "dev": 4.845556487707182,
+      "holdout": 4.658767739532825
+    },
+    "mediana": {
+      "description": "Prometer sempre a mediana",
+      "dev": 11.234254143646409,
+      "holdout": 10.832786885245902
+    }
+  }
+}

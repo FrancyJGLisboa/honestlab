@@ -1,0 +1,23 @@
+diff --git a/src/predict.py b/src/predict.py
+index 574a416..93f42d2 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,8 +1,13 @@
+-"""Método de hoje: média de vendas do mesmo dia da semana (todo o histórico)."""
++"""Regressão por mínimos quadrados: dummies de dia da semana + gasto do dia."""
++import numpy as np
++
++
++def _x(r):
++    d = [1.0 if r["dia_semana"] == k else 0.0 for k in range(7)]
++    return d + [r["gasto_anuncio"] / 100.0]
+ 
+ 
+ def predict(history, today):
+-    same = [r["vendas"] for r in history if r["dia_semana"] == today["dia_semana"]]
+-    if not same:
+-        same = [r["vendas"] for r in history]
+-    return sum(same) / len(same)
++    X = np.array([_x(r) for r in history]); y = np.array([r["vendas"] for r in history])
++    b = np.linalg.lstsq(X, y, rcond=None)[0]
++    return float(np.array(_x(today)) @ b)

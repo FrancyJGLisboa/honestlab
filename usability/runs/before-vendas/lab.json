@@ -1,0 +1,29 @@
+{
+  "project": "before-vendas",
+  "metric": "score",
+  "direction": "minimize",
+  "evaluator": "{python} eval/evaluate.py",
+  "timeout_sec": 600,
+  "min_improvement": 0.0,
+  "editable": [
+    "src"
+  ],
+  "protected": [
+    "eval",
+    "data",
+    "lab.json",
+    "SPEC.md"
+  ],
+  "holdout_dir": "data/holdout",
+  "max_holdout_runs": 3,
+  "repeats": 1,
+  "keep_rule": "significant",
+  "keep_alpha": 0.1,
+  "bootstrap": 2000,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 2.0,
+    "effect": "absolute",
+    "alpha": 0.05
+  }
+}

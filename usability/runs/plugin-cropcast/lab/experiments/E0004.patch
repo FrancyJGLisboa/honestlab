@@ -1,0 +1,20 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index 15c5982..d315731 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -9,10 +9,11 @@ import numpy as np
+ 
+ 
+ def predict_yield(history, weather):
+-    # Linear trend over the whole available history of the county.
+-    t = np.array([r["year"] for r in history], dtype=float)
++    # 85% full-history linear trend + 15% mean of last five yields.
++    t = np.array([r["year"] for r in history], dtype=float) - 2000.0
+     y = np.array([r["yield"] for r in history], dtype=float)
+     if len(y) < 4:
+         return float(y.mean())
+-    slope, intercept = np.polyfit(t, y, 1)
+-    return float(intercept + slope * weather["year"])
++    s, i = np.polyfit(t, y, 1)
++    trend = i + s * (weather["year"] - 2000.0)
++    return float(0.85 * trend + 0.15 * y[-5:].mean())

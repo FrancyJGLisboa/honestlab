@@ -1,0 +1,30 @@
+{
+  "project": "before-cropcast",
+  "lab_dir": "lab",
+  "metric": "score",
+  "direction": "minimize",
+  "evaluator": ".venv/bin/python lab/eval/evaluate.py",
+  "timeout_sec": 120,
+  "min_improvement": 0.0,
+  "editable": [
+    "cropcast/forecast.py"
+  ],
+  "protected": [
+    "lab/eval",
+    "lab/data",
+    "lab.json",
+    "lab/SPEC.md"
+  ],
+  "holdout_dir": "lab/data/holdout",
+  "max_holdout_runs": 3,
+  "repeats": 1,
+  "keep_rule": "significant",
+  "keep_alpha": 0.1,
+  "bootstrap": 2000,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 0.3,
+    "effect": "absolute",
+    "alpha": 0.05
+  }
+}

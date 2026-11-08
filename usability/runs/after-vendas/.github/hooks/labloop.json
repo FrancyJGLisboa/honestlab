@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "labloop guard pre",
+        "powershell": "labloop guard pre",
+        "timeoutSec": 30
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "bash": "labloop guard stop",
+        "powershell": "labloop guard stop",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

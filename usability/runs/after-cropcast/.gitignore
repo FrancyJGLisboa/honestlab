@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+
+# labloop
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+venv/
+.labloop/local.json
+.labloop/guard.log
+.DS_Store

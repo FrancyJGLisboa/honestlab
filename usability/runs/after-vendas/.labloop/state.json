@@ -1,0 +1,40 @@
+{
+  "baseline": 41.122832369942195,
+  "baseline_holdout": 52.77459016393443,
+  "best": 16.679317799505768,
+  "best_id": "E0001",
+  "fingerprint": "7ec7eed42660c7724f68b7ba53c7dc18bfbe0677bfcad8644c60d057ed353266",
+  "freeze_commit": "1bad19f7c45111f034c3f9a7535259a4cd3d6a36",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "0feacdbce387f6a0df4ca0c3c049b2e6166bd1788b420c34c4313109a7171080",
+    "SPEC.md": "87426dd2ae13547ea08cdb4597eb5afeac88a75c46c41eb8028e3c0f6a367f4f",
+    "data/dev/vendas_dev.csv": "76c02525a90e2d677a744b25c07d6a237ac7f41791ad543d44259ad132b10973",
+    "data/holdout/vendas_final.csv": "d4993172545904ebb3bba229352c5edbf2c4d206a0ca9129fb6b75c920f7400a",
+    "eval/evaluate.py": "34ef1288d59bb503e48d88b9e31291b2e6dbb69bfa68de750d14ce2ae4190096",
+    "lab.json": "705257c2ac9c9934340be4ce6e131329f23d1c21b9c6a73cce0af11c21313596",
+    "references/media_geral/src/model.py": "c4893b6b2b3948fbd63f36c3c6ff14002af1f180d356f691d2eb16a08ed87348",
+    "references/mediana_8_semanas/src/model.py": "60560329eee0349a16df6aac7377df82e5717b3d6a04f10b98bb8a1cef1289c8",
+    "references/temp_linear/src/model.py": "92bc363439066b35eb94d9b9ebd9a118c59844d4f9ed1bc61e2733c6e77a2e94"
+  },
+  "holdout_runs": 1,
+  "next_exp": 3,
+  "next_finding": 2,
+  "references": {
+    "media_geral": {
+      "description": "m\u00e9dia geral dos \u00faltimos 28 dias",
+      "dev": 39.14547206165703,
+      "holdout": 50.59894613583138
+    },
+    "mediana_8_semanas": {
+      "description": "mediana das \u00faltimas 8 vezes do mesmo dia da semana, sem tempo",
+      "dev": 41.77938342967245,
+      "holdout": 63.040983606557376
+    },
+    "temp_linear": {
+      "description": "n\u00edvel do dia da semana + reta na temperatura, \u00faltimos 90 dias",
+      "dev": 28.362255140472442,
+      "holdout": 27.46953369386056
+    }
+  }
+}

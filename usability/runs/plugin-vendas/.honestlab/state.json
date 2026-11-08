@@ -1,0 +1,52 @@
+{
+  "baseline": 28.251926782273603,
+  "baseline_holdout": 31.21311475409836,
+  "best": 11.770002136340795,
+  "best_id": "E0001",
+  "fingerprint": "19e05c3c5b2a0e2be49516b669868e04fe3150ed8ff792fad9e371c1fa161273",
+  "freeze_commit": "782cf354fdea6059f0fac3412d2d10c6f299d4bb",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "38c080f32b430a321f95eaa26d760154ec5bb788d1eedd33171961e148491588",
+    "SPEC.md": "e1775347c211ba95d0fa0d647f41802b6112bf3eb10dd333db760762419a9921",
+    "data/dev/vendas.csv": "97ef00c04f338657c8a51a219badc7ca3c406a8255234f5bd9bb40eed82d7c2f",
+    "data/holdout/vendas.csv": "559bd5534f9dbcd033ba96588f05df3e66505457e215a06ee2cd259ad02a3d5d",
+    "eval/evaluate.py": "9cb3e089256825a6139fa41ce6b7bc821cf9373827952114b70e8b81e8b72ce7",
+    "lab.json": "17bb3594d2c22ec605a268515bafa9c53c3fb10c496814029883783f695e6bdd",
+    "references/media28/src/predict.py": "22c6c4fdc91092a0c86806c407c9e9fc14d62705d7c4bc8025b1658e2d91c9da",
+    "references/media_atual/src/predict.py": "de5b7a6ba23461d998dc00efec8ee1dd264bbbc2d2cd33940709f1ba2b3594e1",
+    "references/mediana/src/predict.py": "f20600084b1d63d81d7be1a1d06bf9f7bdde23b05f78d1fc9a6d5d9ed31124f8",
+    "references/mediana_4/src/predict.py": "4c4bd55a5a53dc31feb85ada07817f83c567cbfb4df6ddd044961cd1a52d7246",
+    "references/ultima_semana/src/predict.py": "789e6ba0b07ff70c65e459907a8514e2f3772d3888f410afa185976f036e16b8"
+  },
+  "holdout_runs": 1,
+  "next_exp": 3,
+  "next_finding": 2,
+  "references": {
+    "media28": {
+      "description": "media28",
+      "dev": 26.796036333608587,
+      "holdout": 30.473067915690866
+    },
+    "media_atual": {
+      "description": "media_atual",
+      "dev": 28.251926782273603,
+      "holdout": 31.21311475409836
+    },
+    "mediana": {
+      "description": "mediana",
+      "dev": 71.27938342967245,
+      "holdout": 31.0327868852459
+    },
+    "mediana_4": {
+      "description": "mediana dos \u00faltimos 4 mesmos dias da semana (corrige 'mediana', que tinha erro de c\u00f3digo)",
+      "dev": 28.43256262042389,
+      "holdout": 31.961748633879782
+    },
+    "ultima_semana": {
+      "description": "ultima_semana",
+      "dev": 34.36801541425819,
+      "holdout": 38.377049180327866
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "baseline": 8.195286,
+  "baseline_holdout": 9.037917,
+  "best": 6.632139,
+  "best_id": "E0001",
+  "fingerprint": "6e5ff5208515eaeac54ec78464873794df7bf43ff54404b7d20f598d40b61dfb",
+  "freeze_commit": "45244044ab6bfe53c3ad67800414ec06c78ac4ed",
+  "frozen": true,
+  "hashes": {
+    "lab.json": "84f8f01e79c994bb238c37703f5959a617aaa816a2c79a42b79655a117f7ac61",
+    "lab/APPROVAL.md": "b09ff76bb83264634d2b158721e4dce4a03e7f0ddf86247ff6e27f7f86f2f521",
+    "lab/SPEC.md": "92ad079042d081360aa6ce181a43a6e95f4d2bf9cee1848f3b93f2f08544d24e",
+    "lab/data/dev/yields_dev.csv": "eddcc639c1e2f44cfa2856fafb906d04272a62a848e8cba502eabcde5222b300",
+    "lab/data/holdout/yields_holdout.csv": "28f8822a400b5070a74b758d78869bb9453b5e3b839219ce6548c864ed9024b8",
+    "lab/eval/evaluate.py": "df91da90f94e634086beee22b358467311bd2941253ca6a02302db011237a1f0",
+    "lab/references/olimpica5/cropcast/forecast.py": "bd8b96bf9bf1ecec5018cd85d3aa25fc2311c8d9d6b2084b62c9d6cbe0d79781",
+    "lab/references/suavizacao/cropcast/forecast.py": "686d5ecb524ed8438c65f5dbe6f2eaea5cb9f73b2c75971a469e8b847584adea",
+    "lab/references/trend15/cropcast/forecast.py": "ba22a32ecd94ad2d2c5d33597548b13e2e453afedf12ba11c2e3c9de3ebbad03"
+  },
+  "holdout_runs": 0,
+  "next_exp": 6,
+  "next_finding": 1,
+  "references": {
+    "olimpica5": {
+      "description": "M\u00e9dia ol\u00edmpica de 5 anos (sem maior e menor), usada em seguro agr\u00edcola; farmdoc daily 2026",
+      "dev": 8.230476,
+      "holdout": 8.958333
+    },
+    "suavizacao": {
+      "description": "Suaviza\u00e7\u00e3o exponencial alpha 0.4 (m\u00e9todo cl\u00e1ssico de s\u00e9ries temporais)",
+      "dev": 8.000936,
+      "holdout": 8.715585
+    },
+    "trend15": {
+      "description": "Tend\u00eancia linear por condado, \u00faltimos 15 anos (detrending padr\u00e3o)",
+      "dev": 6.92933,
+      "holdout": 7.531329
+    }
+  }
+}

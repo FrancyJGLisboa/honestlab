@@ -1,0 +1,33 @@
+diff --git a/src/model.py b/src/model.py
+index cfffee7..2d93b8a 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,11 +1,22 @@
+-"""Starting point = what the person does today: mean sales of the same weekday."""
++"""Weekday mean + log(spend) saturation effect."""
++import math
+ 
+ 
+-def predict(history, future):
++def _fit(history, feat):
+     sums, cnt = {}, {}
+     for r in history:
+-        d = r["dia_semana"]
+-        sums[d] = sums.get(d, 0) + r["vendas"]
+-        cnt[d] = cnt.get(d, 0) + 1
++        sums[r["dia_semana"]] = sums.get(r["dia_semana"], 0) + r["vendas"]
++        cnt[r["dia_semana"]] = cnt.get(r["dia_semana"], 0) + 1
+     overall = sum(r["vendas"] for r in history) / len(history)
+-    return [sums[f["dia_semana"]] / cnt[f["dia_semana"]] if f["dia_semana"] in cnt else overall for f in future]
++    mu = {d: sums[d] / cnt[d] for d in cnt}
++    xs = [feat(r["gasto"]) for r in history]
++    ys = [r["vendas"] - mu[r["dia_semana"]] for r in history]
++    mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
++    sxx = sum((x - mx) ** 2 for x in xs)
++    b = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sxx if sxx else 0.0
++    return mu, overall, mx, b
++
++
++def predict(history, future):
++    mu, overall, mx, b = _fit(history, math.log)
++    return [mu.get(f["dia_semana"], overall) + b * (math.log(f["gasto"]) - mx) for f in future]

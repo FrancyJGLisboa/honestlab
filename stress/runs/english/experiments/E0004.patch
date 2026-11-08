@@ -1,0 +1,29 @@
+diff --git a/src/forecast.py b/src/forecast.py
+index 1a5948e..6aef294 100644
+--- a/src/forecast.py
++++ b/src/forecast.py
+@@ -1,17 +1,16 @@
+ def predict(history, target):
+-    """Same-weekday mean of last 4 NON-release days, times a release lift if tomorrow is a release day."""
++    """Per-user ticket rate on the same weekday (last 10 non-release days) x latest users, release lift from past releases."""
+     wd, rel = target[1], target[2]
+-    base = [h[4] for h in history if h[1] == wd and h[2] == 0][-10:]
+-    level = sum(base) / len(base)
++    users_now = history[-1][3]
++    base = [h[4] / h[3] for h in history if h[1] == wd and h[2] == 0][-10:]
++    level = sum(base) / len(base) * users_now
+     if not rel:
+         return level
+-    r = [h for h in history if h[2] == 1][-12:]
+     n = [h for h in history if h[2] == 0]
+-    # ratio of release-day tickets to the typical level on that weekday type
+     ratios = []
+-    for h in r:
+-        same = [x[4] for x in n if x[1] == h[1] and x[0] < h[0]][-4:]
++    for h in [h for h in history if h[2] == 1][-12:]:
++        same = [x[4] / x[3] for x in n if x[1] == h[1] and x[0] < h[0]][-10:]
+         if same:
+-            ratios.append(h[4] / (sum(same) / len(same)))
++            ratios.append((h[4] / h[3]) / (sum(same) / len(same)))
+     lift = sum(ratios) / len(ratios) if ratios else 1.0
+     return level * lift

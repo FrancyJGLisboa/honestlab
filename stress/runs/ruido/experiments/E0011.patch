@@ -1,0 +1,14 @@
+diff --git a/src/predict.py b/src/predict.py
+index 13fc35d..bf292f9 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,5 +1,7 @@
+-"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
++"""Agrupada útil/fim de semana com média aparada (10% de cada ponta)."""
++import numpy as np
++from scipy import stats
+ def predict(history, today):
+     wk = lambda d: d >= 5
+     v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
+-    return sum(v) / len(v)
++    return float(stats.trim_mean(v, 0.1))

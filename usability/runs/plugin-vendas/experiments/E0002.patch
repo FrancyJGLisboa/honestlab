@@ -1,0 +1,13 @@
+diff --git a/src/predict.py b/src/predict.py
+index e1840fb..d7984cb 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -3,7 +3,7 @@
+ predict(history, today) -> número (vendas previstas, em unidades)
+ """
+ 
+-WINDOW = 120
++WINDOW = 270
+ RIDGE = 1.0
+ 
+ 

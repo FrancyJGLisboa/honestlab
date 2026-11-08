@@ -1,0 +1,59 @@
+{
+  "scenario": "vendas",
+  "version": "after",
+  "completed": true,
+  "human_messages": 3,
+  "human_commands": 1,
+  "confused": 0,
+  "minutes": 3.6,
+  "lab": {
+    "frozen": true,
+    "experiments": 2,
+    "references": [
+      "media_geral",
+      "mediana_8_semanas",
+      "temp_linear"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": false,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use labloop: acho que dá para prever as vendas de amanhã da minha sorveteria usando o tempo, melhor do que a média que eu uso hoje. Os dados estão no arquivo vendas.csv desta pasta."
+    },
+    {
+      "role": "agent",
+      "seconds": 16,
+      "text": "Entendi: você quer saber se o tempo (temperatura, chuva) ajuda a prever as vendas de amanhã melhor do que a média que você usa hoje.\n\nJá preparei a pasta. Antes de montar o teste, preciso de quatro respostas curtas:\n\n1. **Qual média você usa hoje?** Por exemplo, a média de todos os dias, dos últimos 7 ou 30 dias, ou do mesmo dia da semana.\n2. **Quanto melhor precisaria ficar para valer a pena?** Por exemplo, errar 10% menos. Se você não souber, eu escolho 10%.\n3. **Nos dados, o tempo de cada dia é o que realmente aconteceu ou é a previsão que você tinha na véspera?** Se for o que aconteceu, o teste fica um pouco otimista e eu aviso isso na página de aprovação.\n4. **Algum erro pesa mais para você?** Por exemplo, prever a menos e faltar sorvete é pior do que sobrar. Se não, eu uso o erro médio em unidades vendidas.\n\nPelo arquivo vejo 730 dias (2024 e 2025), com dia da semana, feriado, temperatura máxima, chuva e vendas. Vou guardar o final desse período para a prova final. Se você não souber alguma resposta, diga \"pode escolher\" que eu decido."
+    },
+    {
+      "role": "novice",
+      "text": "1. Uso a média das últimas 4 vezes do mesmo dia da semana (por exemplo, as últimas 4 segundas para prever a próxima segunda).\n2. Errar uns 10% menos já ajudaria.\n3. Não sei, pode escolher por mim.\n4. Prever a menos e faltar sorvete é pior, mas não sei dizer quanto. Pode escolher por mim."
+    },
+    {
+      "role": "agent",
+      "seconds": 106,
+      "text": "Está tudo pronto para a sua aprovação.\n\n**Já medi nos dados de desenvolvimento** (erro médio por dia, em unidades, com faltar sorvete pesando o dobro):\n\n| Método | Erro |\n|---|---|\n| Sua média das últimas 4 vezes do mesmo dia | 41,1 |\n| Média geral dos últimos 28 dias | 39,1 |\n| Dia da semana + reta simples com a temperatura | **28,4** |\n\nSó a temperatura, num método bem simples, já erra cerca de 31% menos que a sua média. Por isso o sucesso do teste será bater esse método com a temperatura por pelo menos 10%, ou seja, chegar a cerca de 25,5 ou menos. Se eu comparasse só com a sua média, o resultado pareceria melhor do que é.\n\n**Limitações:**\n- O tempo nos dados parece ser o que realmente aconteceu, não a previsão da véspera. Os resultados ficam otimistas.\n- O peso 2 para faltar sorvete foi escolha minha.\n\n**Para aprovar:**\n1. Abra um terminal nesta pasta.\n2. Digite `labloop freeze` e aperte Enter.\n3. Leia a página que aparecer e digite `sim`.\n\nTem que ser você, e não eu, para que ninguém consiga mudar a regra no meio do caminho. Depois me avise e eu começo as 15 tentativas."
+    },
+    {
+      "role": "novice",
+      "text": "RUN: labloop freeze"
+    },
+    {
+      "role": "human_command",
+      "command": "labloop freeze",
+      "exit": 0,
+      "output": "o):\r\n- Sua média das últimas 4 vezes do mesmo dia da semana: **41,1**\r\n- Média geral dos últimos 28 dias: 39,1\r\n- Mediana das últimas 8 vezes do mesmo dia da semana, sem tempo: 41,8\r\n- Dia da semana + uma reta simples com a temperatura: **28,4** (o melhor método conhecido)\r\n\r\nOu seja, só a temperatura já erra cerca de 31% menos que a sua média. Por isso a barra do sucesso fica mais alta (veja abaixo).\r\n\r\n**O que conta como sucesso:** errar pelo menos 10% menos que o melhor método conhecido (a reta com temperatura), não só que a sua média. Na prática, ficar em cerca de 25,5 ou menos. Tem que valer nos dados de desenvolvimento e de novo nos dados guardados, com uma verificação estatística de que não foi sorte.\r\n\r\n**Dados guardados para a prova final:** de julho a dezembro de 2025. Ninguém olha esses dias até o fim.\r\n\r\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\r\n\r\n**O que o agente vai fazer:** até 15 tentativas sozinho, cada uma registrada.\r\n\r\n**Limitações:**\r\n- O tempo nos seus dados parece ser o que realmente aconteceu, não a previsão da véspera. Na vida real você só teria a previsão, que erra um pouco. Os resultados ficam otimistas.\r\n- Faltar sorvete pesa o dobro por escolha minha. Se o seu custo real for outro, o resultado muda um pouco.\r\n- São 2 anos de dados, e a prova final cobre só um semestre.\r\n\r\n**Para aprovar:** abra um terminal nesta pasta, digite `labloop freeze` e depois `sim`.\r\n========================================================================\r\nProject:    after-vendas\r\nMetric:     score (minimize), keep rule: significant\r\nEvaluator:  {python} eval/evaluate.py  (repeats: 1)\r\nBaseline:   41.1228 on dev\r\nReference:  media_geral = 39.1455 on dev\r\nReference:  mediana_8_semanas = 41.7794 on dev\r\nReference:  temp_linear = 28.3623 on dev\r\nFinding:    beat 'temp_linear' by >= 0.1 (relative) on dev AND holdout, holdout CI excluding zero at alpha 0.05/3\r\nProtected:  eval, data, lab.json, SPEC.md, references, APPROVAL.md\r\nEditable:   src (+ notes, findings, REPORT.md)\r\n\r\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados. O agente não poderá mudá-los depois.\r\nAprovar? Digite sim para confirmar: sim\r\nMeasuring the baseline and references on the holdout split (not counted in the holdout budget)...\r\nFrozen. 9 protected files are hash-locked and read-only.\r\nApproved and locked. Go back to your agent and say: continue (it runs the experiments and writes REPORT.md).\r\nsim\r\n"
+    },
+    {
+      "role": "agent",
+      "seconds": 85,
+      "text": "**Sim, o tempo ajuda, e bastante.** Nos meses guardados para a prova final (julho a dezembro de 2025), o modelo com tempo errou em média 18,6 unidades por dia, com faltar sorvete pesando o dobro. A sua média das últimas 4 vezes do mesmo dia errou 52,8. O melhor método simples que conhecemos, uma reta só com a temperatura, errou 27,5.\n\n- **Melhora:** o modelo com tempo erra 32% menos que esse método simples, e a meta era 10%. A verificação estatística confirmou que não foi sorte.\n- **De onde vem o ganho:** o modelo usa dia da semana, feriado, temperatura e chuva. Um revisor independente apontou que ele também corrige para o peso de faltar sorvete. Então testei o mesmo modelo sem temperatura e sem chuva, e o erro subiu para 51,9, pior que a sua média. O ganho vem do tempo.\n- **Cuidado principal:** nos seus dados o tempo parece ser o que realmente aconteceu, e na vida real você teria só a previsão, que erra um pouco. O ganho real deve ser menor, então vale testar com a previsão da véspera durante algumas semanas.\n- **Outras ressalvas:**\n  - O peso 2 para faltar sorvete foi escolha minha.\n  - A prova final cobre só um semestre.\n  - Regressão com temperatura é um método conhecido, então o resultado vale para a sua sorveteria e não é uma novidade técnica.\n- **Uso de tentativas:** usei só 2 das 15 tentativas, porque a primeira já passou da meta e a segunda foi a checagem acima. Posso gastar o resto para refinar o modelo, se você quiser.\n\nO relatório completo está em `REPORT.md`, nesta pasta, e o modelo está em `src/model.py`."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

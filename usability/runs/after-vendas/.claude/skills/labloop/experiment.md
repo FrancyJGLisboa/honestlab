@@ -1,0 +1,25 @@
+# Experiments: the loop
+
+Precondition: `labloop status` shows `Frozen: yes`.
+
+Repeat until the number of experiments agreed is used up:
+1. Orient: `labloop status`, `labloop history -n 15`, the journal (path in status). Do
+   not repeat an idea that was undone unless you say why it should work now.
+2. One hypothesis in one sentence: what you change and why the measure should improve.
+3. Change only the editable paths. Keep each change small enough to know what caused the
+   result.
+4. Measure: `labloop run -m "<hypothesis>"`. labloop keeps the change only if it is
+   better and the improvement is unlikely to be luck; otherwise it undoes it and keeps
+   the patch. "Better on average but not significant" is treated as luck.
+5. Write one to three lines in the journal: id, result, what you learned.
+6. After three undone changes in a row, try a structurally different idea.
+
+Rules:
+- Compare with the known methods (`labloop reference list`), not only the starting
+  point. Re-implementing a known method is not progress.
+- If a result is far better than the known methods, suspect a bug or a trick first.
+- Never stop with changes that were not measured: measure them or undo them
+  (`git checkout -- <editable paths>`).
+- When the best result reaches the margin (`labloop status` shows the rule), go to
+  `finding.md`.
+- In an interactive session, give the person a one-line update every five experiments.

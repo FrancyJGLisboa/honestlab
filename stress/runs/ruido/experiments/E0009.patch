@@ -1,0 +1,19 @@
+diff --git a/src/predict.py b/src/predict.py
+index 13fc35d..f459f66 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,5 +1,11 @@
+-"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
++"""Agrupada + cliques médios dos últimos 7 dias (nível de demanda recente) via inclinação encolhida."""
++import numpy as np
+ def predict(history, today):
+     wk = lambda d: d >= 5
+-    v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
+-    return sum(v) / len(v)
++    g = wk(today["dia_semana"])
++    idx = [i for i, r in enumerate(history) if wk(r["dia_semana"]) == g and i >= 7]
++    y = np.array([history[i]["vendas"] for i in idx])
++    c = np.array([np.mean([history[j]["cliques"] for j in range(i - 7, i)]) for i in idx])
++    ct = np.mean([history[j]["cliques"] for j in range(len(history) - 7, len(history))])
++    s = np.polyfit(c, y, 1)[0]
++    return float(y.mean() + 0.5 * s * (ct - c.mean()))

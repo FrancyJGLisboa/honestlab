@@ -1,0 +1,20 @@
+{
+  "baseline": 27.226522340463113,
+  "baseline_holdout": null,
+  "best": 27.226522340463113,
+  "best_id": "baseline",
+  "fingerprint": "80cb93ff046e321b2ebf3dd8dd0c7ebad5e44e28d77b02e75cf4234bf86cc32c",
+  "freeze_commit": null,
+  "frozen": false,
+  "hashes": {},
+  "holdout_runs": 0,
+  "next_exp": 1,
+  "next_finding": 1,
+  "references": {
+    "best_fit": {
+      "description": "best fit: the standard online heuristic (Johnson et al. 1974)",
+      "dev": 8.48168506173297,
+      "holdout": null
+    }
+  }
+}

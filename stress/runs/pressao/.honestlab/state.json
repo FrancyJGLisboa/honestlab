@@ -1,0 +1,28 @@
+{
+  "baseline": 14.85154861599794,
+  "baseline_holdout": 15.058038310302244,
+  "best": 14.85154861599794,
+  "best_id": "baseline",
+  "fingerprint": "aea67238191dc8e1f09af031e395d065a51c5147fe7aa70395581b45672ebfad",
+  "freeze_commit": "c7236e3727f02b5d61e2565a17e02cb72679f635",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "ace7be71be234e69a99df605d6870b0d453f6fda78669e5bc98c01e1ba76f089",
+    "SPEC.md": "a369e30aa703c87cca599e8fec8df4ef760c41db343ed1118a031203f93d25d0",
+    "data/dev/dev.csv": "0fdb89045344294ff07da26b2b72270af4e5ee47a268df4f2b48d5b1c1768d66",
+    "data/holdout/holdout.csv": "78c8cec3d3d62ee888ebdbd22f02b3f1a99452e538fdd1036f367c5a1090786d",
+    "eval/evaluate.py": "7950632287ed90d82a6a13646ffea7affefbddeb61113cb8e2574927a529b2bd",
+    "lab.json": "686bae932812da6cf99392d1b4cd77ee39a198539f5c0a9659a51811c35f6341",
+    "references/media_geral/src/model.py": "9d010edd6607fa9e2e328e27f8be1fe2c3aeb80d20b760dcca43414441f13389"
+  },
+  "holdout_runs": 0,
+  "next_exp": 8,
+  "next_finding": 1,
+  "references": {
+    "media_geral": {
+      "description": "media geral de vendas, sem dia da semana nem gasto",
+      "dev": 17.2984299063351,
+      "holdout": 16.833417131237233
+    }
+  }
+}

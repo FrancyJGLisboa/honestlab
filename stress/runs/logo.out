@@ -1,0 +1,1 @@
+{"scenario": "logo", "version": "stress", "expect": "no_fit", "completed": false, "human_messages": 13, "human_commands": 0, "confused": 0, "minutes": 2.5, "lab": {"frozen": false, "experiments": 0, "references": []}, "report_file": false, "plain_verdict": false}

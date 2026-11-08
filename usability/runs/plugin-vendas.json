@@ -1,0 +1,73 @@
+{
+  "scenario": "vendas",
+  "version": "plugin",
+  "completed": true,
+  "human_messages": 5,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 4.7,
+  "lab": {
+    "frozen": true,
+    "experiments": 2,
+    "references": [
+      "media28",
+      "media_atual",
+      "mediana",
+      "mediana_4",
+      "ultima_semana"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: acho que dá para prever as vendas de amanhã da minha sorveteria usando o tempo, melhor do que a média que eu uso hoje. Os dados estão no arquivo vendas.csv desta pasta."
+    },
+    {
+      "role": "agent",
+      "seconds": 14,
+      "text": "Criei o laboratório nesta pasta. Seus dados têm 730 dias (jan/2024 a dez/2025), com dia da semana, feriado, temperatura máxima, chuva e vendas. Isso responde a pergunta sobre os dados. Faltam algumas respostas suas, e cada uma cabe em uma frase:\n\n1. **A média que você usa hoje:** é a média de todos os dias, a média dos últimos dias (quantos?) ou a média do mesmo dia da semana?\n2. **Quanto melhor precisaria ficar para valer a pena?** Por exemplo, errar 10% menos na previsão. Se não souber, eu escolho.\n3. **O tempo de amanhã:** você usaria a previsão do tempo do dia anterior, que erra um pouco? Ou posso tratar o tempo como já conhecido? Se não souber, eu assumo a previsão e testo com cuidado para não fazer trapaça.\n4. **Existe algum método conhecido que você queira bater**, além da sua média? Pode ser \"mesmo dia da semana da semana passada\", por exemplo.\n5. **Algo importante que não está na planilha?** Pode ser obra na rua, promoção ou evento.\n\nCom essas respostas, monto a regra do teste e mostro uma página para você aprovar."
+    },
+    {
+      "role": "novice",
+      "text": "1. Uso a média do mesmo dia da semana, das últimas 4 vezes. \n2. Errar uns 10% menos já ajudaria.\n3. Não sei, pode escolher por mim.\n4. Não conheço outro método, só o que eu uso hoje.\n5. Nada que não esteja na planilha."
+    },
+    {
+      "role": "agent",
+      "seconds": 113,
+      "text": "Preparei tudo. Antes de começar os testes, preciso da sua aprovação em uma página curta.\n\n**A pergunta:** dá para prever as vendas de amanhã usando o tempo, o dia da semana e feriados, errando pelo menos 10% menos que o melhor método simples que já existe?\n\n**Como vamos medir:** pelo erro médio, em sorvetes por dia. Para prever cada dia, só uso o que já se sabia antes dele.\n\n**Com o que vamos comparar:**\n- **Seu método de hoje** (média do mesmo dia da semana, últimas 4 vezes): erra **28,3** por dia.\n- **Média simples dos últimos 28 dias:** erra **26,8** por dia. Ela ganha do seu método, então é ela que precisamos bater.\n- **Mediana dos últimos 4 mesmos dias da semana:** erra 28,4 por dia.\n- **Venda do mesmo dia da semana passada:** erra 34,4 por dia.\n\n**Sucesso:** chegar a cerca de 24,1 ou menos, tanto nos dados de teste quanto nos dados guardados, e passar numa verificação de que não foi sorte.\n\n**Dados guardados:** julho a dezembro de 2025. Ninguém olha esse período até a prova final. Os testes usam janeiro/2024 a junho/2025.\n\n**Limitações:**\n1. A planilha tem o tempo que realmente aconteceu, não a previsão do tempo. Na prática o ganho pode ser menor.\n2. São só 2 anos de dados, então o resultado pode não valer para situações novas, como obra, promoção ou evento.\n3. Não busquei métodos publicados na internet. Comparei só com os métodos simples usuais.\n\nEscolhi 15 tentativas, que eu faço sozinho e registro uma a uma.\n\n**Para aprovar, no Claude Code:**\n1. Digite `aprovar` como sua próxima mensagem.\n2. O honestlab mostra a página e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nPrecisa ser você, para que nem eu consiga mudar a regra no meio do caminho. Se quiser mudar algo antes, é só dizer."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 1,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 1921   (leia a página abaixo antes)\n\n# Página de aprovação: plugin-vendas\n\n**A pergunta:** Dá para prever as vendas de amanhã da sua sorveteria usando o tempo (temperatura e chuva), o dia da semana e feriados, com pelo menos 10% menos erro do que o melhor método simples que já existe?\n\n**Como vamos medir:** pelo erro médio da previsão, em sorvetes (unidades) por dia, calculado dia a dia como se fosse de verdade: para prever cada dia, só se usa o que já se sabia antes dele. Quanto menor, melhor.\n\n**Com o que vamos comparar** (erro médio por dia nos dados de teste):\n- Seu método de hoje (média do mesmo dia da semana, últimas 4 vezes): **28,3**\n- Média simples dos últimos 28 dias: **26,8** (o mais forte hoje; é ele que precisamos bater)\n- Mediana dos últimos 4 mesmos dias da semana: 28,4\n- Venda do mesmo dia da semana passada: 34,4\n\n**O que conta como sucesso:** errar pelo menos 10% menos que o melhor método acima (ou seja, chegar a cerca de 24,1 ou menos), tanto nos dados de teste quanto nos dados guardados, e passar numa verificação estatística de que não foi sorte.\n\n**Dados guardados para a prova final:** julho a dezembro de 2025 (183 dias). O período de teste é janeiro/2024 a junho/2025. Ninguém olha os dados guardados até o fim.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas, sozinho, cada uma registrada.\n\n**Limitações:**\n1. A planilha tem o tempo que realmente aconteceu, não a previsão do tempo. Na vida real a previsão erra um pouco, então o ganho real pode ser menor.\n2. Só há 2 anos de dados; o período guardado é o segundo semestre de 2025, e o resultado pode não valer para outras épocas ou situações novas (obra, promoção, evento).\n3. Não busquei na internet métodos publicados; os comparativos são os métodos simples usuais.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite o comando de congelar do honestlab e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 1921\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 1921"
+    },
+    {
+      "role": "agent",
+      "seconds": 108,
+      "text": "**Sim, dá para prever melhor com o tempo, e o resultado foi confirmado nos dados que guardei para a prova final.**\n\nUsei uma conta simples que combina temperatura, chuva, feriado e fim de semana, ajustada com os últimos 120 dias.\n\n| Julho a dezembro de 2025 (183 dias) | Erro médio por dia |\n|---|---|\n| Sua média atual (mesmo dia da semana, últimas 4 vezes) | 31,2 sorvetes |\n| Melhor método simples (média dos últimos 28 dias) | 30,5 sorvetes |\n| Previsão com o tempo | **13,6 sorvetes** |\n\n- **Ganho:** cerca de 55% menos erro que o melhor método simples, bem acima dos 10% que você pediu. Contra a sua média atual a queda é ainda maior.\n- **Confiança:** a verificação estatística mostrou que não foi sorte. Um revisor independente examinou o teste e aceitou o resultado.\n- **Método conhecido:** a busca na web mostrou que prever vendas de sorvete pela temperatura é uma técnica clássica. O que medi foi o ganho nos seus dados.\n- **Limite importante:** usei o tempo que realmente aconteceu em cada dia, não a previsão do tempo do dia anterior. Na prática o ganho será menor. Quanto menor, eu não medi.\n- **Alcance:** o resultado vale para a sua sorveteria e para esse período. Obra, promoção ou evento não estão na planilha.\n\nSó fiz 2 das 15 tentativas, porque a primeira já passou da meta com folga. A segunda (janela maior) piorou um pouco e foi desfeita.\n\nO próximo passo seria repetir o teste com a previsão do tempo do dia anterior, se você conseguir guardá-la dos próximos dias. Esse é o número que diz o que você vai ganhar na prática.\n\nO relatório completo está em `/home/claude/honestlab/usability/runs/plugin-vendas/REPORT.md`. A previsão está em `src/predict.py`."
+    },
+    {
+      "role": "novice",
+      "text": "Entendi. Então o ganho real vai ser menor do que 55%, e o número que importa é o que eu teria na prática, com a previsão do tempo do dia anterior. Eu não consigo guardar a previsão dos próximos dias agora. Tem como você estimar isso com os dados que eu já tenho, ou me dizer de forma simples o que eu preciso fazer para medir isso direito?"
+    },
+    {
+      "role": "agent",
+      "seconds": 26,
+      "text": "**Estimativa pela simulação** (nos dados de teste, de janeiro/2024 a junho/2025; é uma estimativa, não um resultado confirmado):\n\n| Se a previsão do tempo errar, em média, por dia | Seu erro previsto (sorvetes/dia) |\n|---|---|\n| Nada (como no teste que fiz) | 11,8 |\n| cerca de 1 °C e 3 mm de chuva | 14,8 |\n| cerca de 2 °C e 5 mm | 20,2 |\n| cerca de 3 °C e 8 mm | 27,4 |\n| cerca de 4 °C e 10 mm | 34,5 |\n\nPara comparar, no mesmo período a média de 28 dias erra 26,8, e a sua média atual erra 28,3.\n\n- **Previsão boa (erro de até 1 °C):** o ganho seria de uns 45% sobre a média de 28 dias. Mesmo assim, é menos que os 55% que medi.\n- **Previsão mediana (erro de 2 °C):** o ganho cai para uns 25%. É bem menos que 55%, mas ainda vale a pena.\n- **Previsão ruim (erro de 3 °C ou mais):** o ganho some, e o método fica igual ou pior que a média simples.\n- **Ponto de virada:** para ainda errar 10% menos que a média de 28 dias, a previsão do tempo precisaria errar menos de uns 2,5 °C.\n\n**O que essa conta não prova:**\n- Ela supõe erros aleatórios e parecidos todo dia. Previsões reais erram mais em dias de virada de tempo, e esses são os dias que mais importam para sorvete.\n- O erro de 1 a 3 °C que usei é um palpite meu sobre previsões de um dia. Não verifiquei isso, e depende da sua cidade e do serviço que você usa.\n\n**O que você precisa fazer para medir direito:**\n1. A partir de hoje, todo dia, anote a previsão de temperatura máxima e de chuva **para o dia seguinte**, de preferência no mesmo horário. Pode ser numa planilha com data, previsão de temperatura e previsão de chuva.\n2. Continue anotando as vendas e o tempo que de fato aconteceu.\n3. Depois de 2 a 3 meses, com pelo menos 60 dias, volte aqui. Eu comparo o método atual, a média de 28 dias e o método com tempo, usando só a previsão que você teria visto na véspera.\n\nSe você achar o histórico de previsões de algum serviço de meteorologia, dá para fazer isso sem esperar. Esse histórico precisa ser a previsão feita na véspera, não o tempo que de fato aconteceu.\n\nEnquanto isso, o método pode ser usado com a previsão do tempo, mas confira o resultado dia a dia e desconfie dos dias em que a previsão mudar muito."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index fcfd2f1..e318a68 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -7,7 +7,7 @@ DAYS = ["seg", "ter", "qua", "qui", "sex", "sab", "dom"]
+ 
+ def feats(d):
+     x = [1.0 if d["dia_semana"] == k else 0.0 for k in DAYS]
+-    x += [float(d["feriado"]), d["temp_max_c"], d["chuva_mm"]]
++    x += [float(d["feriado"]), 0.0, 0.0]
+     return x
+ 
+ 

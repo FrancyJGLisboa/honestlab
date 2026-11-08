@@ -1,0 +1,12 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index d2327ca..97a78d7 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -10,6 +10,7 @@ import numpy as np
+ # Typical regional yield slope (bu/ac per year); an assumed prior, chosen by looking at dev.
+ PRIOR_SLOPE = 1.7
+ SHRINK = 0.2
++RIDGE = 1.0  # ridge strength per observation on standardised rain terms
+ 
+ 
+ def predict_yield(history, weather):

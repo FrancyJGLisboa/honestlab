@@ -1,0 +1,59 @@
+{
+  "scenario": "english",
+  "version": "stress",
+  "expect": "found",
+  "completed": true,
+  "human_messages": 4,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 3.5,
+  "lab": {
+    "frozen": true,
+    "experiments": 5,
+    "references": []
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: I think I can forecast tomorrow's support tickets better than the 4-week weekday average I use today. The data is in tickets.csv."
+    },
+    {
+      "role": "agent",
+      "seconds": 17,
+      "text": "I've set up the project. Your data has 730 days (Jan 2024 – Dec 2025) with weekday, release_day, active_users and tickets. Release days look like a big driver: they average about 132 tickets against about 66 on other days.\n\nI have five quick questions. A short phrase for each is enough, and \"you choose\" works too.\n\n1. **How you forecast today:** is it the average of the same weekday over the last 4 weeks, with nothing else? Do you use it as-is for tomorrow?\n2. **Release days:** is the next day's release schedule known in advance, so I can use `release_day` as an input? Is `active_users` also known or estimable for tomorrow?\n3. **What counts as better:** how much lower should the error be to make the change worth it? For example, 10% lower average error. Or do you care more about big misses, such as staffing for spikes?\n4. **How you're judged:** what error do you care about most: average miss in tickets per day, or percent error?\n5. **Any known method to beat:** do you or your team already use another forecasting method, such as seasonal naive or a model in a spreadsheet? I'll compare against it too.\n\nWhen you answer, I'll turn this into a one-page contract for you to approve. After that I run the experiments on my own, so nobody can change the rules halfway."
+    },
+    {
+      "role": "novice",
+      "text": "1. Yes, exactly: the average of the same weekday over the last 4 weeks, nothing else. I use it as-is for tomorrow.\n2. Yes, the release schedule is known in advance. I'm not sure about active users, so you choose.\n3. About 10% lower average error would be worth it. Staffing for spikes matters too.\n4. Average miss in tickets per day.\n5. No, that's all we have. Just the average I use today."
+    },
+    {
+      "role": "agent",
+      "seconds": 79,
+      "text": "Everything is ready for your approval.\n\n**What I set up**\n- **Question:** can a forecast beat your 4-week same-weekday average by at least 10% in average miss (tickets per day)?\n- **Today's number:** your method misses by about 13.3 tickets per day on the development data (Jan 2024 – Jun 2025). This is the bar. A forecast that makes this miss 10% smaller, about 12.0, would count as a success.\n- **Data kept for the final test:** July–Dec 2025. I haven't looked at it, and nobody does until the end.\n- **What the forecast may use:** only what you'd know the day before, which is the release schedule and past data. It doesn't get tomorrow's active users.\n- **Budget:** 15 attempts, each recorded.\n- **Limitations:**\n  - There are only two years of data and one split.\n  - Some misses come from events the data doesn't show.\n  - It assumes the release schedule really is known a day ahead.\n\nTo approve:\n1. Type `approve` as your next message.\n2. honestlab shows you the real page and a 4-digit code that only you see.\n3. Send `yes` and the code, for example `yes 4821`.\n\nIt has to be you because that way I can't change the rule midway. Once you've approved, I run the experiments on my own and report back.\n\nSources for the background search: [supportbench guide](https://www.supportbench.com/?p=27587), [forecasting without fancy tools](https://www.supportbench.com/?p=24242), [Porto thesis on ticket prediction](https://repositorio-aberto.up.pt/bitstream/10216/154576/2/648596.pdf), [cobbai](https://cobbai.com/blog/customer-support-forecasting). They are practitioner guides, not controlled benchmarks."
+    },
+    {
+      "role": "novice",
+      "text": "approve"
+    },
+    {
+      "role": "agent",
+      "seconds": 1,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: TO APPROVE, SEND  yes 9764   (read the page below first)\n\n# Approval page: english\n\n**The question:** Can we forecast tomorrow's support tickets with at least 10% lower average error than the 4-week same-weekday average you use today?\n\n**How we will measure it:** The average miss in tickets per day, forecasting one day ahead. Lower is better. We also watch the miss on the worst days, since spikes matter for staffing.\n\n**What we compare with:** Your current method (average of the same weekday over the last 4 weeks): about 13.3 tickets/day of average miss on the development data. It is the only method, so it is the bar.\n\n**What counts as success:** An average miss at least 10% lower than yours (about 12.0 or less), on the development data and on the final period, confirmed by a statistical safety check.\n\n**Data kept for the final test:** The last six months (July to December 2025). Nobody looks at it until the end.\n\n**What is locked after approval:** the question, the measure, the data and the success rule.\n\n**What the agent will do:** Up to 15 attempts, alone, each one recorded. Ideas include using the release schedule and recent trend. The forecast only uses what is known the day before: the release schedule, not tomorrow's active users.\n\n**Limitations:** (1) Only 2 years of data and one split, so results can shift. (2) Tickets depend on events we don't see, so some misses can't be avoided. (3) It assumes the release schedule is truly known a day ahead.\n\n**To approve:** in Claude Code, type `approve` in the chat. In another agent, open a terminal in this folder and run the freeze command, then answer `yes`.\n\n---\nThis is the real page, read from the file by honestlab (not by the agent).\nApproving locks the question, the measure, the data and the success rule; the agent cannot change them afterwards.\n\nTo approve, send exactly:  yes 9764\n(The code is valid for 15 minutes and the agent cannot see it.) To not approve, just keep talking."
+    },
+    {
+      "role": "novice",
+      "text": "yes 9764"
+    },
+    {
+      "role": "agent",
+      "seconds": 96,
+      "text": "I found an improvement, and it passed the final check on the data I kept back. The new method misses by about 10 tickets a day on average. Your 4-week average misses by about 13.3.\n\n- **What it does:** it looks at tickets per active user on recent days of the same kind, so it follows your user growth. It then multiplies by a lift on release days, which it learns from past releases.\n- **Development data (Jan 2024 – Jun 2025):** 9.96 against 13.31, about 25% less error. Your bar was 10%.\n- **Final test (the last six months, which I didn't look at until the end):** about 42% less error. I'd plan on about 25%, not 42%. Your 4-week average falls behind as users grow, and the later months have more growth.\n- **Review:** an independent reviewer looked for tricks and leaks and found none. They also noted that part of the gain comes from scaling by users, not only from the release schedule.\n- **Spikes:** release days are where it helps most. In the development data your method missed by about 54 tickets on release days. The new one missed by about 15.\n- **Experiments:** I used 5 of the 15 planned, because the first good result already cleared the bar.\n- **Prior work:** the ingredients are standard practice, so this is a solid practical result, not a new method.\n- **What I didn't test:** stronger baselines such as SARIMA or a regression. Active users is taken from yesterday's value, so it needs that number each day.\n\n**Next step:** run it next to your current forecast for a few weeks, and have someone on your team check it. The method is in `src/forecast.py`.\n\nThe full report is at `/home/claude/honestlab/stress/runs/english/REPORT.md`.\n\nSources for the background search: [supportbench](https://www.supportbench.com/?p=27587), [supportbench (no fancy tools)](https://www.supportbench.com/?p=24242), [cobbai](https://cobbai.com/blog/customer-support-forecasting), [Porto thesis](https://repositorio-aberto.up.pt/bitstream/10216/154576/2/648596.pdf)."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

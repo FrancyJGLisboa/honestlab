@@ -1,0 +1,23 @@
+diff --git a/src/predict.py b/src/predict.py
+index 13fc35d..d684f24 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,5 +1,14 @@
+-"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
++"""Árvores de decisão rasas (boosting simples) sobre dia, gasto, gasto/cliques de ontem."""
++import numpy as np
++try:
++    from sklearn.ensemble import GradientBoostingRegressor
++except Exception:
++    GradientBoostingRegressor = None
++def _f(r, p):
++    return [r["dia_semana"], r["dia_semana"] >= 5, r["gasto_anuncio"], p["gasto_anuncio"], p["cliques"], p["vendas"]]
+ def predict(history, today):
+-    wk = lambda d: d >= 5
+-    v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
+-    return sum(v) / len(v)
++    X = [_f(history[i], history[i - 1]) for i in range(1, len(history))]
++    y = [history[i]["vendas"] for i in range(1, len(history))]
++    m = GradientBoostingRegressor(n_estimators=60, max_depth=2, learning_rate=0.05, subsample=0.8, random_state=0, loss="absolute_error")
++    m.fit(np.array(X, float), np.array(y, float))
++    return float(m.predict(np.array([_f(today, history[-1])], float))[0])

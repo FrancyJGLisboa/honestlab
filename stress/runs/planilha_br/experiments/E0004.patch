@@ -1,0 +1,15 @@
+diff --git a/src/model.py b/src/model.py
+index a0abc73..b06102c 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -6,7 +6,9 @@ HOURS = list(range(10, 23))
+ 
+ def feats(r):
+     h = r["hora"]
+-    return ([1.0, r["distancia_km"], r["chuva_mm"], 1.0 if r["chuva_mm"] > 0 else 0.0]
++    d, c = r["distancia_km"], r["chuva_mm"]
++    pk = 1.0 if h in (12, 13, 19, 20) else 0.0
++    return ([1.0, d, c, 1.0 if c > 0 else 0.0, d * d, d * pk, c * pk, c * d, c * c]
+             + [1.0 if h == k else 0.0 for k in HOURS[1:]])
+ 
+ 

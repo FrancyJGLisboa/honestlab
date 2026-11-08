@@ -1,0 +1,25 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index a68bf18..6751704 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -14,10 +14,17 @@ RAIN_MEAN, RAIN_SD = 520.0, 109.0
+ RAIN_B0, RAIN_B1, RAIN_B2 = 1.97, 1.21, -2.03
+ 
+ 
++def _rain_effect(rain):
++    z = (np.asarray(rain, dtype=float) - RAIN_MEAN) / RAIN_SD
++    return RAIN_B0 + RAIN_B1 * z + RAIN_B2 * z * z
++
++
+ def predict_yield(history, weather):
++    # Remove the rain effect from past yields, fit the county trend on the
++    # weather-adjusted series, then add the rain effect of the target season.
+     t = np.array([r["year"] for r in history], dtype=float)
+     y = np.array([r["yield"] for r in history], dtype=float)
+-    b = np.polyfit(t - t.mean(), y, 1)
++    y_adj = y - _rain_effect([r["rain_mm"] for r in history])
++    b = np.polyfit(t - t.mean(), y_adj, 1)
+     trend = float(np.polyval(b, weather["year"] - t.mean()))
+-    z = (weather["rain_mm"] - RAIN_MEAN) / RAIN_SD
+-    return trend + RAIN_B0 + RAIN_B1 * z + RAIN_B2 * z * z
++    return trend + float(_rain_effect(weather["rain_mm"]))

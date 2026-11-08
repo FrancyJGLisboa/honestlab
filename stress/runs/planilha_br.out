@@ -1,0 +1,1 @@
+{"scenario": "planilha_br", "version": "stress", "expect": "found", "completed": true, "human_messages": 4, "human_commands": 0, "confused": 0, "minutes": 4.5, "lab": {"frozen": true, "experiments": 8, "references": ["aditivo", "mediana"]}, "report_file": true, "plain_verdict": true}

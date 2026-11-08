@@ -1,0 +1,5 @@
+[project]
+name = "cropcast"
+version = "0.3.1"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.24"]

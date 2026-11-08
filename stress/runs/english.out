@@ -1,0 +1,1 @@
+{"scenario": "english", "version": "stress", "expect": "found", "completed": true, "human_messages": 4, "human_commands": 0, "confused": 0, "minutes": 3.5, "lab": {"frozen": true, "experiments": 5, "references": []}, "report_file": true, "plain_verdict": true}

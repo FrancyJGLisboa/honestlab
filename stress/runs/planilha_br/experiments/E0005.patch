@@ -1,0 +1,29 @@
+diff --git a/src/model.py b/src/model.py
+index a0abc73..54d599c 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -33,8 +33,21 @@ def fit(train):
+     n = len(X[0])
+     A = [[sum(x[i] * x[j] for x in X) + (1e-6 if i == j else 0) for j in range(n)] for i in range(n)]
+     b = [sum(x[i] * yi for x, yi in zip(X, y)) for i in range(n)]
+-    return solve(A, b)
++    w = solve(A, b)
++    # correção não paramétrica: média dos erros por célula (hora, faixa de distância, choveu),
++    # encolhida em direção a zero quando a célula tem poucos pedidos
++    cells = {}
++    for x, r, yi in zip(X, train, y):
++        cells.setdefault(cell(r), []).append(yi - sum(a * c for a, c in zip(w, x)))
++    corr = {k: sum(v) / (len(v) + 20.0) for k, v in cells.items()}
++    return w, corr
+ 
+ 
+-def predict(w, rows):
+-    return [min(300.0, max(1.0, sum(a * b for a, b in zip(w, feats(r))))) for r in rows]
++def cell(r):
++    return (r["hora"], int(r["distancia_km"] // 2), r["chuva_mm"] > 0)
++
++
++def predict(model, rows):
++    w, corr = model
++    return [min(300.0, max(1.0, sum(a * b for a, b in zip(w, feats(r))) + corr.get(cell(r), 0.0)))
++            for r in rows]

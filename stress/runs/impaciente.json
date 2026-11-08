@@ -1,0 +1,62 @@
+{
+  "scenario": "impaciente",
+  "version": "stress",
+  "expect": "found",
+  "completed": true,
+  "human_messages": 4,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 3.7,
+  "lab": {
+    "frozen": true,
+    "experiments": 3,
+    "references": [
+      "media_dia_semana",
+      "so_temperatura"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: acho que dá para prever as vendas da minha sorveteria usando o tempo. Os dados estão em vendas.csv."
+    },
+    {
+      "role": "agent",
+      "seconds": 20,
+      "text": "Criei o laboratório na pasta. Antes de montar o teste, preciso de algumas respostas rápidas (uma frase cada serve):\n\n1. **O que você usa hoje para prever as vendas?** Por exemplo: \"a média da semana passada\", \"olho e chute\" ou \"nada\".\n2. **Quanto melhor a previsão precisaria ficar para valer a pena?** Por exemplo: errar 10% menos. Se não souber, eu uso 5%.\n3. **O `temp_max_c` e o `chuva_mm` são o tempo que de fato ocorreu, ou a previsão do tempo?** Pelo que vi, parecem valores medidos. Se for isso, a previsão real do dia anterior seria menos precisa do que esses números, e eu vou avisar isso como limitação.\n4. **Para que você quer prever: o dia seguinte, ou a semana toda?** Isso define quanta informação o modelo pode usar. Por exemplo, as vendas de ontem só ajudam na previsão do dia seguinte.\n5. **Quanto custa errar para menos e errar para mais?** Por exemplo: faltar sorvete é pior do que sobrar? Se for igual, eu meço o erro médio em unidades vendidas.\n\nO que já vi nos dados: 730 dias (01/01/2024 a 30/12/2025), com dia da semana, feriado, temperatura máxima, chuva e vendas, sem lacunas. Minha proposta é guardar o 2º semestre de 2025 para a prova final, sem ninguém olhar, e usar o resto para testar ideias.\n\nPode responder \"não sei\" em qualquer uma, e eu escolho."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 84,
+      "text": "O contrato está pronto. Resumo da página de aprovação:\n\n- **Pergunta:** o tempo, o dia da semana e os feriados permitem errar pelo menos 5% menos que o melhor método simples conhecido?\n- **Medida:** erro médio por dia, em unidades vendidas. Cada dia é previsto só com o que se sabia antes dele.\n- **Comparações** (nos dados de teste):\n\n| Método | Erro médio |\n|---|---|\n| Vendas do mesmo dia da semana passada | 34,1 |\n| Média dos últimos 8 mesmos dias da semana, sem tempo | 29,5 |\n| Reta de vendas contra temperatura | **17,8** |\n\n- **Sucesso:** chegar a cerca de 16,9 ou menos, nos dados de teste e nos guardados para o final, com verificação estatística.\n- **Prova final:** os 183 dias de 01/07/2025 a 30/12/2025. Ninguém olha esses dados até o fim.\n- **Limitações:** a temperatura e a chuva parecem ser as medidas do próprio dia, não a previsão de véspera, então o resultado real tende a ser um pouco pior. Há só dois anos de dados. Você não disse o que usa hoje; se for outro método, me conte e eu o registro.\n\nA página completa está em `APPROVAL.md`.\n\n**Para aprovar, faça você mesmo:**\n1. Digite `aprovar` como próxima mensagem.\n2. O honestlab vai mostrar a página real e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nPrecisa ser você para que nem eu consiga mudar a regra no meio do caminho. Se quiser mudar algo antes, diga e eu ajusto a página."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 7393   (leia a página abaixo antes)\n\n# Página de aprovação: impaciente\n\n**A pergunta:** Dá para prever as vendas diárias da sorveteria usando o tempo (temperatura, chuva), o dia da semana e feriados, e errar pelo menos 5% menos que o melhor método simples conhecido?\n\n**Como vamos medir:** Erro médio por dia, em unidades vendidas (quanto a previsão erra, em média). Menor é melhor. Cada dia é previsto usando só o que se sabia antes dele.\n\n**Com o que vamos comparar:** (nos dados de desenvolvimento, erro médio em unidades por dia)\n- Vendas do mesmo dia da semana passada: 34,1 (ponto de partida)\n- Média dos últimos 8 mesmos dias da semana, sem tempo: 29,5\n- Reta de vendas contra temperatura (ideia de livro-texto): **17,8**, o melhor atual e o número a bater\n- Você não disse o que usa hoje; se for outro método, me conte e eu o registro.\n\n**O que conta como sucesso:** Errar pelo menos 5% menos que o melhor acima (cerca de 16,9 ou menos), nos dados de desenvolvimento e também nos dados guardados para o final, com uma verificação estatística de que não foi sorte.\n\n**Dados guardados para a prova final:** Os 183 dias de 01/07/2025 a 30/12/2025. Ninguém olha esses dados até o fim. O resto (01/01/2024 a 30/06/2025) é usado para testar ideias.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** Até 15 tentativas sozinho, cada uma registrada, com ideias como combinar dia da semana, feriado, temperatura e chuva, e ajustar o nível recente de vendas.\n\n**Limitações:**\n- A temperatura e a chuva parecem ser as medidas do próprio dia, não a previsão do tempo. Na prática você teria só a previsão de véspera, então o resultado real tende a ser um pouco pior.\n- Só há dois anos de dados, e a prova final cobre só o 2º semestre de 2025.\n- Errar para menos ou para mais pesa igual aqui; você não indicou que um é pior que o outro.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 7393\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 7393"
+    },
+    {
+      "role": "agent",
+      "seconds": 95,
+      "text": "**Sim, dá para prever as vendas da sua sorveteria usando o tempo.** O relatório está em `REPORT.md`.\n\n- **Resultado confirmado:** um modelo simples com temperatura, feriado e dia da semana errou 16,1 unidades por dia nos 183 dias guardados para o final. A melhor alternativa simples (uma reta de vendas contra temperatura) errou 19,6, então o erro ficou 18% menor. Isso passou na verificação estatística e numa revisão independente.\n- **O ganho vem do tempo:** sem a temperatura, o mesmo modelo errou 38,7 unidades por dia, contra 15,1 com ela, nos dados de teste.\n- **A chuva ajuda muito:** com ela, o erro caiu para 12,0 nos dados de teste. Isso ainda não foi confirmado nos dados guardados, então é promissor, mas não provado.\n- **Limitação:** usei a temperatura e a chuva medidas no próprio dia. Na prática você teria só a previsão do tempo, então o erro real tende a ser um pouco maior.\n- **O que usei no lugar das suas respostas:** como você não respondeu às perguntas, usei margem de 5% e erro médio em unidades, sem pesar mais faltar do que sobrar sorvete. Também não sei qual método você usa hoje. Se me contar, eu o comparo com este.\n\n**Próximos passos:** confirmar o modelo com chuva nos dados guardados e testar com a previsão do tempo de véspera. Peça também a alguém da área para conferir o método antes de usá-lo em compras e escalas."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

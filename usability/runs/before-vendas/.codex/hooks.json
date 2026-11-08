@@ -1,0 +1,28 @@
+{
+  "description": "labloop: enforce the experiment discipline",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "labloop guard pre",
+            "statusMessage": "labloop: checking discipline",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "labloop guard stop",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

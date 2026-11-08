@@ -1,0 +1,7 @@
+no effect at all, quiet measurement        found   0.0% (false  0.0%) | 3 looks: found   0.0% (false  0.0%) | a change truly >= bar in   0.0% of labs
+no effect at all, noisy measurement        found   0.0% (false  0.0%) | 3 looks: found   0.0% (false  0.0%) | a change truly >= bar in   0.0% of labs
+small effects (mean 5%), noisy             found  10.5% (false  3.5%) | 3 looks: found  15.2% (false  5.8%) | a change truly >= bar in  55.5% of labs
+effects just below the bar (8%), noisy     found   8.8% (false  8.8%) | 3 looks: found  14.5% (false 14.5%) | a change truly >= bar in   0.0% of labs
+effect at the bar (10%), noisy             found  16.8% (false  0.0%) | 3 looks: found  39.0% (false  0.0%) | a change truly >= bar in 100.0% of labs
+effect above the bar (15%), noisy          found  46.0% (false  0.0%) | 3 looks: found  83.5% (false  0.0%) | a change truly >= bar in 100.0% of labs
+effect well above the bar (20%), quiet     found 100.0% (false  0.0%) | 3 looks: found 100.0% (false  0.0%) | a change truly >= bar in 100.0% of labs

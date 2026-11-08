@@ -1,0 +1,26 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index 15c5982..7492cf4 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -7,12 +7,17 @@ predict_yield(history, weather) -> float
+ """
+ import numpy as np
+ 
++TYPICAL_SLOPE = 1.76  # bu/ac per year, median county slope on development data
++SHRINK = 0.3
++
+ 
+ def predict_yield(history, weather):
+-    # Linear trend over the whole available history of the county.
+-    t = np.array([r["year"] for r in history], dtype=float)
++    # County linear trend over all history, slope shrunk toward the typical slope.
++    t = np.array([r["year"] for r in history], dtype=float) - 2000.0
+     y = np.array([r["yield"] for r in history], dtype=float)
+     if len(y) < 4:
+         return float(y.mean())
+-    slope, intercept = np.polyfit(t, y, 1)
+-    return float(intercept + slope * weather["year"])
++    slope = np.polyfit(t, y, 1)[0]
++    slope = (1 - SHRINK) * slope + SHRINK * TYPICAL_SLOPE
++    level = y.mean() - slope * t.mean()
++    return float(level + slope * (weather["year"] - 2000.0))

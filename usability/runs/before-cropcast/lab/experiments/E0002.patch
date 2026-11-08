@@ -1,0 +1,13 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index 62bb835..e091068 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -7,7 +7,7 @@ predict_yield(history, weather) -> float
+ """
+ import numpy as np
+ 
+-WINDOW = 15
++WINDOW = 30
+ 
+ 
+ def predict_yield(history, weather):

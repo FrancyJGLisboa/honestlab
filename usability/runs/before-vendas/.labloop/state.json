@@ -1,0 +1,38 @@
+{
+  "baseline": 28.05890410958904,
+  "baseline_holdout": 31.21311475409836,
+  "best": 12.217253548387296,
+  "best_id": "E0001",
+  "freeze_commit": "7a12dbdea299318358314d9906d5e8d8c96a728d",
+  "frozen": true,
+  "hashes": {
+    "SPEC.md": "873f797b345eefd54968e040b03954a217654729a8e54808534a2320ee06eed6",
+    "data/dev/vendas.csv": "9a75269501fcf997800d4fde26b274607d01731d56b4d1c4771531ddb1613f88",
+    "data/holdout/vendas.csv": "b21728a14dbf2efad7ba8c68b5fdabd1396960f7e5f9d65435405239649554d6",
+    "eval/evaluate.py": "6fe4b6c7fa46e2d5a793584ac87756179abf4a5135e0073fad49a1f2ddfc7a51",
+    "lab.json": "0d01d464a22b5d970f2fba74a265b0f03dbb45cafc4c70b72b2e3076342187b2",
+    "references/media-28d/src/predict.py": "713a7cdae4ff6eb82f16f6ffde23b712cfae5a3ce5694abf8b5eba994e946d05",
+    "references/media-7d/src/predict.py": "5af476aaa7bd33e1fd5d177cf0c63c7c3aae85568cbc32675f129ca7868d2af6",
+    "references/media-mesmo-dia-4sem/src/predict.py": "e3b70d9d1840ad10e1b55065e80f3b0d8db93a8bf65c2c5b13d749c06c987b65"
+  },
+  "holdout_runs": 1,
+  "next_exp": 2,
+  "next_finding": 2,
+  "references": {
+    "media-28d": {
+      "description": "M\u00e9dia m\u00f3vel de 28 dias (vers\u00e3o mais suave da m\u00e9dia atual)",
+      "dev": 27.143542074363992,
+      "holdout": 30.473067915690866
+    },
+    "media-7d": {
+      "description": "M\u00e9dia m\u00f3vel de 7 dias (mais forte que a m\u00e9dia do mesmo dia da semana neste dado)",
+      "dev": 26.991389432485324,
+      "holdout": 32.10928961748634
+    },
+    "media-mesmo-dia-4sem": {
+      "description": "M\u00e9dia do mesmo dia da semana nas \u00faltimas 4 semanas (sazonal ing\u00eanuo, pr\u00e1tica comum de varejo)",
+      "dev": 28.05890410958904,
+      "holdout": 31.21311475409836
+    }
+  }
+}

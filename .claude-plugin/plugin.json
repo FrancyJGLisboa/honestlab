@@ -1,0 +1,12 @@
+{
+  "name": "honestlab",
+  "displayName": "honestlab",
+  "version": "0.5.0",
+  "description": "Test your idea the way AI labs make discoveries: a measurable question, many automatic attempts, locked rules, and an honest plain-language verdict.",
+  "author": { "name": "Francy Lisboa" },
+  "homepage": "https://github.com/FrancyJGLisboa/honestlab",
+  "repository": "https://github.com/FrancyJGLisboa/honestlab",
+  "license": "MIT",
+  "keywords": ["research", "experiments", "discovery", "funsearch", "alphaevolve", "evaluation"],
+  "skills": ["./honestlab/skill"]
+}

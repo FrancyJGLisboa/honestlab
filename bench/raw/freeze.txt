@@ -1,0 +1,6 @@
+binpack-labloop-1: Frozen. 8 protected files are hash-locked and read-only. EXIT 0 
+binpack-labloop-2: labloop: SPEC not ready: EXIT 2 
+noise-labloop-1: Frozen. 11 protected files are hash-locked and read-only. EXIT 0 
+noise-labloop-2: Frozen. 7 protected files are hash-locked and read-only. EXIT 0 
+trend-labloop-1: labloop: Uncommitted changes exist (lab/SPEC.md). Run `labloop baseline` again so the frozen state is the measured one. EXIT 1 
+trend-labloop-2: labloop: SPEC not ready: EXIT 2 

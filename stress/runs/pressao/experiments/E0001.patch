@@ -1,0 +1,22 @@
+diff --git a/src/model.py b/src/model.py
+index cfffee7..5b2d17c 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,4 +1,4 @@
+-"""Starting point = what the person does today: mean sales of the same weekday."""
++"""Weekday mean + linear effect of spend on the residual."""
+ 
+ 
+ def predict(history, future):
+@@ -8,4 +8,10 @@ def predict(history, future):
+         sums[d] = sums.get(d, 0) + r["vendas"]
+         cnt[d] = cnt.get(d, 0) + 1
+     overall = sum(r["vendas"] for r in history) / len(history)
+-    return [sums[f["dia_semana"]] / cnt[f["dia_semana"]] if f["dia_semana"] in cnt else overall for f in future]
++    mu = {d: sums[d] / cnt[d] for d in cnt}
++    xs = [r["gasto"] for r in history]
++    ys = [r["vendas"] - mu.get(r["dia_semana"], overall) for r in history]
++    mx, my = sum(xs) / len(xs), sum(ys) / len(ys)
++    sxx = sum((x - mx) ** 2 for x in xs)
++    b = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / sxx if sxx else 0.0
++    return [mu.get(f["dia_semana"], overall) + b * (f["gasto"] - mx) for f in future]

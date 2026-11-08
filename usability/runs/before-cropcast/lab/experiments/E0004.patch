@@ -1,0 +1,24 @@
+diff --git a/cropcast/forecast.py b/cropcast/forecast.py
+index d0efa51..d2327ca 100644
+--- a/cropcast/forecast.py
++++ b/cropcast/forecast.py
+@@ -7,12 +7,18 @@ predict_yield(history, weather) -> float
+ """
+ import numpy as np
+ 
++# Typical regional yield slope (bu/ac per year); an assumed prior, chosen by looking at dev.
++PRIOR_SLOPE = 1.7
++SHRINK = 0.2
++
+ 
+ def predict_yield(history, weather):
+     t = np.array([r["year"] for r in history], dtype=float)
+     y = np.array([r["yield"] for r in history], dtype=float)
+     rain = np.array([r["rain_mm"] for r in history], dtype=float)
+-    b, a = np.polyfit(t, y, 1)
++    b0, _ = np.polyfit(t, y, 1)
++    b = SHRINK * PRIOR_SLOPE + (1 - SHRINK) * b0
++    a = float(np.mean(y - b * t))
+     resid = y - (a + b * t)
+     z = rain - rain.mean()
+     beta = float(z @ resid) / float(z @ z)

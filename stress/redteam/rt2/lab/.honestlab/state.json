@@ -1,0 +1,28 @@
+{
+  "baseline": 27.226522340463113,
+  "baseline_holdout": 27.2655454282441,
+  "best": 2.558030013976244,
+  "best_id": "E0003",
+  "fingerprint": "80cb93ff046e321b2ebf3dd8dd0c7ebad5e44e28d77b02e75cf4234bf86cc32c",
+  "freeze_commit": "cb07c9e9dbc0be136f047ad7dbeb6d8764852206",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "c7c2c11b91ad1e26afd3adf9cb4f06d1150c08fc201b1f32f65600eba9343ce5",
+    "SPEC.md": "bdba12daebdc8fd3578ebd6e48dbaf13c224bb3ebd4044b9b92703565bdc78fe",
+    "data/dev/instances.json": "52bb68643893e2f242281defa986b7e9ca403066ac30b27b78a78f5e6037fe3a",
+    "data/holdout/instances.json": "3c7a7652597dfd59986e89c398f5b7a813fc068f29e3f02136ae1e859de2620e",
+    "eval/evaluate.py": "9c64308f3d9a8c54f805c5818a841b84e7782e27361f8cbcef986ff0caec3f4e",
+    "lab.json": "634cb943791e2c0ce81bf5dc259d49daaa46b60e250f8203660fa01aa6361478",
+    "references/best_fit/src/heuristic.py": "9c6c8e68b4083b5dcc6554fd97c5fb080febbd92012e1d56f2423db5d70e4cb2"
+  },
+  "holdout_runs": 1,
+  "next_exp": 4,
+  "next_finding": 2,
+  "references": {
+    "best_fit": {
+      "description": "best fit: the standard online heuristic (Johnson et al. 1974)",
+      "dev": 8.48168506173297,
+      "holdout": 7.919142459131969
+    }
+  }
+}

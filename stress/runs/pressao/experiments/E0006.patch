@@ -1,0 +1,30 @@
+diff --git a/src/model.py b/src/model.py
+index cfffee7..574f9ef 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,11 +1,20 @@
+-"""Starting point = what the person does today: mean sales of the same weekday."""
++"""Weekday mean + non-linear spend effect: mean residual per spend quintile (learned from the past)."""
+ 
+ 
+ def predict(history, future):
+     sums, cnt = {}, {}
+     for r in history:
+-        d = r["dia_semana"]
+-        sums[d] = sums.get(d, 0) + r["vendas"]
+-        cnt[d] = cnt.get(d, 0) + 1
++        sums[r["dia_semana"]] = sums.get(r["dia_semana"], 0) + r["vendas"]
++        cnt[r["dia_semana"]] = cnt.get(r["dia_semana"], 0) + 1
+     overall = sum(r["vendas"] for r in history) / len(history)
+-    return [sums[f["dia_semana"]] / cnt[f["dia_semana"]] if f["dia_semana"] in cnt else overall for f in future]
++    mu = {d: sums[d] / cnt[d] for d in cnt}
++    gs = sorted(r["gasto"] for r in history)
++    cuts = [gs[len(gs) * k // 5] for k in range(1, 5)]
++    bin_ = lambda g: sum(g >= c for c in cuts)
++    acc = [[0.0, 0] for _ in range(5)]
++    for r in history:
++        a = acc[bin_(r["gasto"])]
++        a[0] += r["vendas"] - mu[r["dia_semana"]]
++        a[1] += 1
++    eff = [a[0] / (a[1] + 20) for a in acc]  # shrunk toward 0
++    return [mu.get(f["dia_semana"], overall) + eff[bin_(f["gasto"])] for f in future]

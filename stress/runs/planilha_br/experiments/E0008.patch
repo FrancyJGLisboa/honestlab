@@ -1,0 +1,66 @@
+diff --git a/src/model.py b/src/model.py
+index a0abc73..6046873 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,6 +1,8 @@
+ """Regressão linear por mínimos quadrados com hora (uma coluna por hora), distância e chuva
+ (linear e 'choveu ou não'). Sem bibliotecas."""
+ 
++from datetime import date
++
+ HOURS = list(range(10, 23))
+ 
+ 
+@@ -33,8 +35,49 @@ def fit(train):
+     n = len(X[0])
+     A = [[sum(x[i] * x[j] for x in X) + (1e-6 if i == j else 0) for j in range(n)] for i in range(n)]
+     b = [sum(x[i] * yi for x, yi in zip(X, y)) for i in range(n)]
+-    return solve(A, b)
++    w = solve(A, b)
++    # reforço por tocos de árvore sobre os erros do modelo linear (pega qualquer curva ou interação)
++    raw = [raw_feats(r) for r in train]
++    res = [yi - sum(a * c for a, c in zip(w, x)) for x, yi in zip(X, y)]
++    thr = []
++    for j in range(len(raw[0])):
++        vals = sorted(set(v[j] for v in raw))
++        step = max(1, len(vals) // 12)
++        thr.append(vals[1::step])
++    stumps = []
++    for _ in range(100):
++        best = None
++        for j, ts in enumerate(thr):
++            for t in ts:
++                l = [e for v, e in zip(raw, res) if v[j] < t]
++                rr = [e for v, e in zip(raw, res) if v[j] >= t]
++                if len(l) < 30 or len(rr) < 30:
++                    continue
++                ml, mr = sum(l) / len(l), sum(rr) / len(rr)
++                gain = len(l) * ml * ml + len(rr) * mr * mr
++                if best is None or gain > best[0]:
++                    best = (gain, j, t, ml, mr)
++        if best is None:
++            break
++        _, j, t, ml, mr = best
++        stumps.append((j, t, 0.1 * ml, 0.1 * mr))
++        res = [e - (0.1 * ml if v[j] < t else 0.1 * mr) for v, e in zip(raw, res)]
++    return w, stumps
++
++
++def raw_feats(r):
++    return [r["distancia_km"], r["chuva_mm"], float(r["hora"]),
++            float(date.fromisoformat(r["data"]).weekday()),
++            float((date.fromisoformat(r["data"]) - date(2024, 1, 1)).days)]
+ 
+ 
+-def predict(w, rows):
+-    return [min(300.0, max(1.0, sum(a * b for a, b in zip(w, feats(r))))) for r in rows]
++def predict(model, rows):
++    w, stumps = model
++    out = []
++    for r in rows:
++        p = sum(a * b for a, b in zip(w, feats(r)))
++        v = raw_feats(r)
++        for j, t, ml, mr in stumps:
++            p += ml if v[j] < t else mr
++        out.append(min(300.0, max(1.0, p)))
++    return out

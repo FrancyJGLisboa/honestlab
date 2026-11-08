@@ -1,0 +1,26 @@
+diff --git a/src/model.py b/src/model.py
+index a0abc73..59ff5c3 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,13 +1,19 @@
+ """Regressão linear por mínimos quadrados com hora (uma coluna por hora), distância e chuva
+ (linear e 'choveu ou não'). Sem bibliotecas."""
+ 
++from datetime import date
++
+ HOURS = list(range(10, 23))
+ 
+ 
+ def feats(r):
+     h = r["hora"]
+-    return ([1.0, r["distancia_km"], r["chuva_mm"], 1.0 if r["chuva_mm"] > 0 else 0.0]
+-            + [1.0 if h == k else 0.0 for k in HOURS[1:]])
++    dt = date.fromisoformat(r["data"])
++    t = (dt - date(2024, 1, 1)).days / 365.0
++    mo = dt.month
++    return ([1.0, r["distancia_km"], r["chuva_mm"], 1.0 if r["chuva_mm"] > 0 else 0.0, t]
++            + [1.0 if h == k else 0.0 for k in HOURS[1:]]
++            + [1.0 if mo == k else 0.0 for k in range(2, 13)])
+ 
+ 
+ def solve(A, b):

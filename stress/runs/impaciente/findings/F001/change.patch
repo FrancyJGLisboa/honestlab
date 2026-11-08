@@ -1,0 +1,28 @@
+diff --git a/src/model.py b/src/model.py
+index 08cb0d4..82b7958 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -1,6 +1,18 @@
++import numpy as np
++
++DIAS = ["seg", "ter", "qua", "qui", "sex", "sab", "dom"]
++WINDOW = 120
++
++
++def features(r):
++    f = [1.0, r["temp_max_c"], r["feriado"]]
++    f += [1.0 if r["dia_semana"] == d else 0.0 for d in DIAS[1:]]
++    return f
++
++
+ def predict(history, today):
+-    """Starting point: same weekday one week ago (no weather)."""
+-    for h in reversed(history):
+-        if h["dia_semana"] == today["dia_semana"]:
+-            return h["vendas"]
+-    return sum(h["vendas"] for h in history) / len(history)
++    h = history[-WINDOW:]
++    X = np.array([features(r) for r in h])
++    y = np.array([r["vendas"] for r in h])
++    beta = np.linalg.lstsq(X, y, rcond=None)[0]
++    return float(max(0.0, np.array(features(today)) @ beta))

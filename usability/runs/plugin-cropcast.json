@@ -1,0 +1,62 @@
+{
+  "scenario": "cropcast",
+  "version": "plugin",
+  "completed": true,
+  "human_messages": 4,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 4.7,
+  "lab": {
+    "frozen": true,
+    "experiments": 5,
+    "references": [
+      "olimpica5",
+      "suavizacao",
+      "trend15"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: quero descobrir se dá para melhorar de verdade a previsão de safra deste projeto"
+    },
+    {
+      "role": "agent",
+      "seconds": 23,
+      "text": "Li o projeto e já sei bastante, então vou resumir e depois fazer as poucas perguntas que faltam.\n\n**O que encontrei**\n- A previsão de safra está em `cropcast/forecast.py`. Hoje ela é a **média das últimas 5 safras** de cada condado. Não usa chuva nem temperatura (`rain_mm`, `gdd`), embora esses dados estejam na base.\n- A base tem 80 condados, de 1995 a 2024. O teste que a equipe já usa (`scripts/backtest.py`, 2015–2024) dá **erro médio de 8,45 bu/ac**.\n- Antes de propor qualquer mudança, rodei os testes, como o CLAUDE.md pede. **1 teste falha**, `test_flags_extreme_value`, em `clean.py` (detecção de outliers). Não tem relação com a previsão e não vou mexer nele, mas você deve saber que ele já falhava.\n\n**A pergunta que vamos testar:** dá para errar menos que a média das últimas 5 safras, de forma real e não por sorte nos dados que já conhecemos?\n\nPara montar o teste justo, preciso de 5 respostas curtas:\n\n1. **Quanto melhor precisa ficar para valer a pena?** Por exemplo, reduzir o erro em 5%? 10%? (Se não souber, escolho 5%.)\n2. **Qual período posso usar para testar ideias, e qual devo guardar para a prova final?** Sugestão: ideias testadas até 2021, e 2022–2024 guardados e só abertos no fim. Pode ser?\n3. **A previsão é feita com a chuva e a temperatura da safra já conhecidas?** O código sugere que sim (elas entram no `weather`). Na prática, a mesa só usa a previsão depois que esses números existem, ou antes da safra?\n4. **Existe algum método conhecido que a mesa gostaria de bater?** Por exemplo, tendência linear por condado ou regressão com clima. Se não houver, uso esses dois como comparação.\n5. **Há restrições?** O CLAUDE.md pede só numpy, sem pandas, e funções puras. Mais alguma, como velocidade ou ser fácil de explicar?\n\nSe alguma resposta for \"não sei\", escolho eu e te aviso em uma linha."
+    },
+    {
+      "role": "novice",
+      "text": "Respostas:\n\n1. Eu queria uns 10% de melhora no erro. Menos que isso não ajuda muito meu chefe.\n2. Pode ser assim, ideias testadas até 2021 e 2022–2024 guardados para o fim.\n3. Não sei, pode escolher por mim. Só sei que o chefe quer usar a previsão antes da safra, mas não sei se a chuva e a temperatura já estão disponíveis nessa hora.\n4. Não conheço nenhum método específico. Pode usar esses dois que você falou como comparação.\n5. Não sei de outras restrições além dessas, pode escolher por mim."
+    },
+    {
+      "role": "agent",
+      "seconds": 150,
+      "text": "O contrato está pronto e passou na verificação. Falta a sua aprovação.\n\n**Resumo da página de aprovação** (está completa em `lab/APPROVAL.md`)\n- **Pergunta:** dá para errar pelo menos 10% menos que o melhor método simples conhecido, usando só o que se sabe antes da safra?\n- **Comparação, nos dados de 2015–2021:**\n  - método de hoje (média de 5 safras): 8,20 bu/ac;\n  - média olímpica: 8,23;\n  - suavização exponencial: 8,00;\n  - **tendência linear por condado: 6,93**, o melhor dos quatro.\n- **Sucesso:** 6,24 bu/ac ou menos, e a prova final com 2022–2024 (guardados) também precisa confirmar.\n- **Agente:** até 15 tentativas sozinho, mexendo só em `cropcast/forecast.py`.\n\n**Duas coisas que você precisa saber**\n1. **Só trocar a média de 5 safras pela tendência linear já dá 15% menos erro.** Isso é um método conhecido, não uma descoberta. Por isso a régua de 10% é contra a tendência. Mesmo que nada passe da régua, você já sai com essa troca para sugerir ao seu chefe.\n2. **Escondi a chuva e a temperatura da safra prevista**, porque os dados trazem os totais da safra inteira e eles só existem depois dela. Por isso não usei \"regressão com clima\" como comparação, ao contrário do que sugeri antes. Se o seu chefe confirmar que esses números estão disponíveis antes da colheita, dá para fazer uma segunda rodada com clima.\n\n**Para aprovar (no Claude Code):**\n1. Digite `aprovar` como próxima mensagem.\n2. O honestlab mostra a página real e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nPrecisa ser você para que nem eu consiga mudar a regra no meio do caminho. Se quiser mudar algo antes (a régua, o período guardado, o clima), me diga e eu ajusto o contrato antes de você aprovar."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 1,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 0631   (leia a página abaixo antes)\n\n# Página de aprovação: plugin-cropcast\n\n**A pergunta:** dá para criar uma previsão de safra por condado que erre pelo menos 10% menos que o melhor método simples conhecido, usando só o que se sabe antes da safra?\n\n**Como vamos medir:** erro médio absoluto em bu/ac, por condado e depois a média dos 80 condados. Quanto menor, melhor. Cada previsão usa só safras de anos anteriores.\n\n**Com o que vamos comparar** (nos dados de desenvolvimento, 2015–2021):\n- Método de hoje, média das últimas 5 safras: **8,20**\n- Média olímpica de 5 anos (tira a maior e a menor): 8,23\n- Suavização exponencial: 8,00\n- **Tendência linear por condado (15 anos): 6,93**, o melhor método conhecido\n\nAtenção: só trocar a média de 5 anos pela tendência linear já dá 15% menos erro. Isso é um método conhecido, não uma descoberta. Por isso a régua é contra a tendência.\n\n**O que conta como sucesso:** erro de 6,24 bu/ac ou menos nos dados de desenvolvimento (10% abaixo da tendência), confirmado nos dados guardados para o fim, com um teste estatístico de segurança para a melhora não ser sorte.\n\n**Dados guardados para a prova final:** as safras de 2022 a 2024. Ninguém olha esses dados até o fim. Eles são usados no máximo 3 vezes. As ideias são testadas com 1995–2021.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas sozinho, mexendo só em `cropcast/forecast.py` (só numpy, função pura). Cada tentativa fica registrada, inclusive as que falham.\n\n**Limitações:**\n1. A chuva e a temperatura da própria safra ficam escondidas, porque só se conhecem no fim dela. Se a mesa tiver esses números antes da colheita, vale uma segunda rodada. O clima de anos anteriores pode ser usado.\n2. Só 7 anos de teste na fase de desenvolvimento e 3 na prova final. Os condados sofrem o mesmo clima nos mesmos anos, então a certeza estatística é menor do que os 80 condados sugerem.\n3. Se nada passar da régua, o resultado é \"não encontrou\", e isso também é uma resposta útil.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 0631\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 0631"
+    },
+    {
+      "role": "agent",
+      "seconds": 92,
+      "text": "**Resultado: não encontrei uma melhora real além do que já se conhece.** O relatório completo está em `lab/REPORT.md`.\n\n- **A pergunta:** dava para errar pelo menos 10% menos que o melhor método simples conhecido, a tendência linear, que erra 6,93 bu/ac?\n- **O que aconteceu:** testei 5 ideias. A melhor foi a tendência linear usando todo o histórico de cada condado, com 6,63 bu/ac. Isso é só 4,3% melhor que a tendência de 15 anos, e a régua pedia 10% (6,24 ou menos). As outras 4 foram descartadas, por exemplo encolher a inclinação, aparar anos extremos, combinar com a média recente e usar a mediana.\n- **Por que parei com 5 das 15 tentativas:** o erro que sobra parece ruído. O resíduo de um ano não ajuda a prever o seguinte, e o clima do ano anterior não explica nada. Gastar o resto do orçamento provavelmente só encheria a tabela.\n- **O que você pode usar já:** trocar a média das últimas 5 safras pela tendência linear de todo o histórico baixa o erro de 8,20 para 6,63, uns 19% nos dados de desenvolvimento. É um método conhecido, não uma descoberta. Como a prova final (2022–2024) não foi usada, esse número ainda não foi confirmado nela. A melhor versão já está em `cropcast/forecast.py`, na branch `honestlab/plugin-cropcast`. Não fiz commit nem merge para a branch principal.\n- **Confiança:** baixa, pelo número pequeno de tentativas.\n\n**Próximos passos**\n1. Pergunte ao seu chefe se a chuva e a temperatura da safra estão disponíveis antes da colheita. Se estiverem, vale uma segunda rodada com clima, que é a principal fonte de informação que ficou de fora.\n2. Antes de adotar a tendência linear, rode os testes. Um deles (`test_flags_extreme_value`, em `clean.py`) já falhava antes de eu mexer em qualquer coisa e não tem relação com a previsão."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

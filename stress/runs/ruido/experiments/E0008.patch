@@ -1,0 +1,12 @@
+diff --git a/src/predict.py b/src/predict.py
+index 13fc35d..f81f1bb 100644
+--- a/src/predict.py
++++ b/src/predict.py
+@@ -1,5 +1,6 @@
+-"""Média separada para dias úteis (seg-sex) e fim de semana (sáb-dom)."""
++"""Agrupada útil/fim de semana usando só os últimos 120 dias do grupo (nível recente)."""
+ def predict(history, today):
+     wk = lambda d: d >= 5
+     v = [r["vendas"] for r in history if wk(r["dia_semana"]) == wk(today["dia_semana"])]
++    v = v[-120:] if wk(today["dia_semana"]) is False else v[-50:]
+     return sum(v) / len(v)

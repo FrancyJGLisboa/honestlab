@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "honestlab"
+version = "0.5.0"
+description = "A disciplined, agent-agnostic experiment loop for Claude Code, Codex CLI and Copilot CLI"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = []
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.scripts]
+honestlab = "honestlab.cli:main"
+
+[tool.setuptools]
+packages = ["honestlab"]
+
+[tool.setuptools.package-data]
+honestlab = ["skill/*.md", "_audit/*.py"]

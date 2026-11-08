@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""honestlab command for the Claude Code plugin: runs the bundled package, no install needed."""
+import os
+import sys
+
+here = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, here)
+os.environ["HONESTLAB_VIA_PLUGIN"] = "1"
+if sys.version_info < (3, 9):
+    sys.exit("honestlab needs Python 3.9 or newer.")
+from honestlab.cli import main  # noqa: E402
+
+main()

@@ -1,0 +1,74 @@
+{
+  "scenario": "vendas",
+  "version": "before",
+  "completed": true,
+  "human_messages": 4,
+  "human_commands": 2,
+  "confused": 1,
+  "minutes": 3.7,
+  "lab": {
+    "frozen": true,
+    "experiments": 1,
+    "references": [
+      "media-28d",
+      "media-7d",
+      "media-mesmo-dia-4sem"
+    ]
+  },
+  "report_file": false,
+  "plain_verdict": false,
+  "log": [
+    {
+      "role": "human_command",
+      "command": "labloop init .",
+      "exit": 0,
+      "output": "Created labloop project 'before-vendas' in /home/claude/labloop-kit/usability/runs/before-vendas\r\n\r\nNext steps:\r\n  cd .\r\n  Open your agent here (claude, codex or copilot) and say:\r\n      \"Use the labloop-frame skill. My idea: <your vague idea>\"\r\n  When the agent hands off, review SPEC.md and eval/, then run:\r\n      labloop freeze\r\n  Then: \"Use the labloop-experiment skill for 20 experiments.\"\r\n\r\n  Codex users: trust the project hooks once with /hooks inside codex.\r\n  Check the setup any time with: labloop doctor\r\n"
+    },
+    {
+      "role": "novice",
+      "text": "Use the labloop-frame skill. My idea: acho que dá para prever as vendas de amanhã da minha sorveteria usando o tempo, melhor do que a média que eu uso hoje. Os dados estão no arquivo vendas.csv desta pasta."
+    },
+    {
+      "role": "agent",
+      "seconds": 102,
+      "text": "O experimento está enquadrado, mas ainda não foi congelado. Falta você revisar e rodar `labloop freeze` no seu terminal.\n\n**O que o contrato mede**\n- **Pergunta:** usar temperatura, chuva, dia da semana e feriado prevê as vendas de amanhã melhor do que a média simples?\n- **Métrica:** erro absoluto médio em sorvetes por dia (MAE), e menor é melhor. O avaliador prevê cada dia de teste usando só o histórico anterior e o tempo daquele dia.\n- **Dados:** dividi `vendas.csv` por período.\n  - **Dev:** testa de 2024-07-01 a 2025-06-30 (365 dias).\n  - **Holdout:** testa de 2025-07-01 a 2025-12-30 (183 dias). Não o abri nem pontuei.\n- **Tempo de execução:** cerca de 1 segundo por avaliação.\n\n**Pontuações no dev**\n\n| Método | MAE |\n|---|---|\n| Média dos últimos 7 dias (baseline) | **26,99** |\n| Média dos últimos 28 dias | 27,14 |\n| Média do mesmo dia da semana nas últimas 4 semanas | 28,06 |\n\n**Barra para virar finding:** bater a melhor média simples por pelo menos 2,0 sorvetes por dia (cerca de 7%). Isso tem que valer no dev e no holdout, com intervalo de confiança bootstrap pareado e alfa 0,05. Escolhi o 2,0 por julgamento meu, então ajuste se achar pouco ou muito.\n\n**Pontos fracos e suposições para você checar**\n1. **\"A média que eu uso hoje\":** assumi que é a média dos últimos 7 dias. Se for outra, diga qual e eu troco o baseline.\n2. **Previsão do tempo:** o avaliador usa o tempo real do dia seguinte como se fosse a previsão. Isso é otimista, porque na prática a previsão erra.\n3. **Brecha no avaliador:** o `vendas.csv` original continua na raiz do repositório. O avaliador recusa código em `src/` que cite arquivos de dados e roda de um diretório temporário. Essa checagem é heurística e não impede tudo. Se quiser fechar a brecha, mova esse arquivo para fora do repositório antes do freeze.\n4. **Holdout mais difícil:** 2025 tem vendas mais altas que 2024 (média de 214 contra 191). Um modelo precisa lidar com essa tendência de alta.\n\n**Incidentes**\n- **Hook de freeze:** um hook bloqueou um comando meu porque o texto do SPEC citava o comando de freeze literalmente. Reformulei a frase e não rodei freeze.\n- **Baseline errado:** o baseline foi registrado por engano com a média de 28 dias. Restaurei o código de 7 dias e rodei `labloop baseline` de novo, e o ledger agora tem as duas entradas. Os valores da tabela acima são os corretos.\n\n**Antes de rodar `labloop freeze`:** revise `SPEC.md`, `lab.json` e `eval/evaluate.py`. Depois do freeze, o próximo passo é a skill `labloop-experiment`.\n\nFontes consultadas: [scm.dk](https://www.scm.dk/best-practices-weather-based-sales-forecasting), [Bushra, IEOM 2024](https://dspace.aiub.edu/jspui/bitstream/123456789/2663/1/Weathering%20the%20Forecast.pdf)."
+    },
+    {
+      "role": "novice",
+      "text": "[CONFUSO] Não entendi várias coisas: \"MAE\", \"baseline\", \"bootstrap\", \"holdout\", \"dev\". Eu uso a média das últimas 4 vezes do mesmo dia da semana (por exemplo, as últimas 4 terças), não a dos últimos 7 dias. Pode trocar isso e escolher o resto por mim? E me diga em palavras simples o que eu preciso fazer agora."
+    },
+    {
+      "role": "agent",
+      "seconds": 21,
+      "text": "Troquei o ponto de partida para o seu método: a média das últimas 4 vezes do mesmo dia da semana. O resto eu escolhi por você. As checagens do labloop passaram.\n\n**O que cada palavra quer dizer**\n- **MAE:** quantos sorvetes, em média, a previsão erra por dia. Quanto menor, melhor. Seu método atual erra cerca de **28 por dia**.\n- **Baseline:** o ponto de partida, ou seja, o método que você usa hoje. Tudo é comparado com ele.\n- **Dev:** o ano de dados (jul/2024 a jun/2025) onde eu testo ideias.\n- **Holdout:** os últimos 6 meses (jul a dez/2025), guardados fechados. Servem de prova final, como uma prova surpresa. Eu nunca os abri.\n- **Bootstrap:** um teste estatístico que verifica se uma melhora é real ou só sorte. Roda sozinho, você não precisa fazer nada.\n\n**Uma surpresa nos dados:** a média dos últimos 7 dias (qualquer dia) erra menos que a sua, com cerca de 27 por dia. Por isso ela virou a \"régua\". Para eu declarar que o tempo ajuda de verdade, o modelo precisa bater **essa** média, e não só a sua, por pelo menos 2 sorvetes por dia. Se ele só bater a sua, a melhora pode vir só de trocar o jeito de fazer a média.\n\n**O que você precisa fazer agora**\n1. Se quiser, dê uma olhada no `SPEC.md`. É o resumo do experimento, em português.\n2. No **seu terminal**, dentro desta pasta, rode: `labloop freeze`. Isso trava as regras e o teste, e eu não posso fazer isso por você. Ele também mede o ponto de partida nos 6 meses guardados.\n3. Depois me diga \"use a skill labloop-experiment\" (por exemplo, para 20 experimentos). Aí eu tento os modelos com o tempo.\n\n**Cuidados**\n- O teste usa o tempo real de amanhã como se fosse a previsão. Na vida real a previsão do tempo erra, então o ganho real tende a ser um pouco menor.\n- Uma pasta deste repositório ainda tem seu `vendas.csv` original, que inclui os meses guardados. O teste bloqueia o código que tentar abri-lo, mas isso não é à prova de tudo. Se quiser mais segurança, mova esse arquivo para fora desta pasta antes do freeze."
+    },
+    {
+      "role": "novice",
+      "text": "RUN: labloop freeze"
+    },
+    {
+      "role": "human_command",
+      "command": "labloop freeze",
+      "exit": 0,
+      "output": "Project:    before-vendas\r\nMetric:     score (minimize), keep rule: significant\r\nEvaluator:  {python} eval/evaluate.py  (repeats: 1)\r\nBaseline:   28.0589 on dev\r\nReference:  media-28d = 27.1435 on dev\r\nReference:  media-7d = 26.9914 on dev\r\nReference:  media-mesmo-dia-4sem = 28.0589 on dev\r\nFinding:    beat 'media-7d' by >= 2.0 (absolute) on dev AND holdout, holdout CI excluding zero at alpha 0.05/3\r\nProtected:  eval, data, lab.json, SPEC.md, references\r\nEditable:   src (+ notes, findings)\r\n\r\nFreezing fixes the question, the metric, the data and the bar for a finding. You confirm you reviewed SPEC.md, lab.json and the evaluator.\r\nType the project name (before-vendas) to confirm: before-vendas\r\nbefore-vendas\r\nMeasuring the baseline and references on the holdout split (not counted in the holdout budget)...\r\nFrozen. 8 protected files are hash-locked and read-only.\r\nAgents can now run the loop: ask your agent to use the labloop-experiment skill.\r\n"
+    },
+    {
+      "role": "agent",
+      "seconds": 5,
+      "text": "Congelado, e a saída está como esperado. Nada mudou do meu lado: não rodei freeze nem mexi nos arquivos protegidos.\n\n**O que isso significa agora**\n- As regras, a métrica, os dados e a barra estão travados. A barra é bater a média de 7 dias por pelo menos 2 sorvetes por dia, no dev e no holdout.\n- O freeze já mediu o ponto de partida e as referências nos 6 meses guardados. Eu não vi esses números e não precisei deles.\n- A partir daqui eu só mexo em `src/predict.py` (mais as anotações), e cada tentativa é medida e registrada pelo labloop.\n\n**Seu próximo passo:** peça o loop. Por exemplo: *\"Use a skill labloop-experiment para 20 experimentos.\"* Eu começo testando ideias simples: dia da semana mais temperatura, depois chuva, feriado e tendência de alta.\n\nSobre o aviso do `vendas.csv` na raiz da pasta: o freeze já passou, então ele continua lá. O teste bloqueia código que tente abri-lo, e eu não vou tentar acessá-lo."
+    },
+    {
+      "role": "novice",
+      "text": "Use a skill labloop-experiment para 20 experimentos."
+    },
+    {
+      "role": "agent",
+      "seconds": 84,
+      "text": "Parei depois de 1 experimento, e não 20. O primeiro já passou da barra que fixamos, e a regra do labloop manda parar nesse ponto e confirmar no holdout. O resultado foi confirmado, mas com uma ressalva importante sobre a previsão do tempo.\n\n**Em palavras simples**\n- **O modelo:** uma regressão que olha os últimos 90 dias e prevê as vendas de amanhã usando temperatura, chuva, feriado e dia da semana.\n- **O erro:** o seu método (média do mesmo dia nas últimas 4 semanas) erra cerca de 28 sorvetes por dia. O modelo erra cerca de 12 no teste de desenvolvimento.\n- **A prova final:** nos 6 meses guardados, que o modelo nunca tinha visto, ele errou 13,9, contra 30,5 da melhor média simples. A melhora foi de uns 16 sorvetes por dia e é estatisticamente sólida.\n\nO labloop marcou o resultado como verificado: o holdout confirmou, a busca de trabalhos anteriores foi feita e a revisão independente deu \"aceito\". Isso o torna um candidato para alguém de fora olhar, e não um resultado publicado.\n\n**A ressalva principal, que veio da revisão independente**\nO teste deu ao modelo o tempo **real** de amanhã, como se a previsão do tempo nunca errasse. Na vida real a previsão erra. O revisor simulou isso no dev, com erros que ele escolheu e que não vêm de dados reais de previsão.\n\n| Erro na previsão do tempo | Erro do modelo (sorvetes/dia) |\n|---|---|\n| nenhum | 12,2 |\n| 2 °C e 2 mm de chuva | 19,0 |\n| 3 °C e 5 mm de chuva | 25,7 |\n| 5 °C e 10 mm de chuva | 40,3 |\n\nCom um erro de previsão de 3 °C e 5 mm, o modelo fica quase igual à média simples de 7 dias (cerca de 27). Com erro maior, fica pior. Então \"melhora de mais de 50%\" é um teto, não o que você deve esperar.\n\n**Outras limitações**\n- É uma loja e dois anos de dados, e o teste final cobre só jul a dez/2025, sem um verão novo.\n- Usar regressão com tempo é um método conhecido, então o valor aqui é prático, para a sua loja, e não uma descoberta científica.\n\n**Passos seguintes que eu recomendo**\n1. Testar com tempo previsto de verdade: guarde por alguns dias a previsão que você vê hoje para o dia seguinte e compare com a temperatura que de fato fez. Dá para medir o erro típico da previsão do seu bairro.\n2. Criar uma comparação mais justa, por exemplo \"média do mesmo dia da semana ajustada pela temperatura\". Isso separa o ganho de usar o tempo do ganho da regressão. Posso planejar isso como novo experimento, mas o contrato está congelado, então exigiria um novo enquadramento e outro freeze seu.\n3. Se você quiser que eu continue o loop, posso testar ideias dentro do contrato atual, como ajustar a janela e os termos. Mas a tentativa mais útil é a do passo 2.\n\nOs arquivos ficaram em `findings/F001/`. Nada foi publicado ou enviado a ninguém."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}
