@@ -122,6 +122,44 @@ task-list tools, and the message tells the person how to restore them. Before ap
 `lab.json` still does not block the agent, because the agent is still drafting it. Unexpected
 errors inside the guard itself still allow the call, so a guard defect does not stop the agent.
 
+## Public data: a person with sales but no weather data
+
+`bash stress/run_public_data.sh` plays an ice-cream shop owner in Pinheiros, São Paulo, who has
+two years of daily sales and no weather data. The sales in `fixtures/vendas_sp.csv` were generated
+from the real 2024–2025 São Paulo weather (Open-Meteo archive), so a real weather effect exists by
+construction. With the actual weather of each day the error falls from 18.5% to 5.6% (mean
+absolute percentage error). The right verdict is therefore "found".
+
+Result (`runs/clima_publico.json`, 11.7 minutes, 10 messages from the person):
+
+| Check | Result |
+|---|---|
+| Searched public sources instead of giving up | Yes: Open-Meteo Previous Runs API, NOAA GFS model |
+| Fetch script in `notes/` that the person can run again | Yes: `notes/fetch_weather.py`; it prints nothing from the holdout part |
+| Only what was known at the time | Yes: the forecast made about 24 hours earlier (`*_previous_day1`), not the weather that happened |
+| Source recorded in SPEC "Data" | Yes: URL, model, coordinates, download date, terms (CC BY 4.0, free API is non-commercial) |
+| Approval page names the source | Yes: "De onde vêm os dados" |
+| Verdict | Found: on the 2025 holdout, 19.6 against 26.9 for the strongest method without weather (27% less error) and 30.7 for the owner's method |
+
+Three problems in honestlab came out of the run:
+
+- **`per_unit` was ignored without a loud warning before approval.** The evaluator rounded the
+  per-week values to 4 decimals, so their mean differed from the metric by 0.00003. honestlab
+  ignored `per_unit` and so had no statistical check. The agent noticed only after approval, and
+  the person had to unlock the lab in a terminal.
+- **Plugin users have no `honestlab` command.** To unlock, the person typed `honestlab unfreeze`
+  and got "command not found". The agent gave the full path of the launcher instead.
+- **A guard false positive.** A single shell command that ran the fetch script and then
+  `honestlab data add ... --split holdout` was denied as a holdout read. Each part alone is
+  allowed, and the agent split the command.
+
+The first attempt (`runs/clima_publico_try1.json`) failed because of the test setup, not
+honestlab: the work folder was inside the plugin folder (write-protected) and inside the home
+folder (so the tester's own `CLAUDE.md` was loaded), and the simulator ran commands without a
+shell. All three are fixed in `run_public_data.sh` and `usability/novice_sim.py`. Local paths in
+the recorded files were replaced with placeholders, and the ledger hash chain of
+`runs/clima_publico` was rebuilt after that change.
+
 ## Still open
 
 - **The review is not independent by construction.** `honestlab finding verify` checks that a review

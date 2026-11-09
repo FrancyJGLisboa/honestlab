@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index 0f748b2..0e9e1d8 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -6,7 +6,7 @@ véspera, ajustada só com dias do histórico. predict(history, day) -> número.
+ """
+ import math
+ 
+-ALPHA = 0.1
++ALPHA = 0.6
+ WINDOW = 84          # dias para fatores do dia da semana
+ FIT_DAYS = 365       # dias do histórico usados para ajustar o efeito do tempo
+ RIDGE = 1.0

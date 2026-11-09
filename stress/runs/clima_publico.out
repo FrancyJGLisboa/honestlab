@@ -1,0 +1,1 @@
+{"scenario": "clima_publico", "version": "stress", "expect": "public_data", "completed": true, "human_messages": 10, "human_commands": 3, "confused": 0, "minutes": 11.7, "lab": {"frozen": true, "experiments": 6, "references": ["media8", "semana_passada", "suavizacao"]}, "report_file": true, "plain_verdict": true}

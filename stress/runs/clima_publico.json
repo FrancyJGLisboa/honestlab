@@ -1,0 +1,135 @@
+{
+  "scenario": "clima_publico",
+  "version": "stress",
+  "expect": "public_data",
+  "completed": true,
+  "human_messages": 10,
+  "human_commands": 3,
+  "confused": 0,
+  "minutes": 11.7,
+  "lab": {
+    "frozen": true,
+    "experiments": 6,
+    "references": [
+      "media8",
+      "semana_passada",
+      "suavizacao"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: acho que o tempo (calor e chuva) ajuda a prever as vendas de amanhã da minha sorveteria melhor do que a média que eu uso hoje, mas eu só tenho a planilha de vendas. As vendas estão em vendas.csv nesta pasta."
+    },
+    {
+      "role": "agent",
+      "seconds": 22,
+      "text": "Projeto preparado. Agora vou entender bem a sua ideia antes de montar o teste.\n\n**Sua ideia, numa frase:** saber se calor e chuva ajudam a prever as vendas de amanhã melhor do que a média que você usa hoje.\n\nVocê só tem a planilha de vendas, e isso não é problema. O histórico do tempo existe em bases públicas gratuitas. Sua planilha cobre jan/2024 a dez/2025, dia a dia, com dia da semana e feriado. Eu baixo o tempo desses mesmos dias e cruzo com as vendas.\n\nPreciso de quatro respostas curtas:\n\n1. **Em que cidade (e bairro, se quiser) fica a sorveteria?** Preciso disso para buscar o tempo certo.\n2. **Que média você usa hoje?** Por exemplo, a média dos últimos 7 dias, ou a média das últimas 4 semanas no mesmo dia da semana.\n3. **Quanto melhor a previsão precisaria ficar para valer a pena?** Por exemplo, errar 10% menos. Se não souber, eu escolho.\n4. **Para quê você usa a previsão?** Por exemplo, decidir quanto sorvete produzir ou quantas pessoas chamar. Isso me ajuda a escolher como medir o erro.\n\nPode responder \"não sei\" ou \"pode escolher\" em qualquer uma."
+    },
+    {
+      "role": "novice",
+      "text": "1. Fica em Pinheiros, em São Paulo (SP).\n2. Uso a média das últimas 4 vezes do mesmo dia da semana. Por exemplo, para uma terça, faço a média das últimas 4 terças.\n3. Errar uns 10% menos já me ajudaria.\n4. Uso para comprar o estoque certo."
+    },
+    {
+      "role": "agent",
+      "seconds": 239,
+      "text": "O teste está montado. Falta só a sua aprovação.\n\n**Resumo da página de aprovação:**\n\n- **Pergunta:** a previsão do tempo feita na véspera (calor e chuva em Pinheiros) ajuda a prever as vendas de amanhã?\n- **Medida:** quanto a previsão erra por dia, em média, nas unidades da sua planilha. Menor é melhor.\n- **Comparação, com o erro médio por dia em 2024:**\n  - seu método atual (média das últimas 4 do mesmo dia da semana): **32,7**\n  - vendas do mesmo dia da semana passada: **40,1**\n  - média das últimas 8 do mesmo dia da semana: **30,5**\n  - um método padrão que segue a tendência e ajusta por dia da semana e feriado: **28,3**. É o mais forte, então é a régua.\n- **Sucesso:** um método com tempo precisa errar pelo menos 10% menos que essa régua, ou seja, cerca de **25,5 ou menos**. Isso tem que valer em 2024 e depois em 2025, com uma checagem estatística para descartar sorte.\n- **Prova final:** todo o ano de 2025 fica trancado. Ninguém olha esses dados até o fim, nem eu.\n- **Limitações:**\n  - A previsão do tempo é de um modelo para a região, não de um termômetro na sua rua.\n  - O serviço gratuito serve para este teste. Para usar todo dia na loja, é preciso uma assinatura paga.\n  - São só dois anos de vendas.\n\nUm detalhe útil: só um método padrão, sem olhar o tempo, já erra menos que o seu método atual (28,3 contra 32,7). Isso é cerca de 13% menos erro, medido em 2024. Ainda falta confirmar em 2025.\n\nO tempo vem do serviço público Open-Meteo (modelo americano GFS, da agência de clima dos EUA). Pesquisei estudos sobre o tema e achei vários ligando temperatura a vendas de sorvete. Nenhum comparava com um método simples como o seu. Os principais foram [o artigo da AIUB](https://dspace.aiub.edu/jspui/handle/123456789/2663) e [o curso da Universidade de Reading](https://futurelearn.com/info/courses/climate-intelligence-using-climate-data-to-improve-business-decision-making/0/steps/300833).\n\n**Para aprovar:**\n1. Digite `aprovar` como sua próxima mensagem.\n2. O honestlab mostra a página completa e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nTem que ser você porque, assim, nem eu consigo mudar a regra no meio do caminho. Se quiser mudar algo na página, me diga antes de aprovar."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 19,
+      "text": "Corrigido. O ponto de partida voltou a ser o seu método de hoje, e os números não mudaram. A página de aprovação continua igual:\n\n- **Pergunta:** a previsão do tempo feita na véspera (calor e chuva em Pinheiros) ajuda a prever as vendas de amanhã?\n- **Comparação, com o erro médio por dia em 2024:**\n  - seu método atual: **32,7**\n  - mesmo dia da semana passada: **40,1**\n  - média das últimas 8 do mesmo dia da semana: **30,5**\n  - método padrão com tendência, dia da semana e feriado: **28,3**. Esta é a régua.\n- **Sucesso:** errar pelo menos 10% menos que a régua (cerca de **25,5 ou menos**), em 2024 e depois em 2025, com checagem estatística.\n- **Prova final:** 2025 fica trancado até o fim.\n- **Limitações:** a previsão é da região, não da sua rua. O serviço gratuito serve só para o teste. São só dois anos de vendas.\n\n**Para aprovar:**\n1. Digite `aprovar` de novo como sua próxima mensagem.\n2. O honestlab mostra a página e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 5778   (leia a página abaixo antes)\n\n# Página de aprovação: clima_publico\n\n**A pergunta:** a previsão do tempo para amanhã (calor e chuva, como era prevista na véspera) ajuda a prever as vendas de amanhã da sorveteria pelo menos 10% melhor do que o melhor método sem tempo?\n\n**Como vamos medir:** o erro médio por dia, em unidades de venda da sua planilha (quanto a previsão erra para mais ou para menos). Menor é melhor. Cada dia é previsto só com o que se sabia até a véspera.\n\n**De onde vêm os dados:** as vendas vêm da sua planilha (2024 e 2025). A previsão do tempo vem do serviço público Open-Meteo (modelo americano GFS, da agência NOAA), para Pinheiros, baixada em 09/11/2026. São as previsões feitas na véspera, não o tempo que de fato aconteceu.\n\n**Com o que vamos comparar** (erro médio por dia em 2024, contando semanas completas):\n- Seu método de hoje, a média das últimas 4 vezes do mesmo dia da semana: erra cerca de **32,7**.\n- Vendas do mesmo dia da semana passada: **40,1**.\n- Média das últimas 8 vezes do mesmo dia da semana: **30,5**.\n- Um método padrão que acompanha a tendência e ajusta para dia da semana e feriado: **28,3**. Este é o mais forte e é a régua.\n\n**O que conta como sucesso:** um método com tempo precisa errar pelo menos 10% menos que o mais forte (cerca de 25,5 ou menos). Isso vale em 2024 e depois em 2025, com uma checagem estatística para descartar sorte.\n\n**Dados guardados para a prova final:** todo o ano de 2025. Ninguém olha esses dados até a prova final, nem eu.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas sozinho, cada uma registrada, mudando só o método de previsão.\n\n**Limitações:**\n- O tempo é de um modelo global para a região de Pinheiros, não de uma estação na sua rua.\n- Uso o serviço gratuito só para este teste. Para usar todo dia no negócio, é preciso uma assinatura paga do Open-Meteo ou os dados diretos da NOAA.\n- São só dois anos de vendas. Um resultado positivo vale para esta loja e este período.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 5778\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 5778"
+    },
+    {
+      "role": "agent",
+      "seconds": 63,
+      "text": "Preciso parar e pedir sua ajuda com uma coisa. Achei um erro meu no medidor, e ele enfraquece a checagem contra sorte que a página de aprovação prometeu.\n\n**O que aconteceu.** O medidor calcula o erro de cada semana e arredonda para 4 casas decimais. Por causa desse arredondamento, a média das semanas fica diferente do erro total. A diferença é de 0,00003. O honestlab exige que os dois números batam exatamente. Como não batem, ele ignora as semanas e decide só pelo número total. Sem as semanas, ele não consegue separar melhora real de sorte.\n\n**Por que isso importa.** A página que você aprovou diz \"com uma checagem estatística para descartar sorte\". Do jeito que está, essa checagem não aconteceria. Um resultado poderia parecer bom só por acaso, e o relatório final não teria como mostrar isso.\n\n**Primeiro resultado, ainda sem a checagem.** Na tentativa 1, juntei o método padrão (a régua) com a temperatura máxima prevista na véspera. O erro médio por dia em 2024 caiu de 32,7 (seu método) para **21,2**. A régua erra 28,3, então isso dá uns 25% menos erro que ela. Para comparar: a meta era 10%. É promissor, mas por enquanto é um número só, sem a checagem contra sorte e sem a prova de 2025. Uma melhora tão grande também me faz checar se não há algum furo. Até agora não achei nenhum.\n\n**A correção** é tirar o arredondamento de uma linha do medidor. Nada mais muda: nem a pergunta, nem os dados, nem a régua, nem a meta de 10%. Mas o medidor está trancado, e só você pode destrancar. Eu não posso, de propósito.\n\n**Como fazer:**\n1. Abra um terminal nesta pasta, digite `honestlab unfreeze` e aperte Enter.\n2. Me avise aqui com \"pronto\".\n3. Eu corrijo essa linha e meço tudo de novo. Os números de comparação podem mudar só na última casa decimal.\n4. Você aprova de novo digitando `aprovar`, como antes.\n\nSe preferir não destrancar, eu sigo assim mesmo. Nesse caso, o relatório final vai avisar com clareza que não houve a checagem contra sorte.\n\nEm uma frase: um arredondamento meu desliga a checagem contra sorte; destrancar e corrigir uma linha resolve."
+    },
+    {
+      "role": "novice",
+      "text": "RUN: honestlab unfreeze"
+    },
+    {
+      "role": "human_command",
+      "command": "honestlab unfreeze",
+      "exit": 127,
+      "output": "zsh:1: command not found: honestlab\r\n"
+    },
+    {
+      "role": "agent",
+      "seconds": 12,
+      "text": "Nada foi destrancado, o projeto continua trancado. O comando funciona aqui comigo, mas o seu terminal não sabe onde o programa está instalado.\n\nUse o caminho completo:\n\n1. No terminal, entre nesta pasta:\n   ```\n   cd $TMPDIR/honestlab-public.XXXX/clima_publico\n   ```\n2. Destranque com o caminho completo do programa:\n   ```\n   /Users/tester/Downloads/honestlab/bin/honestlab unfreeze\n   ```\n3. Se ele pedir confirmação, leia e responda. Depois me escreva \"pronto\" aqui.\n\nSe aparecer outro erro, cole a mensagem aqui. Eu não rodo esse comando por você, porque destrancar é decisão só sua."
+    },
+    {
+      "role": "novice",
+      "text": "RUN: cd $TMPDIR/honestlab-public.XXXX/clima_publico"
+    },
+    {
+      "role": "human_command",
+      "command": "cd $TMPDIR/honestlab-public.XXXX/clima_publico",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "role": "agent",
+      "seconds": 7,
+      "text": "Ótimo, você já está na pasta certa. Agora falta o passo 2.\n\nCole este comando no mesmo terminal e aperte Enter:\n\n```\n/Users/tester/Downloads/honestlab/bin/honestlab unfreeze\n```\n\nSe ele pedir confirmação, leia e responda. Depois me escreva \"pronto\" aqui, ou cole a mensagem se der erro."
+    },
+    {
+      "role": "novice",
+      "text": "RUN: /Users/tester/Downloads/honestlab/bin/honestlab unfreeze"
+    },
+    {
+      "role": "human_command",
+      "command": "/Users/tester/Downloads/honestlab/bin/honestlab unfreeze",
+      "exit": 0,
+      "output": "Destrancar invalida a medição inicial: tudo será medido de novo.\r\nAprovar? Digite sim para confirmar: sim\r\nsim\r\nUnfrozen. Edit SPEC/evaluator, then `honestlab baseline` and `honestlab freeze` again.\r\n"
+    },
+    {
+      "role": "agent",
+      "seconds": 25,
+      "text": "Corrigido. O medidor não arredonda mais, então a checagem contra sorte vai funcionar. Medi tudo de novo e os números não mudaram:\n\n- seu método atual: **32,7**\n- mesmo dia da semana passada: **40,1**\n- média das últimas 8 do mesmo dia da semana: **30,5**\n- método padrão (a régua): **28,3**\n- meta: errar pelo menos 10% menos que a régua (cerca de **25,5 ou menos**), em 2024 e depois em 2025\n\nA página de aprovação é a mesma de antes. O ponto de partida voltou a ser o seu método. Guardei a tentativa 1 para refazer depois que você aprovar, agora com a checagem completa. Também anotei no diário do projeto o que aconteceu e o que eu corrigi.\n\n**Para aprovar de novo:**\n1. Digite `aprovar` como sua próxima mensagem.\n2. O honestlab mostra a página e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 5709   (leia a página abaixo antes)\n\n# Página de aprovação: clima_publico\n\n**A pergunta:** a previsão do tempo para amanhã (calor e chuva, como era prevista na véspera) ajuda a prever as vendas de amanhã da sorveteria pelo menos 10% melhor do que o melhor método sem tempo?\n\n**Como vamos medir:** o erro médio por dia, em unidades de venda da sua planilha (quanto a previsão erra para mais ou para menos). Menor é melhor. Cada dia é previsto só com o que se sabia até a véspera.\n\n**De onde vêm os dados:** as vendas vêm da sua planilha (2024 e 2025). A previsão do tempo vem do serviço público Open-Meteo (modelo americano GFS, da agência NOAA), para Pinheiros, baixada em 09/11/2026. São as previsões feitas na véspera, não o tempo que de fato aconteceu.\n\n**Com o que vamos comparar** (erro médio por dia em 2024, contando semanas completas):\n- Seu método de hoje, a média das últimas 4 vezes do mesmo dia da semana: erra cerca de **32,7**.\n- Vendas do mesmo dia da semana passada: **40,1**.\n- Média das últimas 8 vezes do mesmo dia da semana: **30,5**.\n- Um método padrão que acompanha a tendência e ajusta para dia da semana e feriado: **28,3**. Este é o mais forte e é a régua.\n\n**O que conta como sucesso:** um método com tempo precisa errar pelo menos 10% menos que o mais forte (cerca de 25,5 ou menos). Isso vale em 2024 e depois em 2025, com uma checagem estatística para descartar sorte.\n\n**Dados guardados para a prova final:** todo o ano de 2025. Ninguém olha esses dados até a prova final, nem eu.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas sozinho, cada uma registrada, mudando só o método de previsão.\n\n**Limitações:**\n- O tempo é de um modelo global para a região de Pinheiros, não de uma estação na sua rua.\n- Uso o serviço gratuito só para este teste. Para usar todo dia no negócio, é preciso uma assinatura paga do Open-Meteo ou os dados diretos da NOAA.\n- São só dois anos de vendas. Um resultado positivo vale para esta loja e este período.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 5709\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 5709"
+    },
+    {
+      "role": "agent",
+      "seconds": 249,
+      "text": "Sim: a previsão do tempo melhorou a previsão de vendas, e o ganho se manteve num ano que eu não tinha visto. Se o resultado continuar assim no uso real, você erra cerca de um terço menos na compra de estoque.\n\n**Os números.** Cada valor é quanto a previsão erra, em média, por dia, na unidade da sua planilha. Menor é melhor.\n\n| | 2024 (testes) | 2025 (prova final, usada uma vez) |\n|---|---|---|\n| Sua média das últimas 4 | 32,7 | 30,7 |\n| Melhor método sem tempo (a régua) | 28,3 | 26,9 |\n| **Método com calor e chuva** | **20,3** | **19,6** |\n\nComo ler: a meta era errar 10% menos que a régua. Em 2025, o método com tempo errou 27% menos que ela. Comparado com o seu método, foram cerca de 36% menos erro. A checagem contra sorte e uma revisão independente aceitaram o resultado.\n\n**Como funciona.** O método parte da tendência recente das vendas, ajustada por dia da semana e feriado. Depois corrige esse valor com a previsão da véspera: mais calor sobe a previsão, e mais horas de chuva entre 11h e 21h baixam. A temperatura é o que mais pesa. Sozinha, ela levou o erro de 2024 de 28,3 para 21,2. A chuva melhorou um pouco mais. Usar os milímetros de chuva e dar peso extra aos dias muito quentes não ajudou.\n\n**Três ressalvas antes de confiar:**\n1. **A régua podia ser mais forte.** O revisor achou um ajuste do método sem tempo que erra 26,5 em 2024, em vez de 28,3. O método com tempo ainda erra uns 23% menos que esse. Só que esse número é só de 2024 e não passou pela prova final.\n2. **A ligação entre calor e vendas é forte demais para o comum.** O revisor achou essa força incomum para uma loja real. Ela não indica erro no teste, e eu confirmei que usei a previsão da véspera, não o tempo que aconteceu. Mas vale você conferir se a planilha tem dados reais e completos.\n3. **Usar todo dia exige outra fonte.** O serviço gratuito de tempo que usei não permite uso comercial. Para usar na loja, é preciso uma assinatura paga do Open-Meteo ou os dados direto da agência de clima dos EUA (NOAA).\n\n**Próximo passo sugerido:** por 3 a 4 semanas, rode as duas previsões lado a lado. Continue comprando pela sua média e anote também o que o novo método diria. Se ele errar menos no dia a dia, aí sim passe a comprar por ele. Também vale um ajuste rápido para a régua mais forte, que é a ressalva 1.\n\nO relatório completo está em `REPORT.md`, e o método pronto está em `src/model.py`. Eu não publiquei nem enviei nada a ninguém.\n\nPara repetir a alguém: **\"Com calor e chuva previstos, a previsão de vendas errou cerca de um terço menos.\"**\n\nFontes da pesquisa: [AIUB, \"Weathering the Forecast\"](https://dspace.aiub.edu/jspui/handle/123456789/2663), [Universidade de Reading, curso de inteligência climática](https://futurelearn.com/info/courses/climate-intelligence-using-climate-data-to-improve-business-decision-making/0/steps/300833)."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "baseline": 32.711309523809526,
+  "baseline_holdout": 30.749299719887958,
+  "best": 20.3425775413376,
+  "best_id": "E0003",
+  "fingerprint": "055fce291826654108c9b87e6061d6d408d151fcbbd7f69685422dcc40e2878c",
+  "freeze_commit": "13a1070e3d0d5b11b53c5987a970597559cb2c97",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "d0934063d55dc9e42b912d04ac64b766331b76c50ad5c1651364a0f18197d0ed",
+    "SPEC.md": "b3c6e5300adb8887dfd2c37951fd50f1b33c16ada08c927ba84b326033282136",
+    "data/dev/dev.csv": "628e41ab383e15fe22242dbce6de0b5507fb0dbc67091aa0e840b891c7d17aed",
+    "data/holdout/final.csv": "f1c254853cfedffd0af8c56ba4079a5fe39a08250c55042dc9b1c7f37330c7b5",
+    "eval/evaluate.py": "1d4c6c2c7f98defd53601323a3cf1401a8193f688daf5e09a0185ce53501c47d",
+    "lab.json": "0385328f7077bd83e4970dfd19ae7b47357d0c32c3396c806081c47d9506ec11",
+    "references/media8/src/model.py": "4e3bf6b8396cb42a4954b7a24a74c77c29464cd68ffaad1df356a86203884674",
+    "references/semana_passada/src/model.py": "a584f6bc2093a001918e16a0d47f130903b4a62eb548a9b4d78bff37955b7370",
+    "references/suavizacao/src/model.py": "cf71899118203660f6d7368f64d9eb6e67e3fef130a22dd3ea17822ea85b15e0"
+  },
+  "holdout_runs": 1,
+  "next_exp": 7,
+  "next_finding": 2,
+  "references": {
+    "media8": {
+      "description": "Refer\u00eancia: m\u00e9dia das \u00faltimas 8 vendas do mesmo dia da semana (variante mais suave do m\u00e9todo atual).",
+      "dev": 30.52683177437642,
+      "holdout": 30.7937675070028
+    },
+    "semana_passada": {
+      "description": "Refer\u00eancia: 'naive sazonal' = vendas do mesmo dia da semana passada (m\u00e9todo padr\u00e3o de compara\u00e7\u00e3o em previs\u00e3o).",
+      "dev": 40.05654761904762,
+      "holdout": 37.593837535014
+    },
+    "suavizacao": {
+      "description": "Refer\u00eancia: suaviza\u00e7\u00e3o exponencial com perfil do dia da semana e ajuste de feriado",
+      "dev": 28.298892547225478,
+      "holdout": 26.902629088235397
+    }
+  }
+}

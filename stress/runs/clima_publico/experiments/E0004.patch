@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index 0f748b2..fd250c4 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -10,7 +10,7 @@ ALPHA = 0.1
+ WINDOW = 84          # dias para fatores do dia da semana
+ FIT_DAYS = 365       # dias do histórico usados para ajustar o efeito do tempo
+ RIDGE = 1.0
+-FEATURES = ["prev_tmax", "prev_horas_chuva_aberto"]
++FEATURES = ["prev_tmax", "prev_horas_chuva_aberto", "prev_chuva_mm"]
+ 
+ 
+ def _factors(history):
