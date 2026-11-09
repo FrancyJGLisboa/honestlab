@@ -975,7 +975,12 @@ def cmd_finding_verify(a):
         if "TODO" in txt:
             problems.append(f"{f} still contains TODO")
     import re
-    m = re.search(r"^Verdict:\s*(ACCEPT|REJECT)\s*$", (fdir / "review.md").read_text(encoding="utf-8"), re.M)
+    from . import literature
+    lit_problems, prior = literature.check_literature((fdir / "literature.md").read_text(encoding="utf-8"))
+    review_text = (fdir / "review.md").read_text(encoding="utf-8")
+    rerun_problems, rerun = literature.check_review_rerun(review_text)
+    problems += lit_problems + rerun_problems
+    m = re.search(r"^Verdict:\s*(ACCEPT|REJECT)\s*$", review_text, re.M)
     if not m:
         problems.append("review.md must end with a line 'Verdict: ACCEPT' or 'Verdict: REJECT'")
     if problems:
@@ -983,14 +988,107 @@ def cmd_finding_verify(a):
     verdict = m.group(1)
     status = "verified" if (verdict == "ACCEPT" and entry.get("holdout_confirmed")) else "rejected"
     core.append_ledger(root, {"type": "finding", "id": fid, "claim": entry.get("claim"), "status": status,
-                              "review_verdict": verdict, "holdout_confirmed": entry.get("holdout_confirmed")})
+                              "review_verdict": verdict, "holdout_confirmed": entry.get("holdout_confirmed"),
+                              "prior_work": prior, "review_rerun": rerun})
     core.commit(root, f"honestlab: {fid} {status}")
     if status == "verified":
         out(f"{fid} VERIFIED inside this project's contract (holdout confirmed, prior work searched, review ACCEPT).")
+        if rerun.get("found_missed"):
+            out(f"Note: the reviewer found work the search missed ({rerun['missed']}). The report shows it.")
         out("This is a candidate for outside scrutiny, not a published result: have a domain expert check it.")
     else:
         why = "review REJECT" if verdict == "REJECT" else "holdout not confirmed"
         out(f"{fid} REJECTED ({why}). Kept in the record as a negative result.")
+
+
+def cmd_finding_ablate(a):
+    """Undo each part of a finding's change in turn and measure what each part contributes (dev only)."""
+    from . import ablate, stats
+    root, cfg, st = ctx()
+    if not st["frozen"]:
+        raise LabError("Ablation needs a frozen project.")
+    require_integrity(root, cfg, st)
+    fid = a.id
+    entry = next((e for e in core.read_ledger(root) if e.get("type") == "finding" and e.get("id") == fid), None)
+    if entry is None:
+        raise LabError(f"{fid} is not in the ledger.")
+    if any(core.is_under(p, d) for p in core.changed_paths(root) for d in cfg["editable"]):
+        raise LabError("The editable paths have unmeasured changes. Measure them with `honestlab run` or revert them first.")
+    cand_id = entry.get("best_id")
+    cand_patch = None
+    if entry.get("promoted_discarded"):
+        cand_patch = root / core.lab_rel(cfg, "experiments", f"{cand_id}.patch")
+    elif cand_id != st["best_id"]:
+        raise LabError(f"{fid} tested {cand_id}, but the code has moved on to {st['best_id']}. Ablate a finding "
+                       "right after `honestlab finding new`, before more experiments are kept.")
+
+    def put_candidate():
+        _revert_editable(root, cfg)
+        if cand_patch is not None:
+            err = ablate._apply(root, cand_patch.read_text(encoding="utf-8"), reverse=False, index=True)
+            if err:
+                raise LabError(f"{cand_id}.patch no longer applies to the current code: {err}")
+
+    put_candidate()
+    diff = core.git(root, "diff", st["freeze_commit"], "--", *cfg["editable"]).stdout
+    parts = ablate.split_patch(diff)
+    grouped = False
+    if len(parts) > ablate.MAX_PARTS:
+        parts, grouped = ablate.by_file(parts), True
+    if not parts:
+        _revert_editable(root, cfg)
+        raise LabError(f"{fid}: the change is empty, so there is nothing to ablate.")
+    if len(parts) > ablate.MAX_PARTS:
+        _revert_editable(root, cfg)
+        raise LabError(f"{fid}: the change touches {len(parts)} files; ablation handles at most {ablate.MAX_PARTS}.")
+    alpha, budget = float(cfg.get("keep_alpha", 0.1)), int(cfg["bootstrap"])
+    out(f"{fid}: {len(parts)} part(s){' (one per file)' if grouped else ''}. Measuring the full candidate and each "
+        f"part removed, on dev only: {len(parts) + 1} evaluations ...")
+    rows = []
+    try:
+        full, _, log, err = core.evaluate(root, cfg, "dev")
+        if err:
+            raise LabError(f"The full candidate failed on dev: {err}")
+        for i, part in enumerate(parts, 1):
+            put_candidate()
+            file, header, hunk = part
+            text = "".join(header) + "".join(hunk or [])
+            row = {"part": ablate.describe(part)}
+            aerr = ablate._apply(root, text, reverse=True)
+            if aerr:
+                row.update(verdict="cannot be removed alone", error=aerr)
+            else:
+                smp, _, _, eerr = core.evaluate(root, cfg, "dev")
+                if eerr:
+                    row.update(verdict="needed: the code fails without it", error=eerr[:300])
+                else:
+                    word, cmp = ablate.verdict_of(full, smp, cfg["direction"], alpha, budget)
+                    row.update(verdict=word, score=smp["score"], effect=cmp["effect"], lo=cmp["lo"], hi=cmp["hi"])
+            rows.append(row)
+            out(f"  part {i}/{len(parts)}: {row['part']}: {row['verdict']}")
+    finally:
+        _revert_editable(root, cfg)
+    fdir = root / core.lab_rel(cfg, "findings", fid)
+    fdir.mkdir(parents=True, exist_ok=True)
+    lines = [f"# {fid}: ablation", "",
+             f"Each part of the change was undone alone and measured on dev ({cfg['metric']}, {cfg['direction']}). "
+             f"Full candidate ({cand_id}): {fmt(full['score'])}. \"Effect\" is how much the full candidate beats the "
+             f"version without that part: positive means the part helps. Decision at alpha {alpha} "
+             f"({'two-level bootstrap over runs and units' if full.get('unit_runs') else 'bootstrap'}).", "",
+             "| Part | Without it | Effect | Interval | Verdict |", "|---|---|---|---|---|"]
+    for r in rows:
+        ci = f"[{fmt(r['lo'])}, {fmt(r['hi'])}]" if r.get("lo") is not None else "-"
+        lines.append(f"| {r['part'].replace('|', '/')} | {fmt(r.get('score'))} | {fmt(r.get('effect'))} | {ci} | "
+                     f"{r['verdict']} |")
+    lines += ["", "Parts are diff hunks" + (" grouped by file" if grouped else "") + ". A part that only works "
+              "together with another one shows little effect alone; the effects need not add up to the total.", ""]
+    core.write_file(fdir / "ablation.md", "\n".join(lines))
+    core.append_ledger(root, {"type": "ablation", "id": f"{fid}:ablation", "finding": fid, "candidate": cand_id,
+                              "full_score": full["score"], "grouped_by_file": grouped, "parts": rows})
+    core.commit(root, f"honestlab: {fid} ablation ({len(rows)} parts)")
+    helps = [r for r in rows if r["verdict"] in ("helps", "needed: the code fails without it")]
+    out(f"{fid}: {len(helps)} of {len(rows)} part(s) make a measurable difference. Details: "
+        f"{core.lab_rel(cfg, 'findings', fid, 'ablation.md')}")
 
 
 # --------------------------------------------------------------------------- doctor
@@ -1090,6 +1188,9 @@ def build_parser():
     f.add_argument("--candidate", help="experiment id to promote (default: the current best); a discarded "
                    "experiment qualifies if it meets the pre-registered bar on dev")
     f.set_defaults(fn=cmd_finding_new)
+    f = fs.add_parser("ablate", help="undo each part of a finding's change and measure what it contributes (dev)")
+    f.add_argument("id")
+    f.set_defaults(fn=cmd_finding_ablate)
     f = fs.add_parser("verify", help="check literature and independent review, record the verdict")
     f.add_argument("id")
     f.set_defaults(fn=cmd_finding_verify)
@@ -1117,7 +1218,7 @@ def build_parser():
 
 
 # Commands that write the ledger, the state or git history. They take the lab lock.
-_CHANGES_RECORDS = {cmd_budget, cmd_baseline, cmd_freeze, cmd_unfreeze, cmd_run, cmd_reference_add, cmd_finding_new,
+_CHANGES_RECORDS = {cmd_finding_ablate, cmd_budget, cmd_baseline, cmd_freeze, cmd_unfreeze, cmd_run, cmd_reference_add, cmd_finding_new,
                     cmd_finding_verify, cmd_data_add, cmd_report, cmd_setup}
 
 

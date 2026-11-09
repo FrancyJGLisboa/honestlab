@@ -331,22 +331,40 @@ These numbers were written by honestlab; the ledger entry is the authoritative r
 
 FINDING_LITERATURE = """# {fid}: prior work
 
-<!-- Replace every TODO. Be honest: "nothing found" is not proof of novelty. -->
+<!-- Fill every TODO. Someone else must be able to repeat this search from this page.
+     honestlab checks: a search date, at least 3 searches in at least 2 different sources,
+     a link for every work listed, and the novelty line. "Nothing found" is not proof of
+     novelty. -->
 
-## How I searched
-TODO: queries, databases, dates.
+**Search date:** TODO (YYYY-MM-DD)
 
-## Closest existing work
-TODO: links and how each differs from this change.
+## Searches
+
+| Query | Source | What I looked at |
+|---|---|---|
+| TODO | TODO (for example Google Scholar, arXiv, Semantic Scholar, GitHub) | TODO (for example the first 20 results) |
+| TODO | TODO | TODO |
+| TODO | TODO | TODO |
+
+## Closest work found
+
+| Work | Link | How it differs from the claim |
+|---|---|---|
+| TODO | TODO | TODO |
+
+(If nothing related was found, delete the row and write 'Novelty: nothing found'.)
 
 ## Assessment
-TODO: one of: identical method already known / similar work exists / nothing comparable found. What you could not check.
+
+TODO: what the closest work already does, what this result adds, and what you could not check.
+
+Novelty: TODO (one of: known, similar, nothing found)
 """
 
 FINDING_REVIEW = """# {fid}: independent review
 
 <!-- Written by a reviewer that did NOT run the experiments (a subagent or a fresh
-     session). Inputs: SPEC.md, eval/, claim.md, change.patch. Goal: refute. -->
+     session). Inputs: SPEC.md, eval/, claim.md, change.patch, literature.md. Goal: refute. -->
 
 ## Evaluator exploits
 TODO
@@ -362,6 +380,12 @@ TODO
 
 ## Strongest objection
 TODO
+
+## Prior work re-check
+Run one search of your own, not one from literature.md, and look for work that it missed.
+Query: TODO
+Source: TODO
+Missed: TODO (none, or the missed work with its link)
 
 Verdict: TODO
 """

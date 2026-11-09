@@ -10,4 +10,5 @@ echo "== chat approval and plugin ==";  bash "$T/approve_test.sh" | tail -1
 echo "== red-team regressions ==";      bash "$T/redteam_test.sh" | tail -1
 echo "== robustness ==";                 python3 "$T/robust_test.py" "$L" | tail -1
 echo "== overnight mode ==";             python3 "$T/overnight_test.py" "$L" | tail -1
+echo "== ablation ==";                   python3 "$T/ablate_test.py" "$L" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"

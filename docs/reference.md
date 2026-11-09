@@ -101,6 +101,7 @@ honestlab budget --hours N | --until HH:MM [--runs N] | --off
 honestlab status | history [-n N]
 honestlab finding new -m "claim"                holdout confirmation; opens findings/F00N
 honestlab finding new --candidate E00NN -m ..   promote a reverted experiment that met the dev bar
+honestlab finding ablate F00N                   undo each part of the change and measure it (dev only)
 honestlab finding verify F00N                   record the review verdict
 honestlab report                                write REPORT.md
 honestlab doctor                                installation and integrity checks
@@ -127,11 +128,11 @@ into the project, since the plugin provides them, and it targets Claude Code onl
 ## Tests
 
 `bash tests/run_all.sh` (Linux or macOS) builds a frozen example project and runs 51 guard
-decisions, with payloads in the Claude Code, Codex CLI and Copilot CLI formats, 71 end-to-end
+decisions, with payloads in the Claude Code, Codex CLI and Copilot CLI formats, 80 end-to-end
 cases, 48 cases for approving and unlocking in the chat and for the plugin, 17 replays of the
 attacks found in the stress test (`stress/RESULTS.md`), 64 robustness cases (malformed output and
-records, odd paths, concurrent runs, native libraries, run-to-run noise) and 24 overnight mode
-cases. `python3 tests/verify_claims.py`
+records, odd paths, concurrent runs, native libraries, run-to-run noise), 24 overnight mode
+cases and 17 ablation cases. `python3 tests/verify_claims.py`
 checks the README's claims (see [VERIFICATION.md](../VERIFICATION.md)). These cover paths with spaces, maximize metrics, evaluator timeouts,
 overfitting caught by the holdout, the holdout budget, unfreezing and refreezing, tampering,
 `init --here` on an existing repository, and the 0.4 beginner flow (data add, references from a

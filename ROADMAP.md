@@ -14,10 +14,10 @@ Native libraries allowed in candidate code, the character model example, overnig
 two-level bootstrap that counts run-to-run training noise. See `stress/RESULTS.md`, "Training
 round".
 
-## Step 3: results a person can trust and repeat (next)
+## Step 3: results a person can trust and repeat (in progress)
 
-1. **A prior-work search that can be checked.** Today `literature.md` is free text, and
-   `honestlab finding verify` only checks that it exists. The change:
+1. **A prior-work search that can be checked (done).** Before, `literature.md` was free text, and
+   `honestlab finding verify` only checked that it existed. The change:
    - `literature.md` gets a fixed table: each query, where it was run (for example Google
      Scholar, arXiv, Semantic Scholar, GitHub), the date, and the results found, each with a
      link and one line on how it differs from the claim.
@@ -30,8 +30,10 @@ round".
      is new.
    - Limit: honestlab makes no network calls, so it checks the form of the search, not that the
      links are real or complete.
-2. **Automatic ablation.** For a finding, undo each part of the change one at a time and measure
-   what each part contributes.
+2. **Automatic ablation (done).** `honestlab finding ablate F00N` undoes each part of the change
+   (each diff hunk, or each file when there are more than 12 hunks) alone, measures it on dev, and
+   says which parts help, hurt, have no clear effect or are needed for the code to run. The
+   report lists them under "What made the difference".
 3. **A progress chart page.** Every attempt, the best so far and the known methods, in one
    picture the person can read without the terminal.
 4. **One-command reproduction.** Run the finding again from a clean copy and get the same verdict.

@@ -305,11 +305,33 @@ printf 'ERRO = 7.0\n' > src/modelo.py
 "$L" report >/dev/null
 check "report: fragile (untested) when the best reaches the bar but is unconfirmed" "grep -q 'Sinal promissor' REPORT.md && grep -q 'Ainda falta a checagem' REPORT.md"
 "$L" finding new -m "o modelo novo erra menos que o metodo conhecido" >/dev/null
+. "$S/prior_work.sh"
+vf() { "$L" finding verify F001 2>&1; }
 perl -pi -e 's/TODO/ok/g' findings/F001/literature.md
 printf '# review\nok\nVerdict: ACCEPT\n' > findings/F001/review.md
+check "verify refuses free text without a checkable search" "vf | grep -q 'search date' && vf | grep -q 'has no link' && vf | grep -q 'Prior work re-check'"
+fill_prior_work findings/F001
+perl -0pi -e 's/\| temperature retail[^\n]*\n//' findings/F001/literature.md
+check "verify refuses only 2 searches" "vf | grep -q 'at least 3 searches (query and source), found 2'"
+fill_prior_work findings/F001
+perl -pi -e 's/\| (arXiv|GitHub) \|/| Google Scholar |/' findings/F001/literature.md
+check "verify refuses a single source" "vf | grep -q 'at least 2 different sources'"
+fill_prior_work findings/F001
+perl -pi -e 's#https://example.org/paper#(no link)#' findings/F001/literature.md
+check "verify refuses a listed work without a link" "vf | grep -q 'has no link'"
+fill_prior_work findings/F001
+perl -pi -e 's/^Novelty: .*/Novelty: maybe/' findings/F001/literature.md
+check "verify refuses a missing novelty line" "vf | grep -q \"'Novelty: known'\""
+fill_prior_work findings/F001
+perl -pi -e 's/^Missed: none/Missed: maybe something/' findings/F001/review.md
+check "verify refuses a re-check without 'none' or a link" "vf | grep -q \"'Missed:' must be\""
+fill_prior_work findings/F001
+check "the ledger has no verdict after refused verifies" "! grep -q '\"verified\"' ledger.jsonl"
 "$L" finding verify F001 >/dev/null
 "$L" report >/dev/null
 check "report: found after holdout and independent review" "grep -q 'Encontrou' REPORT.md && grep -q 'Alta' REPORT.md"
+check "report shows the prior-work search next to the verdict" "grep -q 'É novo?' REPORT.md && grep -q 'Existe trabalho parecido' REPORT.md && grep -q '3 buscas em 3 fontes' REPORT.md"
+check "the ledger records the search and the reviewer's re-check" "grep -q '\"novelty\": \"similar\"' ledger.jsonl && grep -q 'Semantic Scholar' ledger.jsonl"
 check "report has the AI-labs comparison table" "grep -q 'AlphaEvolve' REPORT.md"
 python3 - <<'PYPLAIN'
 from pathlib import Path

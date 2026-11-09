@@ -45,6 +45,17 @@ T = {
         "c_nf_holdout": "Média: {n} candidato(s) passaram nos dados de desenvolvimento, mas não se confirmaram nos dados guardados para o fim. Isso costuma ser sorte nos dados de desenvolvimento.",
         "c_appr": "Baixa: o resultado passou, mas não foi possível confirmar que foi você quem aprovou a página ({why}).",
         "appr_h": "Aprovação",
+        "abl_h": "O que fez a diferença",
+        "abl_intro": "Cada parte da mudança de {fid} foi desfeita sozinha e medida de novo (só nos dados de desenvolvimento). Efeito positivo quer dizer que a parte ajuda.",
+        "abl_words": {"helps": "ajuda", "hurts": "atrapalha (o resultado melhora sem ela)", "no clear effect": "sem efeito claro",
+                      "needed: the code fails without it": "necessária (sem ela o código não roda)",
+                      "cannot be removed alone": "não dá para tirar sozinha"},
+        "nov_h": "É novo?",
+        "nov_known": "O método já é conhecido: {work} ({link}). O ganho vale para os seus dados, mas a ideia não é nova.",
+        "nov_similar": "Existe trabalho parecido: {work} ({link}). O que este resultado acrescenta está em {path}.",
+        "nov_nothing": "Nada parecido foi encontrado. Isso não prova que é novo: peça a alguém da área para conferir.",
+        "nov_search": "Busca: {q} buscas em {n} fontes ({sources}), em {date}.",
+        "nov_missed": "O revisor independente achou um trabalho que a busca não viu: {missed}.",
         "why_no_evidence": "nenhuma prova foi registrada com a aprovação",
         "why_no_transcript": "o registro da conversa não pôde ser lido",
         "why_no_message": "a sua mensagem de confirmação não está no registro da conversa",
@@ -103,6 +114,17 @@ T = {
         "c_nf_holdout": "Medium: {n} candidate(s) passed on the development data but did not hold on the data kept for the end. That is usually luck on the development data.",
         "c_appr": "Low: the result passed, but it could not be confirmed that you approved the page ({why}).",
         "appr_h": "Approval",
+        "abl_h": "What made the difference",
+        "abl_intro": "Each part of {fid}'s change was undone alone and measured again (development data only). A positive effect means the part helps.",
+        "abl_words": {"helps": "helps", "hurts": "hurts (the result is better without it)", "no clear effect": "no clear effect",
+                      "needed: the code fails without it": "needed (the code does not run without it)",
+                      "cannot be removed alone": "cannot be removed alone"},
+        "nov_h": "Is it new?",
+        "nov_known": "The method is already known: {work} ({link}). The gain holds on your data, but the idea is not new.",
+        "nov_similar": "Similar work exists: {work} ({link}). What this result adds is in {path}.",
+        "nov_nothing": "Nothing similar was found. That does not prove it is new: ask someone in the field to check.",
+        "nov_search": "Search: {q} queries in {n} sources ({sources}), on {date}.",
+        "nov_missed": "The independent reviewer found work the search missed: {missed}.",
         "why_no_evidence": "no evidence was recorded with the approval",
         "why_no_transcript": "the session transcript could not be read",
         "why_no_message": "your confirmation message is not in the session transcript",
@@ -140,6 +162,22 @@ def _strongest(cfg, st, split):
         return None, None
     pick = min if cfg["direction"] == "minimize" else max
     return pick(cands, key=lambda c: c[1])
+
+
+def novelty_text(L, f, path) -> str:
+    """One paragraph on prior work, from what `honestlab finding verify` recorded."""
+    pw = f.get("prior_work") or {}
+    if not pw.get("novelty"):
+        return ""
+    closest = pw.get("closest") or {}
+    key = {"known": "nov_known", "similar": "nov_similar"}.get(pw["novelty"], "nov_nothing")
+    parts = [L[key].format(work=closest.get("work", "?"), link=closest.get("link", "?"), path=path),
+             L["nov_search"].format(q=pw.get("queries"), n=len(pw.get("sources") or []),
+                                    sources=", ".join(pw.get("sources") or []), date=pw.get("date"))]
+    rr = f.get("review_rerun") or {}
+    if rr.get("found_missed"):
+        parts.append(L["nov_missed"].format(missed=rr.get("missed")))
+    return " ".join(parts)
 
 
 def build(root, cfg, st):
@@ -215,6 +253,13 @@ def build(root, cfg, st):
         lines += [f"**{L['conf_h']}:** {conf}", ""]
     if appr != "none":
         lines += [f"**{L['appr_h']}:** {L['appr_' + appr.replace('-', '_')]}", ""]
+    shown = next((f for f in finds.values() if f.get("status") == "verified"), None) or \
+        next((f for f in finds.values() if f.get("prior_work")), None)
+    if shown:
+        fid = next(k for k, v in finds.items() if v is shown)
+        nov = novelty_text(L, shown, core.lab_rel(cfg, "findings", fid, "literature.md"))
+        if nov:
+            lines += [f"**{L['nov_h']}** {nov}", ""]
     lines += [f"## {L['plain_h']}", "", PLACEHOLDER, ""]
 
     # numbers
@@ -262,6 +307,16 @@ def build(root, cfg, st):
     if finds:
         lines += [f"## {L['findings_h']}", ""]
         lines += [f"- {fid}: {f.get('status')}: {f.get('claim', '')}" for fid, f in sorted(finds.items())]
+        lines.append("")
+    abl = [e for e in led if e.get("type") == "ablation"]
+    if abl:
+        e = abl[-1]
+        lines += [f"## {L['abl_h']}", "", L["abl_intro"].format(fid=e.get("finding")), ""]
+        order = {"helps": 0, "needed: the code fails without it": 1, "hurts": 2, "cannot be removed alone": 3,
+                 "no clear effect": 4}
+        for r in sorted(e.get("parts", []), key=lambda r: (order.get(r.get("verdict"), 5), -(r.get("effect") or 0))):
+            eff = f" ({_fmt(r['effect'])})" if r.get("effect") is not None else ""
+            lines.append(f"- {r['part']}: {L['abl_words'].get(r.get('verdict'), r.get('verdict'))}{eff}")
         lines.append("")
     lines += [f"## {L['next_h']}", "", L[next_key or ("n_" + verdict)], ""]
     c1, c2 = L["labs_cols"]

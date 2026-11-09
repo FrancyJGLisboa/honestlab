@@ -121,10 +121,11 @@ PY
   honestlab data add vendas.csv --split dev >/dev/null; honestlab data add vendas.csv --split holdout >/dev/null
   honestlab baseline >/dev/null; honestlab reference add conhecido --from notes/ref.py -m ref >/dev/null
 }
+. "$T/prior_work.sh"
 finish_found() {
   printf 'ERRO = 7.0\n' > src/modelo.py; honestlab run -m "erro menor" >/dev/null
-  honestlab finding new -m "erra menos" >/dev/null; perl -pi -e 's/TODO/ok/g' findings/F001/literature.md
-  printf '# review\nok\nVerdict: ACCEPT\n' > findings/F001/review.md; honestlab finding verify F001 >/dev/null; honestlab report >/dev/null
+  honestlab finding new -m "erra menos" >/dev/null; fill_prior_work findings/F001
+  honestlab finding verify F001 >/dev/null; honestlab report >/dev/null
 }
 TR="$W/transcript.jsonl"; : > "$TR"
 hookt() { python3 -c 'import json,sys; print(json.dumps({"hook_event_name":"UserPromptSubmit","cwd":sys.argv[1],"prompt":sys.argv[2],"transcript_path":sys.argv[3],"session_id":"s1"}))' "$PWD" "$1" "$TR" | honestlab guard prompt; }

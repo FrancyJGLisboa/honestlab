@@ -106,6 +106,14 @@ experimentando até a hora que você escolher, e você para antes digitando `par
 **Para onde vão meus dados?** O honestlab não faz nenhuma conexão de rede. Seu agente lê seus
 arquivos do mesmo jeito que em qualquer outra sessão, sob os termos de sempre do agente.
 
+**Ele diz se o resultado é novo?** Ele diz o que uma busca encontrou e mostra a busca. Antes de
+um resultado contar como achado, o agente precisa registrar pelo menos 3 buscas em pelo menos 2
+fontes, com a data e o link de cada trabalho parecido, e a revisão independente faz uma busca
+própria. O relatório então diz "já conhecido", "existe trabalho parecido" ou "nada parecido foi
+encontrado", ao lado do veredito. Não achar nada não prova que é novo, e o honestlab confere o
+formato da busca, não se ela foi completa. Se o resultado é útil, isso é medido: ele precisa
+superar o melhor método conhecido pela margem que você escolheu.
+
 **O agente pode trapacear?** O honestlab foi feito para um agente bem-intencionado que pode
 cortar caminho ou exagerar, e torna a trapaça difícil e visível. Quando você aprova, o código que
 mede, os dados e a regra de sucesso recebem uma impressão digital e ficam somente leitura, e os
@@ -194,11 +202,11 @@ AlphaEvolve acha. O que ele faz é dizer, com honestidade, se a sua ideia se sus
   código sem mudança. A regra anterior do honestlab guardou as mesmas 10. Agora o honestlab treina
   cada tentativa 3 vezes e conta essa variação: guardou 5, das quais 4 ajudaram de verdade. Uma
   tarefa, um computador. [Detalhes](stress/RESULTS.md) (em inglês).
-- **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 71 casos de ponta a ponta, 48
+- **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 80 casos de ponta a ponta, 48
   casos da aprovação e do destrancamento pela conversa e do plugin, 17 repetições dos ataques do
   teste de estresse, 64 casos de robustez (saída malformada do avaliador, registros danificados,
-  caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos) e 24
-  casos do modo noite (`bash tests/run_all.sh`). Cada afirmação desta
+  caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos), 24
+  casos do modo noite e 17 casos de ablação (`bash tests/run_all.sh`). Cada afirmação desta
   página está ligada ao comando que a confere no [VERIFICATION.md](VERIFICATION.md) (em inglês).
 
 **Estado: inicial (0.5).** Testado ao vivo com o Claude Code 2.1 no Linux, incluindo o plugin e a

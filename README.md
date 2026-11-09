@@ -107,6 +107,14 @@ time you set, and you stop it early by typing `parar` or `stop`.
 **Where does my data go?** honestlab itself makes no network calls. Your agent reads your files the
 same way it does in any other session, under your agent's usual terms.
 
+**Does it tell me whether the result is new?** It tells you what a search found, and it shows
+the search. Before a result can count as found, the agent must record at least 3 searches in at
+least 2 sources, with the date and a link for every related work, and the independent reviewer
+runs one search of its own. The report then says "already known", "similar work exists" or
+"nothing similar found", next to the verdict. Finding nothing does not prove a result is new, and
+honestlab checks the form of the search, not that it was complete. Whether the result is useful is
+measured: it must beat the best known method by the margin you chose.
+
 **Can the agent cheat?** honestlab is built for an agent that means well but may cut corners or
 overclaim, and it makes cheating hard and visible. When you approve, the measuring code, the data
 and the success rule are fingerprinted and made read-only, and honestlab's own records must match
@@ -191,10 +199,10 @@ AlphaEvolve finds. What it does is tell you honestly whether your idea holds up.
   honestlab's earlier rule kept the same 10. honestlab now trains each attempt 3 times and counts
   that variation: it kept 5, of which 4 really helped. One task, one machine.
   [Details](stress/RESULTS.md).
-- **Tests.** 51 hook decisions in the formats of the three agents, 71 end-to-end cases, 48 cases
+- **Tests.** 51 hook decisions in the formats of the three agents, 80 end-to-end cases, 48 cases
   for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the
   stress test, 64 robustness cases (malformed evaluator output, damaged records, odd paths, two
-  runs at once, native libraries, run-to-run noise) and 24 overnight mode cases
+  runs at once, native libraries, run-to-run noise), 24 overnight mode cases and 17 ablation cases
   (`bash tests/run_all.sh`). Every claim on
   this page is mapped to the command that checks it in [VERIFICATION.md](VERIFICATION.md).
 
