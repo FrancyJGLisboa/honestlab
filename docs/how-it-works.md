@@ -29,10 +29,15 @@ success bar in plain words.
 
 - The evaluator prints `per_unit`, the per-instance scores whose mean is the metric. Because
   every solution is scored on the same instances, honestlab uses a **paired bootstrap** with a
-  fixed seed to get the confidence interval of the improvement. For noisy evaluators, set
-  `"repeats"` in `lab.json`. The evaluator then receives `HONESTLAB_SEED` and honestlab bootstraps
-  over the repeats. Without either, honestlab falls back to point estimates and says so in the
-  report.
+  fixed seed to get the confidence interval of the improvement. For noisy evaluators (training a
+  model, sampling, a time budget), set `"repeats"` in `lab.json`. The evaluator then receives
+  `HONESTLAB_SEED` (0, 1, 2, ...) and honestlab uses a **two-level bootstrap**: it resamples the
+  runs of each side and the instances (paired), so the run-to-run noise counts. Without
+  `per_unit` it bootstraps over the repeats alone, and without either it falls back to point
+  estimates and says so in the report.
+- **Run-to-run check:** with `repeats` at 1, `honestlab baseline` runs the starting point twice
+  (seeds 0 and 1) and refuses when the scores differ. A per-instance bootstrap on one run cannot
+  see training noise: in `stress/keep_rule.py` it kept changes that were noise.
 - **Keep rule:** better on average, with a confidence interval at alpha 0.1 that excludes zero.
 - **Finding rule,** stored in `lab.json` and frozen at approval, for example
   `"finding": {"compare_to": "strongest", "min_effect": 0.1, "effect": "relative", "alpha": 0.05}`.
@@ -57,16 +62,17 @@ one unit.
 | The evaluator, data, spec and success rule cannot change after approval | SHA-256 of every protected file, checked before every run; files made read-only | **Hard.** Any change is detected and logged, and no further result is accepted until a human restores it or unfreezes. |
 | History cannot be rewritten | Hash-chained `ledger.jsonl`; honestlab refuses to run if git HEAD moved outside honestlab | **Hard** (detection). |
 | honestlab's own records are not edited | The ledger, `.honestlab/state.json` and the stored samples must match what honestlab committed; any uncommitted change (an edited budget, a weakened reference, a truncated ledger) blocks further runs and shows in `status` | **Hard** (detection). |
-| Candidate code does not read the data or the evaluator, or start programs | A Python audit hook loaded into Python evaluators records any file under `data/`, the evaluator or the references opened from the editable code, and any program it launches; the run is refused | Tripwire. It caught every such attempt in the stress test, but code in the same process can evade it with deliberate effort, and it only covers Python evaluators. |
+| Candidate code does not read the data or the evaluator, or start programs | A Python audit hook loaded into Python evaluators records any file under `data/`, the evaluator or the references opened from the editable code, any program it launches, any native library it loads from outside the Python installation and site-packages, any native function that opens files or starts programs, and any read of the evaluator's variables (frames, `gc`); the run is refused | Tripwire. It caught every such attempt in the stress test, but code in the same process can evade it with deliberate effort, and it only covers Python evaluators. Installed packages such as numpy and PyTorch are allowed. |
 | A result cannot be faked by candidate code | Exactly one result line is accepted; NaN and infinity are refused; symlinks from the editable paths to outside the lab are refused | Strong against the attacks tried; in-process code could still find other ways. |
 | Every change is measured, and losers are reverted | `honestlab run` does the keep-or-revert itself | **Hard.** |
 | Only the editable paths change between experiments | `honestlab run` refuses stray changes | **Hard.** |
 | The holdout is used sparingly | Holdout run budget in `lab.json` | **Hard.** |
 | A finding beats the strongest reference by the agreed effect, with a confidence interval | `honestlab finding new` computes it; the rule and the references are frozen | **Hard.** |
-| Noise is not kept as progress | Paired bootstrap on every `honestlab run` | **Hard** when the evaluator reports per-unit scores. |
+| Noise is not kept as progress | Paired bootstrap on every `honestlab run`; two-level bootstrap over runs and instances when `repeats` is 2 or more; the baseline refuses an evaluator whose score changes between runs with `repeats` at 1 | **Hard** when the evaluator reports per-unit scores. |
 | Only the human approves | Chat: a `UserPromptSubmit` hook that only fires on messages, a code shown only to the person (Claude Code does not add a block message to the model's context), stored only as a salted hash, valid 15 minutes, and void if the page or anything measured changed. Terminal: interactive-terminal and agent-environment checks. Both: the guard blocks the agent from calling `honestlab freeze` or the approval hook. | Strong. An agent running as your user could, with deliberate effort, read the session transcript to find the code; that would show in its tool calls. |
 | Agents do not touch protected files, read the holdout or honestlab's private state, or commit to git | `honestlab guard` hooks in all three CLIs, after undoing cheap disguises such as `g""it` | Early warning. The checks match text, so commands moved into a script file can slip past them; the hashes, the records check and the run-time tripwire catch the resulting changes. |
 | Agents do not stop with unmeasured changes | Stop hook in all three CLIs | Strong. |
+| In overnight mode, the agent keeps going until the agreed time | Stop hook, after `honestlab budget`; it lets the agent stop after three stop attempts without a new run, and `parar`/`stop` from the person ends it | Tested with Claude Code hook payloads; not tested live overnight, nor with Codex CLI or Copilot CLI. |
 | The reviewer is independent | Skill instructions | Process only. `honestlab finding verify` cannot tell who wrote the review; in the stress test, an agent that forged it got a verified finding. |
 | The person approved | A chat approval is checked against the session transcript for the person's own message; if it is missing, `status` warns and the report cannot say "Found" | Detection. |
 

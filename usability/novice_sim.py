@@ -23,6 +23,7 @@ ENV = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
 # Extra arguments for every `claude` call, e.g. to isolate the run from the tester's own settings:
 # HONESTLAB_SIM_CLAUDE_ARGS="--setting-sources project --strict-mcp-config --plugin-dir /path/to/honestlab"
 EXTRA = shlex.split(os.environ.get("HONESTLAB_SIM_CLAUDE_ARGS", ""))
+TURN_TIMEOUT = int(os.environ.get("HONESTLAB_SIM_TURN_TIMEOUT", "2400"))  # seconds; overnight runs need more
 
 SCENARIOS = {
     "vendas": {
@@ -111,6 +112,15 @@ SCENARIOS = {
                  "que a média que eu uso hoje, mas eu só tenho a planilha de vendas"),
         "expect": "public_data",
     },
+    "modelo_noite": {
+        "facts": (
+            "Você é professora de literatura e tem curiosidade sobre IA. Leu que o autoresearch, do Karpathy, deixa "
+            "um agente treinando modelos sozinho a noite toda, mas você não tem placa de vídeo: só este notebook. "
+            "Você quer ver o honestlab fazer algo parecido com o exemplo pronto do modelo de letras. Como é um "
+            "teste, você quer deixar rodando por 40 minutos, não a noite toda. Você não sabe programar."),
+        "idea": "monte o exemplo do modelo de letras e deixe treinando sozinho por 40 minutos",
+        "expect": "overnight",
+    },
 }
 
 NOVICE_RULES = """Você está fazendo o papel de uma pessoa leiga usando um assistente de IA no computador.
@@ -147,7 +157,8 @@ def agent_turn(work: Path, msg: str, session: str, log):
     if session:
         cmd += ["--resume", session]
     t0 = time.time()
-    r = subprocess.run(cmd, cwd=work, capture_output=True, text=True, env=ENV, timeout=2400, stdin=subprocess.DEVNULL)
+    r = subprocess.run(cmd, cwd=work, capture_output=True, text=True, env=ENV, timeout=TURN_TIMEOUT,
+                       stdin=subprocess.DEVNULL)
     try:
         j = json.loads(r.stdout)
         text, session = j.get("result", ""), j.get("session_id", session)

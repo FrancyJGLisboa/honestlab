@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index a83213a..74e6857 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -21,7 +21,7 @@ import time
+ import numpy as np
+ 
+ CONTEXT = 8
+-EMBED = 16
++EMBED = 32
+ HIDDEN = 256
+ BATCH = 128
+ LR = 0.6

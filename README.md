@@ -101,6 +101,8 @@ measurement. The cost on each plan has not been measured yet.
 
 **How long does it take?** The two recorded test runs took 4 to 5 minutes from start to finish,
 with only a few experiments. A full run takes longer, depending on how slow your measurement is.
+You can also ask the agent to run all night: after you approve, it keeps experimenting until the
+time you set, and you stop it early by typing `parar` or `stop`.
 
 **Where does my data go?** honestlab itself makes no network calls. Your agent reads your files the
 same way it does in any other session, under your agent's usual terms.
@@ -131,6 +133,11 @@ Use honestlab: set up the bin packing example and run it.
 
 The example is online bin packing, one of the problems DeepMind's FunSearch worked on. You will
 still approve the page yourself.
+
+To see it train a model, say `Use honestlab: set up the character model example and run it.`
+The agent improves a small neural network that guesses the next letter of *Dom Casmurro*. Every
+run trains for 60 seconds on your CPU, and the network must beat a classic counting method on
+chapters it never saw. It needs numpy.
 
 ## Other agents
 
@@ -178,9 +185,16 @@ AlphaEvolve finds. What it does is tell you honestly whether your idea holds up.
   labs per scenario with no real effect, honestlab never said "found"; when a real improvement
   existed but was smaller than the agreed margin, it said "found" up to 15% of the time, and the
   report now warns when that is possible. [Details](stress/RESULTS.md).
+- **Training noise.** On the character model example, 14 one-setting changes were trained 6
+  times each. The rule "one run, keep if lower", which autoresearch uses, kept 10 changes: 4 really
+  helped on chapters no rule saw, and 5 were noise, including both copies of the unchanged code.
+  honestlab's earlier rule kept the same 10. honestlab now trains each attempt 3 times and counts
+  that variation: it kept 5, of which 4 really helped. One task, one machine.
+  [Details](stress/RESULTS.md).
 - **Tests.** 51 hook decisions in the formats of the three agents, 71 end-to-end cases, 48 cases
-  for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the stress test, and
-  48 robustness cases (malformed evaluator output, damaged records, odd paths, two runs at once)
+  for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the
+  stress test, 64 robustness cases (malformed evaluator output, damaged records, odd paths, two
+  runs at once, native libraries, run-to-run noise) and 24 overnight mode cases
   (`bash tests/run_all.sh`). Every claim on
   this page is mapped to the command that checks it in [VERIFICATION.md](VERIFICATION.md).
 

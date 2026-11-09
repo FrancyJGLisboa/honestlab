@@ -1,0 +1,1 @@
+{"scenario": "modelo_noite", "version": "stress", "expect": "overnight", "completed": true, "human_messages": 3, "human_commands": 0, "confused": 0, "minutes": 47.2, "lab": {"frozen": true, "experiments": 14, "references": ["ngram"]}, "report_file": true, "plain_verdict": true}

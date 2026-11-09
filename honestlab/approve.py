@@ -34,6 +34,7 @@ from .core import LabError
 APPROVE_RE = re.compile(r"^\s*(?:honestlab\s+)?(aprovar|aprovo|aprova|approve|i approve)\s*[.!]?\s*$", re.I)
 UNLOCK_RE = re.compile(r"^\s*(?:honestlab\s+)?(destrancar|destranca|destranque|destrancar o laborat[óo]rio|"
                        r"unlock|unfreeze|unlock the lab)\s*[.!]?\s*$", re.I)
+STOP_RE = re.compile(r"^\s*(parar|pare|chega|parar o modo noite|para tudo|stop|stop overnight|halt)\s*[.!]?\s*$", re.I)
 CONFIRM_RE = re.compile(r"^\s*(sim|s|yes|y)[\s,:-]+(\d{4})\s*[.!]?\s*$", re.I)
 PENDING = "pending_approval.json"
 TTL_SECONDS = 15 * 60
@@ -131,11 +132,31 @@ def _confirm_unlock(root, cfg, st, pt, payload, prompt) -> int:
     return 0
 
 
+def _stop_overnight(payload: dict) -> int:
+    """The person typed 'parar'/'stop': end overnight mode, so the stop hook lets the agent stop."""
+    root = core.find_root(payload.get("cwd")) or core.find_root()
+    if root is None:
+        return 0
+    try:
+        local = core.load_local(root)
+    except (OSError, ValueError):
+        return 0
+    if not isinstance(local.get("overnight"), dict):
+        return 0
+    local.pop("overnight")
+    core.save_local(root, local)
+    return _context("honestlab: the person ended overnight mode. Finish or revert the current change (measure it "
+                    "with `honestlab run` or undo it), then stop the loop and give the person a short summary "
+                    "in plain words: best result, compared with the known methods, and what comes next.")
+
+
 def handle(payload: dict) -> int:
     prompt = payload.get("prompt") or ""
     asks = APPROVE_RE.match(prompt)
     unlock = UNLOCK_RE.match(prompt)
     confirms = CONFIRM_RE.match(prompt)
+    if STOP_RE.match(prompt):
+        return _stop_overnight(payload)
     if not (asks or unlock or confirms):
         return 0
     root = core.find_root(payload.get("cwd")) or core.find_root()

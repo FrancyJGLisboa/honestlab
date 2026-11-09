@@ -1,4 +1,5 @@
-"""Robustness battery: malformed evaluator output, malformed records, odd paths, concurrent runs.
+"""Robustness battery: malformed evaluator output, malformed records, odd paths, concurrent runs,
+native libraries, run-to-run noise.
 
 Usage: python3 tests/robust_test.py [path/to/honestlab]   (default: bin/honestlab in this repo)
 
@@ -61,7 +62,7 @@ def emit(split):
 '''
 
 
-def make_lab(parent: Path, name: str, timeout_sec=5) -> Path:
+def make_lab(parent: Path, name: str, timeout_sec=5, freeze=True) -> Path:
     rc, so, se = hl(parent, "init", name)
     assert rc == 0, so + se
     lab = parent / name
@@ -78,6 +79,8 @@ def make_lab(parent: Path, name: str, timeout_sec=5) -> Path:
     (lab / "data" / "holdout" / "h.txt").write_text("x")
     rc, so, se = hl(lab, "baseline")
     assert rc == 0, so + se
+    if not freeze:
+        return lab
     p = subprocess.run([sys.executable, TTY, str(lab), name, sys.executable, HL, "freeze"],
                        capture_output=True, text=True, env=ENV, timeout=120)
     assert "Frozen" in p.stdout, p.stdout + p.stderr
@@ -360,6 +363,90 @@ def run_per_unit_baseline(work):
           and clean(rc, so, se) and "Baseline refused" in se and "per_unit" in se, so + se)
 
 
+# --------------------------------------------------------------------------- native libraries
+
+def run_native(work):
+    lab = make_lab(work, "native", freeze=False)
+    plain = subprocess.run([sys.executable, "-c", "import sys, json; print(json.dumps(sys.path))"],
+                           capture_output=True, text=True, env={k: v for k, v in ENV.items() if k != "PYTHONPATH"})
+    site_dirs = [p for p in json.loads(plain.stdout) if "-packages" in p]
+    body = "def emit(split):\n    print(json.dumps({'score': 10.0, 'per_unit': [10.0] * 20}))\n"
+    lib = ("import sysconfig, glob, os\n"
+           "_so = sorted(glob.glob(os.path.join(sysconfig.get_config_var('DESTSHARED') or '', '*.so')) + "
+           "glob.glob(os.path.join(sysconfig.get_config_var('DESTSHARED') or '', '*.pyd')))[0]\n")
+    cases = [
+        ("the installation's own site-packages folders stay on the path",
+         f"import json, sys\nassert all(p in sys.path for p in {site_dirs!r}), sys.path\n", True),
+        ("import ctypes is allowed", "import json, ctypes\n", True),
+        ("loading a library file from the Python installation is allowed",
+         "import json, ctypes\n" + lib + "ctypes.CDLL(_so)\n", True),
+        ("opening the running process with ctypes.CDLL(None) is refused", "import json, ctypes\nctypes.CDLL(None)\n", False),
+        ("calling system through ctypes.pythonapi is refused", "import json, ctypes\nctypes.pythonapi.system\n", False),
+        ("loading a system library by name is refused",
+         "import json, ctypes, ctypes.util\nctypes.CDLL(ctypes.util.find_library('c') or 'libc.so.6')\n", False),
+        ("reaching open() inside an allowed library is refused",
+         "import json, ctypes\n" + lib + "ctypes.CDLL(_so).open\n", False),
+        ("namedtuple, dataclass, enum, logging and traceback in candidate code are allowed",
+         "import json, collections, dataclasses, enum, logging, traceback, typing\n"
+         "P = collections.namedtuple('P', 'a b')\n@dataclasses.dataclass\nclass D:\n    x: int = 1\n"
+         "class E(enum.Enum):\n    A = 1\nlogging.getLogger('x').warning('hi')\n"
+         "try:\n    1 / 0\nexcept ZeroDivisionError:\n    traceback.format_exc()\n", True),
+        ("reading the caller's variables with sys._getframe is refused",
+         "import json, sys\ndef emit(split):\n    sys._getframe(1).f_locals\n"
+         "    print(json.dumps({'score': 10.0, 'per_unit': [10.0] * 20}))\n", False),
+        ("reading the caller's variables with inspect is refused",
+         "import json, inspect\ndef emit(split):\n    inspect.currentframe().f_back\n"
+         "    print(json.dumps({'score': 10.0, 'per_unit': [10.0] * 20}))\n", False),
+        ("reaching frames through an exception's traceback is refused",
+         "import json\ndef emit(split):\n    try:\n        raise ValueError\n    except ValueError as e:\n"
+         "        e.__traceback__.tb_frame\n    print(json.dumps({'score': 10.0, 'per_unit': [10.0] * 20}))\n", False),
+        ("searching all objects with gc is refused", "import json, gc\ngc.get_objects()\n", False),
+    ]
+    for name, head, allowed in cases:
+        (lab / "src" / "sol.py").write_text(head + ("" if "def emit" in head else body))
+        rc, so, se = hl(lab, "baseline")
+        if allowed:
+            check(f"native: {name}", rc == 0 and clean(rc, so, se), so + se)
+        else:
+            check(f"native: {name}", rc != 0 and clean(rc, so, se) and ("launched" in se or "memory" in se), so + se)
+
+
+# --------------------------------------------------------------------------- run-to-run noise
+
+NOISY_SOL = """import json, os, random
+def emit(split):
+    r = random.Random(int(os.environ.get("HONESTLAB_SEED", "0")))
+    shift = r.uniform(-0.3, 0.3) + {v}
+    print(json.dumps({{"score": 10.0 + shift, "per_unit": [10.0 + shift] * 20}}))
+"""
+
+
+def run_noisy(work):
+    lab = make_lab(work, "noisy", freeze=False)
+    (lab / "src" / "sol.py").write_text(NOISY_SOL.format(v=0.0))
+    rc, so, se = hl(lab, "baseline")
+    check("noise: repeats 1 with a result that changes between runs refuses the baseline",
+          rc != 0 and clean(rc, so, se) and "Baseline refused" in se and '"repeats": 3' in se, so + se)
+    c = json.loads((lab / "lab.json").read_text())
+    c["repeats"] = 3
+    (lab / "lab.json").write_text(json.dumps(c, indent=2))
+    rc, so, se = hl(lab, "baseline")
+    smp = core.load_sample(lab, "baseline-dev") or {}
+    check("noise: with repeats 3 the baseline is accepted and keeps every run's per-item scores",
+          rc == 0 and len(smp.get("unit_runs") or []) == 3, so + se)
+    p = subprocess.run([sys.executable, TTY, str(lab), "noisy", sys.executable, HL, "freeze"],
+                       capture_output=True, text=True, env=ENV, timeout=120)
+    (lab / "src" / "sol.py").write_text(NOISY_SOL.format(v=-0.05))
+    rc, so, se = hl(lab, "run", "-m", "noise: a gain smaller than the run-to-run noise")
+    e = last_entry(lab)
+    check("noise: a gain smaller than the run-to-run noise is not kept (two-level bootstrap)",
+          "Frozen" in p.stdout and e.get("decision") == "discard" and "two-level" in json.dumps(e), so + se + json.dumps(e))
+    (lab / "src" / "sol.py").write_text(NOISY_SOL.format(v=-2.0))
+    rc, so, se = hl(lab, "run", "-m", "noise: a gain far larger than the noise")
+    e = last_entry(lab)
+    check("noise: a gain far larger than the noise is kept", e.get("decision") == "keep", so + se + json.dumps(e))
+
+
 def main():
     work = Path(tempfile.mkdtemp(prefix="honestlab-robust-"))
     print(f"python: {sys.version.split()[0]}  work: {work}")
@@ -370,6 +457,8 @@ def main():
         run_concurrent(work)
         run_guard_damaged(work)
         run_per_unit_baseline(work)
+        run_native(work)
+        run_noisy(work)
     finally:
         subprocess.run(["chmod", "-R", "u+w", str(work)], capture_output=True)
         shutil.rmtree(work, ignore_errors=True)

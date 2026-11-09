@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index d287f9d..a83213a 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -24,7 +24,7 @@ CONTEXT = 8
+ EMBED = 16
+ HIDDEN = 256
+ BATCH = 128
+-LR = 0.3
++LR = 0.6
+ 
+ 
+ def _forward(params, ctx):

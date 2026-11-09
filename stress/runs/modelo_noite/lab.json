@@ -1,0 +1,27 @@
+{
+  "project": "modelo_noite",
+  "language": "pt",
+  "metric": "bpc",
+  "direction": "minimize",
+  "evaluator": "{python} eval/evaluate.py",
+  "timeout_sec": 300,
+  "repeats": 3,
+  "min_improvement": 0.0,
+  "editable": [
+    "src"
+  ],
+  "protected": [
+    "eval",
+    "data",
+    "lab.json",
+    "SPEC.md"
+  ],
+  "holdout_dir": "data/holdout",
+  "max_holdout_runs": 3,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 0.05,
+    "effect": "absolute",
+    "alpha": 0.05
+  }
+}

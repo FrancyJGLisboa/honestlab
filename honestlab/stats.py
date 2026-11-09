@@ -5,6 +5,9 @@ A *sample* is what one evaluation produced:
 `units` are per-instance scores whose mean is the metric (paired across
 solutions, because every solution is scored on the same instances).
 `repeats` are whole-evaluation scores from repeated runs (for noisy evaluators).
+`unit_runs` (optional) keeps the per-instance scores of every repeated run. With two or more
+runs on both sides, the comparison resamples runs as well as instances, so the run-to-run
+noise of training or sampling is part of the uncertainty.
 """
 
 from __future__ import annotations
@@ -54,11 +57,43 @@ def diff_ci(a, c, alpha, budget=2000):
     return m, lo, hi
 
 
+def two_level_ci(ref_runs, cand_runs, sign, alpha, budget=2000):
+    """Bootstrap CI for the mean improvement, resampling runs (each side) and instances (paired).
+
+    ref_runs, cand_runs: lists of runs, each a list of per-instance scores of equal length.
+    """
+    n = len(ref_runs[0])
+    rng = random.Random(SEED)
+    b = _resamples(n * (len(ref_runs) + len(cand_runs)), budget)
+    point = sign * (sum(map(sum, ref_runs)) / (n * len(ref_runs)) - sum(map(sum, cand_runs)) / (n * len(cand_runs)))
+    diffs = []
+    for _ in range(b):
+        rr = rng.choices(ref_runs, k=len(ref_runs))
+        cr = rng.choices(cand_runs, k=len(cand_runs))
+        idx = rng.choices(range(n), k=n)
+        tot = 0.0
+        for i in idx:
+            tot += sum(r[i] for r in rr) / len(rr) - sum(c[i] for c in cr) / len(cr)
+        diffs.append(sign * tot / n)
+    lo, hi = _percentiles(diffs, alpha)
+    return point, lo, hi
+
+
+def _runs_ok(sample):
+    runs = sample.get("unit_runs")
+    return bool(runs) and len(runs) >= 2 and all(isinstance(r, list) and r for r in runs) and \
+        len({len(r) for r in runs}) == 1
+
+
 def compare(cand: dict, ref: dict, direction: str, alpha: float, budget: int = 2000) -> dict:
     """Improvement of cand over ref (positive = cand is better), with a CI when possible."""
     sign = 1.0 if direction == "minimize" else -1.0
     cu, ru = cand.get("units"), ref.get("units")
-    if cu and ru and len(cu) == len(ru):
+    if _runs_ok(cand) and _runs_ok(ref) and len(cand["unit_runs"][0]) == len(ref["unit_runs"][0]):
+        m, lo, hi = two_level_ci(ref["unit_runs"], cand["unit_runs"], sign, alpha, budget)
+        method = (f"two-level bootstrap over runs ({len(cand['unit_runs'])} vs {len(ref['unit_runs'])}) "
+                  f"and {len(cu or cand['unit_runs'][0])} paired units")
+    elif cu and ru and len(cu) == len(ru):
         d = [sign * (r - c) for c, r in zip(cu, ru)]
         m, lo, hi = mean_ci(d, alpha, budget)
         method = f"paired bootstrap over {len(d)} units"

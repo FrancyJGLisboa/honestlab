@@ -23,4 +23,4 @@ honestlab = "honestlab.cli:main"
 packages = ["honestlab"]
 
 [tool.setuptools.package-data]
-honestlab = ["skill/*.md", "_audit/*.py"]
+honestlab = ["skill/*.md", "_audit/*.py", "examples/*/*.py", "examples/*/*.gz"]

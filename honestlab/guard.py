@@ -289,16 +289,44 @@ def _writes(cmd: str, rels) -> list:
     return sorted(hits)
 
 
+STALL_LIMIT = 3  # overnight mode lets the agent stop after this many stop attempts without a new run
+
+
+def _overnight_block(root) -> str:
+    """The reason to keep going in overnight mode, or "" to let the agent stop."""
+    night = core.overnight_left(root)
+    if not night:
+        return ""
+    left, runs_left, on = night
+    runs = core.experiment_count(root)
+    on["stall"] = int(on.get("stall", 0)) + 1 if runs == on.get("last_runs") else 0
+    on["last_runs"] = runs
+    local = core.load_local(root)
+    local["overnight"] = on
+    core.save_local(root, local)
+    if on["stall"] >= STALL_LIMIT:
+        return ""  # no new run after several attempts to stop: something is wrong, so do not loop forever
+    import datetime
+    end = datetime.datetime.fromtimestamp(on["until"]).strftime("%H:%M")
+    return (f"honestlab overnight mode: {core.duration_words(left)} left (until {end})"
+            + (f", {runs_left} runs left" if runs_left is not None else "")
+            + f", {runs - int(on.get('runs_at_start', 0))} runs so far. Do not stop and do not wait for the person: "
+            "they are away. Continue the experiment loop in experiment.md with the next hypothesis. If the last "
+            "runs failed, fix the cause or try a structurally different idea. When the time is up, follow "
+            "finding.md (only if the best result reaches the margin) and write the report.")
+
+
 def stop(payload: dict) -> int:
-    if payload.get("stop_hook_active") or payload.get("stopHookActive"):
-        print("{}")
-        return 0
     root = core.find_root(payload.get("cwd")) or core.find_root()
     if root is None:
         print("{}")
         return 0
     cfg, st = core.load_config(root), core.load_state(root)
     if not st.get("frozen"):
+        print("{}")
+        return 0
+    night = _overnight_block(root)
+    if not night and (payload.get("stop_hook_active") or payload.get("stopHookActive")):
         print("{}")
         return 0
     editable = cfg.get("editable", [])
@@ -308,6 +336,9 @@ def stop(payload: dict) -> int:
                   ". Before stopping, measure them with `honestlab run -m \"<hypothesis>\"` or revert them with "
                   "`git checkout -- " + " ".join(editable) + "`. Never end a session with unevaluated changes.")
         print(json.dumps({"decision": "block", "reason": reason}))
+        return 0
+    if night:
+        print(json.dumps({"decision": "block", "reason": night}))
         return 0
     print("{}")
     return 0

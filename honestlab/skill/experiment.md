@@ -23,3 +23,13 @@ Rules:
 - When the best result reaches the margin (`honestlab status` shows the rule), go to
   `finding.md`.
 - In an interactive session, give the person a one-line update every five experiments.
+
+Overnight mode (`honestlab status` shows "Overnight: on"):
+- Do not stop and do not ask the person anything: they are away. honestlab blocks the end
+  of the session until the time is up.
+- Keep the same discipline: one hypothesis per run, a journal line per run.
+- Many runs make lucky results more likely. The held-out data and the margin catch that,
+  so do not lower your own bar. A result is still only a candidate until `finding.md`.
+- Every ten runs, write a short progress line in the journal (best so far, what worked).
+- When the time is up, follow `finding.md` only if the best result reaches the margin.
+  Then write the report, so the person reads the verdict when they come back.

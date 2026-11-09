@@ -7,7 +7,8 @@ import random
 from pathlib import Path
 
 AGENTS = ("claude", "codex", "copilot")
-EXAMPLES = ("binpack",)
+EXAMPLES = ("binpack", "charlm")
+EXAMPLE_DIR = Path(__file__).resolve().parent / "examples"
 
 HOOK_FILES = {
     "claude": ".claude/settings.json",
@@ -191,14 +192,19 @@ NEXT_STEPS = """Next: open your agent in this folder (claude, codex or copilot) 
     Use honestlab: <your idea in one sentence>
 The agent asks a few questions, prepares everything and shows you one page to approve."""
 
-NEXT_STEPS_EXAMPLE = """This example is already framed (bin packing, like DeepMind's FunSearch).
+NEXT_STEPS_EXAMPLE = """This example is already framed ({what}).
 Next steps:
   cd {path}
-  honestlab baseline          # measure the starting rule
+  honestlab baseline          # measure the starting point
   honestlab freeze            # you approve the page and lock the rules
   Then open your agent here (claude, codex or copilot) and say:
       Use honestlab: run the experiments
   At the end it writes REPORT.md with the verdict in plain words."""
+
+EXAMPLE_WHAT = {
+    "binpack": "bin packing, like DeepMind's FunSearch",
+    "charlm": "a small character model trained for 60 seconds per attempt, like Karpathy's autoresearch",
+}
 
 
 APPROVAL_TODO = {
@@ -517,6 +523,9 @@ def example_references(example) -> dict:
     if example == "binpack":
         return {"best_fit": ("src/heuristic.py", BEST_FIT_BINPACK,
                              "best fit: the standard online heuristic (Johnson et al. 1974)")}
+    if example == "charlm":
+        return {"ngram": ("src/model.py", _example_file("charlm", "ngram.py"),
+                          "interpolated character 6-gram with Witten-Bell smoothing (Witten and Bell 1991)")}
     return {}
 
 
@@ -536,6 +545,127 @@ def generate_example_data(root: Path, example: str) -> None:
             gk = p / ".gitkeep"
             if gk.exists():
                 gk.unlink()
+    if example == "charlm":
+        for split, text in charlm_splits().items():
+            p = root / "data" / split
+            p.mkdir(parents=True, exist_ok=True)
+            (p / "text.txt").write_text(text, encoding="utf-8")
+            gk = p / ".gitkeep"
+            if gk.exists():
+                gk.unlink()
+
+
+# --------------------------------------------------------------------------- example: character model
+
+SPEC_CHARLM = """# SPEC: {name}
+
+## Question
+Can a small neural character model in src/model.py, trained for a fixed 60 seconds on a laptop CPU, predict the next character of Machado de Assis's *Dom Casmurro* better than a classical interpolated n-gram model, measured in bits per character on chapters it never trained on?
+
+## Why it matters
+This is the experiment loop of Karpathy's autoresearch (an agent edits a training script, every run gets the same time budget, and the validation loss decides) on a CPU instead of a GPU. It adds what autoresearch leaves out: a success rule written before any result, a strong classical method to beat, chapters locked until the end, and a statistical check before a change is kept.
+
+## Metric
+`bpc`: bits per character on the scored chapters, the mean over chunks of 400 characters. Direction: minimize. A plain text file uses 8 bits per character; the starting model uses about 2.65, the n-gram reference about 2.38 on dev.
+
+## Evaluator
+eval/evaluate.py hands the training text to `train(ids, vocab, seconds, rng)` as integer ids, with a fixed budget of 60 seconds (BUDGET_SEC, plus 5 seconds of slack; a slower training is an error). It then scores every 400-character chunk from left to right: `predict(state, contexts)` sees only the CONTEXT characters before each guess, inside the same chunk, and returns one probability per possible character. Rows must be valid probabilities that sum to 1. The random generator is seeded from HONESTLAB_SEED. Training gives a slightly different model every time, so honestlab runs the evaluator 3 times per attempt (lab.json "repeats": 3, seeds 0 to 2) and counts that run-to-run noise in its statistics. One attempt takes about 3.5 minutes.
+
+## Data
+Machado de Assis, *Dom Casmurro* (1899), public domain, from Project Gutenberg eBook #55752 (header and license text removed), bundled with honestlab. data/train: chapters 1 to 104 (about 284,000 characters). data/dev: chapters 105 to 126 (about 50,000). data/holdout: chapters 127 to 148 (about 42,000), locked until the end. Characters never seen in training get id 0.
+
+## Baseline
+A tiny neural network in the style of Bengio et al. (2003): the last 3 characters, embeddings of 16, one hidden layer of 64 units, plain stochastic gradient descent, numpy only. About 2.65 bpc on dev.
+
+## Budget
+60 seconds of training per run, fixed in the evaluator; 3 runs per attempt. 15 attempts by default (about an hour); overnight mode (`honestlab budget --hours 8`) runs about 130.
+
+## What counts as a finding
+Machine-checked by honestlab (lab.json "finding"): beat the strongest registered reference (the n-gram model, registered by `honestlab init --example charlm`) by at least 0.05 bits per character on dev, and on the holdout with a paired bootstrap CI over the chunks that excludes zero.
+
+## Prior work
+Bengio et al. (2003) introduced neural language models of this shape. Witten-Bell smoothing (Witten and Bell 1991) and its comparison with other n-gram smoothing methods (Chen and Goodman 1998) give the classical reference. Karpathy's autoresearch runs the same kind of loop with a GPT model and a 5-minute budget on a GPU. Small neural models beat n-grams on large corpora; on 284,000 characters and 60 seconds of CPU the outcome is open.
+
+## Known ways to cheat this metric
+1. Seeing the character being guessed: closed, predict() receives only the characters before it, inside the same chunk.
+2. Training longer than the budget: closed, the evaluator times train() and fails the run when it exceeds 65 seconds. Work done at import time counts, because the clock starts before the import.
+3. Training on the scored chapters: the files are protected and the tripwire flags candidate code that opens data files. predict() may adapt to characters it has already seen (dynamic evaluation); the other chunks it sees in the same call are later text, so the reviewer must check that any such adaptation is honest.
+4. Reading the evaluator's variables (frames, gc, inspect): the tripwire flags it; the reviewer checks the patch too.
+5. Invalid probabilities: closed, rows must be finite, non-negative and sum to 1.
+"""
+
+LAB_JSON_CHARLM = {
+    "project": "{name}",
+    "language": "{language}",
+    "metric": "bpc",
+    "direction": "minimize",
+    "evaluator": "{python} eval/evaluate.py",
+    "timeout_sec": 300,
+    "repeats": 3,
+    "min_improvement": 0.0,
+    "editable": ["src"],
+    "protected": ["eval", "data", "lab.json", "SPEC.md"],
+    "holdout_dir": "data/holdout",
+    "max_holdout_runs": 3,
+    "finding": {"compare_to": "strongest", "min_effect": 0.05, "effect": "absolute", "alpha": 0.05},
+}
+
+APPROVAL_CHARLM = {
+    "pt": """# Página de aprovação: {name}
+
+**A pergunta:** uma pequena rede neural, treinada por 60 segundos neste computador, consegue adivinhar a próxima letra de *Dom Casmurro* melhor do que o método clássico de contar sequências de letras?
+
+**Como vamos medir:** quantos bits por letra o modelo precisa, em capítulos que ele nunca viu. Menor é melhor. Um arquivo de texto comum usa 8.
+
+**Com o que vamos comparar:** o ponto de partida (uma rede minúscula, cerca de 2,65) e o método clássico de contagem com suavização Witten-Bell (cerca de 2,38), já registrado.
+
+**O que conta como sucesso:** precisar de pelo menos 0,05 bit a menos por letra que o método clássico, nos capítulos de desenvolvimento e nos capítulos guardados, com uma checagem estatística.
+
+**Dados guardados para a prova final:** os capítulos 127 a 148, que ninguém olha até o fim.
+
+**O que fica trancado depois da aprovação:** a pergunta, a medida, o tempo de treino de 60 segundos, os dados e a regra de sucesso.
+
+**O que o agente vai fazer:** até 15 tentativas sozinho, cerca de uma hora. Cada tentativa é treinada 3 vezes por 60 segundos, porque o treino muda um pouco de uma vez para outra. Se você pedir, ele roda a noite toda.
+
+**Limitações:** é um exemplo de aprendizado com um livro só. O resultado vale para este computador e este tempo de treino.
+
+**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.
+""",
+    "en": """# Approval page: {name}
+
+**The question:** can a small neural network, trained for 60 seconds on this computer, guess the next character of *Dom Casmurro* better than the classic method of counting character sequences?
+
+**How we will measure it:** how many bits per character the model needs, on chapters it never saw. Lower is better. A plain text file uses 8.
+
+**What we compare with:** the starting point (a tiny network, about 2.65) and the classic counting method with Witten-Bell smoothing (about 2.38), already registered.
+
+**What counts as success:** at least 0.05 bits per character fewer than the classic method, on the development chapters and on the chapters kept for the end, with a statistical check.
+
+**Data kept for the final test:** chapters 127 to 148, which nobody looks at until the end.
+
+**What is locked after approval:** the question, the measure, the 60-second training time, the data and the success rule.
+
+**What the agent will do:** up to 15 attempts alone, about an hour. Each attempt is trained 3 times for 60 seconds, because training changes a little from one run to the next. If you ask, it runs all night.
+
+**Limitations:** this is a learning example with one book. The result holds for this computer and this training time.
+
+**To approve:** in Claude Code, type `approve` in the chat. In another agent, open a terminal in this folder, type `honestlab freeze`, then `yes`.
+""",
+}
+
+
+def charlm_splits() -> dict:
+    """Dom Casmurro split by chapter: train 1-104, dev 105-126, holdout 127-148."""
+    import gzip
+    import re
+    body = gzip.open(EXAMPLE_DIR / "charlm" / "dom_casmurro.txt.gz", "rt", encoding="utf-8").read()
+    starts = [m.start() for m in re.finditer(r"(?m)^[IVXLC]+\n", body)]
+    parts = [body[a:b] for a, b in zip(starts, starts[1:] + [len(body)])]
+    return {"train": "".join(parts[:104]), "dev": "".join(parts[104:126]), "holdout": "".join(parts[126:])}
+
+
+def _example_file(example: str, name: str) -> str:
+    return (EXAMPLE_DIR / example / name).read_text(encoding="utf-8")
 
 
 # --------------------------------------------------------------------------- assembly
@@ -566,6 +696,12 @@ def project_files(name: str, example=None, agents=AGENTS, language="en") -> dict
         files["APPROVAL.md"] = APPROVAL_BINPACK[lang].format(name=name)
         files["eval/evaluate.py"] = EVAL_BINPACK
         files["src/heuristic.py"] = HEURISTIC_BINPACK
+    elif example == "charlm":
+        files["SPEC.md"] = SPEC_CHARLM.format(name=name)
+        files["lab.json"] = _json(LAB_JSON_CHARLM, name, lang)
+        files["APPROVAL.md"] = APPROVAL_CHARLM[lang].format(name=name)
+        files["eval/evaluate.py"] = _example_file("charlm", "evaluate.py")
+        files["src/model.py"] = _example_file("charlm", "model.py")
     else:
         files["SPEC.md"] = SPEC_GENERIC.format(name=name)
         files["lab.json"] = _json(LAB_JSON_GENERIC, name, lang)

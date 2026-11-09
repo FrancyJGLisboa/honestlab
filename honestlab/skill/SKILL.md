@@ -33,6 +33,11 @@ there.
   branch). If `honestlab` is not installed, tell the person to install it from the
   honestlab folder they downloaded (`pipx install ./honestlab`, then `honestlab setup`), and
   stop. Never suggest `pip install honestlab`: that PyPI name belongs to an unrelated project.
+- Ready-made examples, when the person asks for one: in the current folder (so the hooks
+  find the lab), run `honestlab init . --example binpack --language <pt|en>` (bin packing,
+  like FunSearch) or `--example charlm` (train a small character model on the CPU, like
+  autoresearch; needs numpy). They are already framed: run `honestlab baseline`, then go to
+  Phase 3 and ask for approval.
 - Run `honestlab status` again and note the paths it prints (approval page, SPEC, editable
   code, data folders, report). Below, names like "the approval page" mean those paths.
 
@@ -81,6 +86,13 @@ Then make only that change, run `honestlab baseline`, and ask for approval again
 ## Phase 4: experiments (you, alone)
 Follow `experiment.md`. Default: 15 experiments unless the person chose another number.
 Say roughly how long it will take before you start.
+
+Overnight mode: when the person asks to run all night, for some hours, or until a time,
+run `honestlab budget --hours <N>` (or `--until 07:00`) after the approval. honestlab then
+stops you from ending the session until the time is up. Before you start:
+- Tell the person to keep the computer on, plugged in, with the lid open, and that they
+  end it early by typing `parar` (or `stop`) in the chat.
+- On macOS, keep it awake: run `caffeinate -i -t <seconds>` in the background.
 
 ## Phase 5: check a candidate
 When the best result reaches the margin on the approval page, or `honestlab report` says

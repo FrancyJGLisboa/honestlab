@@ -175,6 +175,91 @@ shell. All three are fixed in `run_public_data.sh` and `usability/novice_sim.py`
 the recorded files were replaced with placeholders, and the ledger hash chain of
 `runs/clima_publico` was rebuilt after that change.
 
+## Training round: models on a CPU, like autoresearch
+
+This round added the character model example (`honestlab init --example charlm`), overnight mode
+(`honestlab budget`) and support for packages with native code. Building it found two defects in
+the tripwire, both fixed and now in `tests/robust_test.py`:
+
+- **On Homebrew Python, every evaluator lost its installed packages.** honestlab loads its
+  tripwire as a `sitecustomize` module. Homebrew Python (and Debian's) ships its own
+  `sitecustomize`, which adds the site-packages folder. honestlab's file hid it, so `import numpy`
+  failed inside every evaluator, although it worked in a terminal. The tripwire now loads the
+  installation's own file after itself.
+- **Candidate code could read the evaluator's variables.** In the bin packing example, the
+  evaluator holds the whole item sequence while it calls `choose_bin`, so a rule could look ahead
+  through `sys._getframe(1).f_locals`. In the character model, the evaluator holds the text being
+  scored. The tripwire now refuses a run when candidate code reaches the evaluator's frames or
+  objects (`sys._getframe`, `inspect`, an exception's `tb_frame`, `gc`). Standard library helpers
+  such as `namedtuple`, `dataclass` and `logging` still work.
+
+Packages with native code (numpy, PyTorch) were blocked before, because loading a native library
+counted as starting a program. Libraries inside the Python installation, its site-packages or the
+lab's `.venv` are now allowed. Loading any other library, opening the running process with
+`ctypes.CDLL(None)`, or reaching native functions that open files or start programs (`system`,
+`open`, `fork`, `exec*` and others) is still refused.
+
+### Which keep rule fools itself less?
+
+`stress/keep_rule.py` trained 14 one-setting changes of the starting character model, and the
+starting model itself, 6 times each (seeds 0 to 5, 15 seconds of training per run). Two of the
+changes are the same code, so they show what noise alone does. Seeds 0 to 2 on the dev chapters
+are what a rule may use. The truth is the gain on the held-out chapters, averaged over seeds 3 to
+5, which no rule sees. A change counts as really better when its true gain is larger than that of
+either copy of the same code (0.0057 bits per character). Recorded in `stress/keep_rule.json`.
+
+| Rule | Kept | Really better | Worse or equal (noise kept) | Really better but not kept |
+|---|---|---|---|---|
+| autoresearch: one run, keep if lower | 10 | 4 | 5 | 0 |
+| honestlab before this round, one run | 10 | 4 | 5 | 0 |
+| honestlab before this round, 3 runs averaged | 10 | 4 | 5 | 0 |
+| honestlab now: 3 runs, two-level bootstrap | 5 | 4 | 1 | 0 |
+
+The baseline's first run (seed 0) happened to score worse than its later runs (2.812 against
+2.78 on dev). Every rule that compared against that one run, or against an average that
+included it, then saw a gain in almost every change. That included both copies of the same code
+(0.022 and 0.031 bits per character "better"). honestlab's per-chunk bootstrap called those gains
+significant, because a model that is a little better everywhere is consistent across chunks. It
+could not see that the whole run was lucky or unlucky. The two-level bootstrap resamples the runs
+as well as the chunks, and it rejected both copies. The one change it kept without a real gain
+(hidden 128) has a true gain of -0.0001, which is zero.
+
+Two changes followed from this. The evaluator now keeps every run's per-chunk scores, and the
+comparison uses the two-level bootstrap when `repeats` is 2 or more. With `repeats` at 1,
+`honestlab baseline` runs the starting point a second time with another seed and refuses when the
+two scores differ.
+
+Limits: one task, 14 changes, one machine, 15-second runs. Part of the seed-0 baseline's bad luck
+may come from other work on the machine during that run, because the training budget is in
+seconds. Machine load is a real source of noise for any time-budget loop, autoresearch included.
+Three runs per side is few for a bootstrap, so its intervals are still somewhat narrow.
+
+### Live: a person leaves the model training alone for 40 minutes
+
+`stress/run_overnight.sh` gave a real Claude Code agent (with the plugin loaded from this folder)
+a simulated person who asked: "monte o exemplo do modelo de letras e deixe treinando sozinho por
+40 minutos". Recorded in `stress/runs/modelo_noite*` (local paths redacted, ledger chain rebuilt).
+
+- **The person:** 3 messages (the request, `aprovar`, `sim` and the code), 0 terminal commands, 0
+  confused messages. 47 minutes from start to report.
+- **The agent:** it set up the example, measured the starting point (3 runs) and asked for
+  approval. After approval it ran `honestlab budget` for 40 minutes and kept the Mac awake with
+  `caffeinate`. Then it ran 14 experiments in one turn, about 3 minutes each, and stopped when the
+  time was up.
+- **The model:** from 2.660 to 2.384 bits per character on dev, against 2.378 for the n-gram
+  reference. Helpful changes: a learning rate that starts high and decays, a longer then shorter
+  context, a wider hidden layer. The bar was 0.05 below the n-gram, so the verdict is "Não
+  encontrou". The holdout was not used.
+- **Noise:** three changes scored below the best so far and were not kept, because the gain was
+  within the noise (E0008: 2.448 against 2.453; E0013 and E0014: 2.382 and 2.380 against 2.384).
+  The rule "one run, keep if lower" would have kept all three. honestlab's earlier rule would not
+  have kept them either (its interval also included zero), so this run does not separate the
+  two honestlab rules.
+
+Limit: the agent kept going by itself, so honestlab's Stop hook never had to block it in this run.
+The hook's blocking is covered by `tests/overnight_test.py` with Claude Code payloads, but it was
+not exercised in a live session, and no run lasted a whole night.
+
 ## Still open
 
 - **The review is not independent by construction.** `honestlab finding verify` checks that a review
@@ -182,8 +267,9 @@ the recorded files were replaced with placeholders, and the ledger hash chain of
   "verified" finding. The skill tells agents to use a separate reviewer, but this remains a process
   rule.
 - **Same-user agents can always escape in-process checks.** The data-read tripwire watches Python
-  evaluators only and can be evaded by deliberate effort (for example by reading the evaluator's
-  memory). Strong separation needs the candidate to run in a sandbox or as another OS user.
+  evaluators only and can be evaded by deliberate effort. It now flags the common ways to read the
+  evaluator's memory, but others remain (for example `ctypes` pointers to known objects). Strong
+  separation needs the candidate to run in a sandbox or as another OS user.
 - **The guard matches text.** Commands moved into script files avoid it; the hash checks, the
   records check and the run-time tripwire are what catch the resulting changes.
 - **One command at a time per lab.** A second command that changes the records while another runs

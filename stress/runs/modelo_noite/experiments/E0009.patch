@@ -1,0 +1,51 @@
+diff --git a/src/model.py b/src/model.py
+index a83213a..7e99cc0 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -28,10 +28,10 @@ LR = 0.6
+ 
+ 
+ def _forward(params, ctx):
+-    emb, w1, b1, w2, b2 = params
++    emb, w1, b1, w2, b2, wd = params
+     x = emb[ctx].reshape(len(ctx), -1)
+     h = np.tanh(x @ w1 + b1)
+-    logits = h @ w2 + b2
++    logits = h @ w2 + b2 + x @ wd
+     logits -= logits.max(axis=1, keepdims=True)
+     p = np.exp(logits)
+     p /= p.sum(axis=1, keepdims=True)
+@@ -43,7 +43,8 @@ def train(ids, vocab, seconds, rng):
+     total = seconds * 0.9
+     deadline = start + total
+     params = [rng.normal(0, 0.1, (vocab, EMBED)), rng.normal(0, 0.1, (CONTEXT * EMBED, HIDDEN)),
+-              np.zeros(HIDDEN), rng.normal(0, 0.1, (HIDDEN, vocab)), np.zeros(vocab)]
++              np.zeros(HIDDEN), rng.normal(0, 0.1, (HIDDEN, vocab)), np.zeros(vocab),
++              np.zeros((CONTEXT * EMBED, vocab))]
+     padded = np.concatenate([np.zeros(CONTEXT, dtype=ids.dtype), ids])
+     windows = np.lib.stride_tricks.sliding_window_view(padded, CONTEXT + 1)
+     while (now := time.time()) < deadline:
+@@ -51,19 +52,21 @@ def train(ids, vocab, seconds, rng):
+         batch = windows[rng.integers(0, len(windows), BATCH)]
+         ctx, y = batch[:, :CONTEXT], batch[:, CONTEXT]
+         x, h, p = _forward(params, ctx)
+-        emb, w1, b1, w2, b2 = params
++        emb, w1, b1, w2, b2, wd = params
+         d = p
+         d[np.arange(BATCH), y] -= 1
+         d /= BATCH
+         gw2, gb2 = h.T @ d, d.sum(axis=0)
++        gwd = x.T @ d
+         dh = (d @ w2.T) * (1 - h * h)
+         gw1, gb1 = x.T @ dh, dh.sum(axis=0)
+-        dx = (dh @ w1.T).reshape(BATCH, CONTEXT, EMBED)
++        dx = (dh @ w1.T + d @ wd.T).reshape(BATCH, CONTEXT, EMBED)
+         np.add.at(emb, ctx, -lr * dx)
+         w1 -= lr * gw1
+         b1 -= lr * gb1
+         w2 -= lr * gw2
+         b2 -= lr * gb2
++        wd -= lr * gwd
+     return params
+ 
+ 

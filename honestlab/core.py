@@ -7,6 +7,7 @@ import datetime
 import hashlib
 import json
 import math
+import time
 import os
 import shlex
 import stat
@@ -157,6 +158,32 @@ def save_state(root: Path, st: dict) -> None:
     p = root / STATE_FILE
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(st, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def experiment_count(root: Path) -> int:
+    return sum(1 for e in read_ledger(root) if e.get("type") == "experiment")
+
+
+def overnight_left(root: Path):
+    """(seconds left, runs left or None, settings) while overnight mode is on, else None."""
+    try:
+        on = load_local(root).get("overnight")
+    except (OSError, ValueError):
+        return None
+    if not isinstance(on, dict):
+        return None
+    left = float(on.get("until", 0)) - time.time()
+    runs_left = None
+    if on.get("max_runs"):
+        runs_left = int(on["max_runs"]) - (experiment_count(root) - int(on.get("runs_at_start", 0)))
+    if left <= 0 or (runs_left is not None and runs_left <= 0):
+        return None
+    return left, runs_left, on
+
+
+def duration_words(seconds: float) -> str:
+    m = int(seconds // 60)
+    return f"{m // 60} h {m % 60:02d} min" if m >= 60 else f"{m} min"
 
 
 def load_local(root: Path) -> dict:
@@ -545,8 +572,8 @@ def run_evaluator(root: Path, cfg: dict, split: str, extra_env=None):
                 return str(Path(x).resolve().relative_to(root.resolve()))
             except ValueError:
                 return x
-        shown = "; ".join(f"{rel_(a)} {b}" if b.startswith("launched") else f"{rel_(a)} opened {rel_(b)}"
-                          for a, b in reads[:3])
+        shown = "; ".join(f"{rel_(a)} {b}" if b.startswith(("launched", "read the evaluator"))
+                          else f"{rel_(a)} opened {rel_(b)}" for a, b in reads[:3])
         if all(b.startswith("launched") for _, b in reads):
             return None, {}, "", ("candidate code launched another program (" + shown + "). Candidate code may "
                                   "not start programs, because a program can read data the candidate must not see.")
@@ -619,7 +646,10 @@ def evaluate(root: Path, cfg: dict, split: str):
         units = [sum(col) / len(col) for col in zip(*unit_runs)]
     if warn:
         extras["honestlab_warning"] = warn
-    return {"score": sum(scores) / len(scores), "units": units, "repeats": scores}, extras, "\n".join(logs), None
+    sample = {"score": sum(scores) / len(scores), "units": units, "repeats": scores}
+    if units is not None and reps >= 2:
+        sample["unit_runs"] = unit_runs  # lets the comparison count run-to-run noise
+    return sample, extras, "\n".join(logs), None
 
 
 def save_sample(root: Path, name: str, sample: dict) -> None:

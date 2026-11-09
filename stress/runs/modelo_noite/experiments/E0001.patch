@@ -1,0 +1,45 @@
+diff --git a/src/model.py b/src/model.py
+index 9eed16f..cb963c7 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -24,7 +24,8 @@ CONTEXT = 3
+ EMBED = 16
+ HIDDEN = 64
+ BATCH = 128
+-LR = 0.1
++LR = 0.003
++B1, B2, EPS = 0.9, 0.999, 1e-8
+ 
+ 
+ def _forward(params, ctx):
+@@ -44,6 +45,9 @@ def train(ids, vocab, seconds, rng):
+               np.zeros(HIDDEN), rng.normal(0, 0.1, (HIDDEN, vocab)), np.zeros(vocab)]
+     padded = np.concatenate([np.zeros(CONTEXT, dtype=ids.dtype), ids])
+     windows = np.lib.stride_tricks.sliding_window_view(padded, CONTEXT + 1)
++    m = [np.zeros_like(q) for q in params]
++    v = [np.zeros_like(q) for q in params]
++    t = 0
+     while time.time() < deadline:
+         batch = windows[rng.integers(0, len(windows), BATCH)]
+         ctx, y = batch[:, :CONTEXT], batch[:, CONTEXT]
+@@ -56,11 +60,15 @@ def train(ids, vocab, seconds, rng):
+         dh = (d @ w2.T) * (1 - h * h)
+         gw1, gb1 = x.T @ dh, dh.sum(axis=0)
+         dx = (dh @ w1.T).reshape(BATCH, CONTEXT, EMBED)
+-        np.add.at(emb, ctx, -LR * dx)
+-        w1 -= LR * gw1
+-        b1 -= LR * gb1
+-        w2 -= LR * gw2
+-        b2 -= LR * gb2
++        gemb = np.zeros_like(emb)
++        np.add.at(gemb, ctx, dx)
++        t += 1
++        for i, g in enumerate((gemb, gw1, gb1, gw2, gb2)):
++            m[i] = B1 * m[i] + (1 - B1) * g
++            v[i] = B2 * v[i] + (1 - B2) * g * g
++            mh = m[i] / (1 - B1 ** t)
++            vh = v[i] / (1 - B2 ** t)
++            params[i] -= LR * mh / (np.sqrt(vh) + EPS)
+     return params
+ 
+ 

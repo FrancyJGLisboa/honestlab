@@ -139,7 +139,8 @@ else:
     got = (int(g.group(1)), *[int(x) for x, _ in e]) if g else None
     clean = bool(g) and g.group(1) == g.group(2) and all(f == "0" for _, f in e)
     flat = re.sub(r"\s+", " ", README)
-    m = re.search(r"(\d+) hook decisions.*?(\d+) end-to-end cases, (\d+) cases for approving.*?(\d+) replays.*?(\d+) robustness cases", flat)
+    m = re.search(r"(\d+) hook decisions.*?(\d+) end-to-end cases, (\d+) cases for approving.*?(\d+) replays.*?"
+                  r"(\d+) robustness cases.*?(\d+) overnight mode cases", flat)
     claimed = tuple(int(x) for x in m.groups()) if m else None
     report("V10", clean and got == claimed, "the README's test counts match a fresh run, all passing",
            f"run {got}, README {claimed}")
@@ -177,6 +178,21 @@ rules = {
 missing = [k for k, v in rules.items() if not v]
 report("V12", not missing, "missing data: README limit matches the skill's public-data rules",
        "all present" if not missing else "missing: " + ", ".join(missing))
+
+# V13 training-noise study numbers match the recorded study
+kr = KIT / "stress/keep_rule.json"
+if kr.exists():
+    sm = json.loads(kr.read_text())["summary"]
+    a, t = sm["autoresearch_keeps"], sm["honestlab_3runs_two_level_keeps"]
+    flat = re.sub(r"\s+", " ", README)
+    claim = (f"kept {a['kept']} changes: {a['kept_really_better']} really helped" in flat
+             and f"{a['kept_really_worse_or_equal']} were noise" in flat
+             and f"it kept {t['kept']}, of which {t['kept_really_better']} really helped" in flat)
+    report("V13", claim, "training-noise numbers in the README match stress/keep_rule.json",
+           f"autoresearch {a['kept']}/{a['kept_really_better']}/{a['kept_really_worse_or_equal']}, "
+           f"honestlab {t['kept']}/{t['kept_really_better']}/{t['kept_really_worse_or_equal']}")
+else:
+    report("V13", None, "training noise", "stress/keep_rule.json not present")
 
 print()
 print(f"{results.count('PASS')} passed, {results.count('FAIL')} failed, {results.count('SKIP')} skipped")

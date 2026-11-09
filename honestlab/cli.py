@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import sys
+import time
 from pathlib import Path
 
 from . import __version__, core, templates
@@ -103,6 +104,11 @@ def cmd_init(a):
     if bad:
         raise LabError(f"Unknown agent(s): {bad}. Choose from {list(templates.AGENTS)}.")
     name = a.name or target.name
+    if a.example == "charlm":
+        import importlib.util
+        if importlib.util.find_spec("numpy") is None:
+            raise LabError(f"The charlm example needs numpy for the Python that runs honestlab ({sys.executable}). "
+                           f"Install it with `{sys.executable} -m pip install numpy`, then run this again.")
     files = templates.project_files(name, example=a.example, agents=agents, language=a.language)
     written, skipped = [], []
     for rel, content in files.items():
@@ -134,7 +140,7 @@ def cmd_init(a):
         out(f"Kept existing files: {', '.join(skipped)}")
     out("")
     if a.example:
-        out(templates.NEXT_STEPS_EXAMPLE.format(path=a.path))
+        out(templates.NEXT_STEPS_EXAMPLE.format(path=a.path, what=templates.EXAMPLE_WHAT[a.example]))
     else:
         out(templates.NEXT_STEPS.format(path=a.path))
 
@@ -293,6 +299,19 @@ def cmd_baseline(a):
                        "the exact per-item values whose mean is the metric (do not round them). Without it honestlab "
                        "cannot check that a gain is more than luck.")
     score = sample["score"]
+    if int(cfg.get("repeats") or 1) < 2:
+        # A second run with another seed: an evaluator that trains or samples gives a different score,
+        # and then one run per attempt cannot tell a real gain from luck.
+        s2, _, log2, err2 = core.run_evaluator(root, cfg, "dev", {"HONESTLAB_REPEAT": "1", "HONESTLAB_SEED": "1"})
+        if err2:
+            out(log2[-3000:])
+            raise LabError(f"Baseline refused: a second run of the same code failed ({err2}), although the first "
+                           "worked. The evaluator must give a result every time.")
+        if abs(s2 - score) > 1e-9 * max(1.0, abs(score)):
+            raise LabError(f"Baseline refused: the same code scored {score:.6g} in one run and {s2:.6g} in another "
+                           "(seed 0, then seed 1). The result changes from run to run (training, sampling or timing), "
+                           "so one run per attempt cannot tell a real gain from luck. Set \"repeats\": 3 (or more) "
+                           "in lab.json, seed the randomness from HONESTLAB_SEED, and run `honestlab baseline` again.")
     core.save_sample(root, "baseline-dev", sample)
     st.update(baseline=score, best=score, best_id="baseline")
     core.save_state(root, st)
@@ -693,6 +712,52 @@ def cmd_run(a):
 
 # --------------------------------------------------------------------------- status / history
 
+def cmd_budget(a):
+    """Overnight mode: keep the experiment loop going until a time or a number of runs."""
+    import datetime
+    root, cfg, st = ctx()
+    local = core.load_local(root)
+    if a.off:
+        local.pop("overnight", None)
+        core.save_local(root, local)
+        core.append_ledger(root, {"type": "budget", "id": "budget", "off": True})
+        core.commit(root, "honestlab: overnight mode off")
+        out("Overnight mode is off. The agent may stop when its current experiment is measured.")
+        return
+    if not st["frozen"]:
+        raise LabError("Overnight mode starts after the person approves the page (the lab is not frozen yet).")
+    now = time.time()
+    if a.until:
+        try:
+            hh, mm = (int(x) for x in a.until.split(":"))
+            t = datetime.datetime.now().replace(hour=hh, minute=mm, second=0, microsecond=0)
+        except ValueError:
+            raise LabError("--until takes a clock time like 07:00.")
+        if t.timestamp() <= now:
+            t += datetime.timedelta(days=1)
+        until = t.timestamp()
+    elif a.hours:
+        if not 0 < a.hours <= 72:
+            raise LabError("--hours must be more than 0 and at most 72.")
+        until = now + a.hours * 3600
+    else:
+        raise LabError("Say how long: --hours 8, or --until 07:00 (or --off to end overnight mode).")
+    if a.runs is not None and a.runs < 1:
+        raise LabError("--runs must be at least 1.")
+    runs = core.experiment_count(root)
+    local["overnight"] = {"until": until, "max_runs": a.runs, "runs_at_start": runs, "last_runs": runs, "stall": 0}
+    core.save_local(root, local)
+    end = datetime.datetime.fromtimestamp(until).strftime("%H:%M")
+    core.append_ledger(root, {"type": "budget", "id": "budget", "until": end, "hours": round((until - now) / 3600, 2),
+                              "max_runs": a.runs})
+    core.commit(root, f"honestlab: overnight mode until {end}")
+    out(f"Overnight mode is on until {end} ({core.duration_words(until - now)})"
+        + (f", at most {a.runs} runs" if a.runs else "") + ".")
+    out("The agent keeps running experiments until then: honestlab stops it from ending the session early. "
+        "Keep the computer on, plugged in and awake. The person ends it early by typing `parar` or `stop` "
+        "in the chat, or with `honestlab budget --off`.")
+
+
 def cmd_status(a):
     root, cfg, st = ctx()
     entries = core.read_ledger(root)
@@ -715,6 +780,13 @@ def cmd_status(a):
     out(f"Best:      {fmt(st['best'])} ({st['best_id']})")
     out(f"Runs:      {len(exps)} experiments: {n['keep']} kept, {n['discard']} discarded, {n['error']} errors")
     out(f"Holdout:   {st['holdout_runs']}/{cfg['max_holdout_runs']} confirmation runs used")
+    night = core.overnight_left(root)
+    if night:
+        left, runs_left, on = night
+        import datetime
+        out(f"Overnight: on until {datetime.datetime.fromtimestamp(on['until']).strftime('%H:%M')} "
+            f"({core.duration_words(left)} left" + (f", {runs_left} runs left" if runs_left is not None else "")
+            + "); the person ends it with `parar`/`stop` in the chat")
     fnd = cfg["finding"]
     s_name, s_dev = _strongest(cfg, st)
     target = s_name if fnd["compare_to"] == "strongest" else fnd["compare_to"]
@@ -988,6 +1060,13 @@ def build_parser():
     s.add_argument("-m", "--message", required=True, help="one-sentence hypothesis")
     s.set_defaults(fn=cmd_run)
 
+    s = sub.add_parser("budget", help="overnight mode: keep experimenting until a time (after approval)")
+    s.add_argument("--hours", type=float, help="run for this many hours")
+    s.add_argument("--until", help="run until this clock time, e.g. 07:00")
+    s.add_argument("--runs", type=int, help="stop after this many more experiments")
+    s.add_argument("--off", action="store_true", help="end overnight mode")
+    s.set_defaults(fn=cmd_budget)
+
     sub.add_parser("status", help="where the project stands").set_defaults(fn=cmd_status)
     s = sub.add_parser("history", help="recent ledger entries")
     s.add_argument("-n", type=int, default=20)
@@ -1038,7 +1117,7 @@ def build_parser():
 
 
 # Commands that write the ledger, the state or git history. They take the lab lock.
-_CHANGES_RECORDS = {cmd_baseline, cmd_freeze, cmd_unfreeze, cmd_run, cmd_reference_add, cmd_finding_new,
+_CHANGES_RECORDS = {cmd_budget, cmd_baseline, cmd_freeze, cmd_unfreeze, cmd_run, cmd_reference_add, cmd_finding_new,
                     cmd_finding_verify, cmd_data_add, cmd_report, cmd_setup}
 
 

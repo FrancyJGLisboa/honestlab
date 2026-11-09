@@ -42,6 +42,10 @@ data" and "holdout data" mean the paths it prints.
      the person never sees them.
    - For forecasts, only use information available at forecast time. If the data has
      the actual weather of the day instead of a forecast, say so as a limitation.
+   - If the result can change from one run to the next (training a model, random
+     sampling, a time budget), seed the randomness from the `HONESTLAB_SEED` environment
+     variable and set `"repeats": 3` in `lab.json`. With `repeats` at 1, `honestlab
+     baseline` runs the starting point twice and refuses when the two runs differ.
    - Prefer the Python standard library. If packages are needed, create `.venv` in the
      project, install them there, and point `evaluator` in `lab.json` at
      `.venv/bin/python <evaluator path>`.

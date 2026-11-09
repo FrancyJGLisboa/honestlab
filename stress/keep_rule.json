@@ -1,0 +1,381 @@
+{
+  "budget_sec": 15.0,
+  "seeds": 6,
+  "decide_seeds": [
+    0,
+    1,
+    2
+  ],
+  "truth_seeds": [
+    3,
+    4,
+    5
+  ],
+  "baseline_true_bpc": 2.8083,
+  "noise_threshold": 0.0057,
+  "summary": {
+    "autoresearch_keeps": {
+      "kept": 10,
+      "kept_really_better": 4,
+      "kept_really_worse_or_equal": 5,
+      "missed_really_better": 0,
+      "kept_names": [
+        "same code (a)",
+        "same code (b)",
+        "learning rate 0.2",
+        "learning rate 0.4",
+        "hidden 128",
+        "embedding 24",
+        "context 4",
+        "context 6",
+        "batch 64",
+        "smaller start weights"
+      ]
+    },
+    "honestlab_1run_keeps": {
+      "kept": 10,
+      "kept_really_better": 4,
+      "kept_really_worse_or_equal": 5,
+      "missed_really_better": 0,
+      "kept_names": [
+        "same code (a)",
+        "same code (b)",
+        "learning rate 0.2",
+        "learning rate 0.4",
+        "hidden 128",
+        "embedding 24",
+        "context 4",
+        "context 6",
+        "batch 64",
+        "smaller start weights"
+      ]
+    },
+    "honestlab_3runs_keeps": {
+      "kept": 10,
+      "kept_really_better": 4,
+      "kept_really_worse_or_equal": 5,
+      "missed_really_better": 0,
+      "kept_names": [
+        "same code (a)",
+        "same code (b)",
+        "learning rate 0.2",
+        "learning rate 0.4",
+        "hidden 128",
+        "embedding 24",
+        "context 4",
+        "context 6",
+        "batch 64",
+        "smaller start weights"
+      ]
+    },
+    "honestlab_3runs_two_level_keeps": {
+      "kept": 5,
+      "kept_really_better": 4,
+      "kept_really_worse_or_equal": 1,
+      "missed_really_better": 0,
+      "kept_names": [
+        "learning rate 0.2",
+        "learning rate 0.4",
+        "hidden 128",
+        "context 4",
+        "batch 64"
+      ]
+    }
+  },
+  "rows": [
+    {
+      "variant": "same code (a)",
+      "dev_gain_one_run": 0.0217,
+      "true_gain": -0.0057,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        0.0193,
+        0.0242
+      ],
+      "ci_3runs": [
+        0.0037,
+        0.0068
+      ],
+      "ci_3runs_two_level": [
+        -0.0075,
+        0.018
+      ]
+    },
+    {
+      "variant": "same code (b)",
+      "dev_gain_one_run": 0.0309,
+      "true_gain": 0.0034,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        0.0279,
+        0.0338
+      ],
+      "ci_3runs": [
+        0.0098,
+        0.0128
+      ],
+      "ci_3runs_two_level": [
+        -0.0005,
+        0.0236
+      ]
+    },
+    {
+      "variant": "learning rate 0.05",
+      "dev_gain_one_run": -0.1049,
+      "true_gain": -0.1314,
+      "autoresearch_keeps": false,
+      "honestlab_1run_keeps": false,
+      "honestlab_3runs_keeps": false,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        -0.1097,
+        -0.0996
+      ],
+      "ci_3runs": [
+        -0.1349,
+        -0.1245
+      ],
+      "ci_3runs_two_level": [
+        -0.1436,
+        -0.1154
+      ]
+    },
+    {
+      "variant": "learning rate 0.2",
+      "dev_gain_one_run": 0.0957,
+      "true_gain": 0.0577,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": true,
+      "ci_1run": [
+        0.089,
+        0.1025
+      ],
+      "ci_3runs": [
+        0.0615,
+        0.0708
+      ],
+      "ci_3runs_two_level": [
+        0.0511,
+        0.0812
+      ]
+    },
+    {
+      "variant": "learning rate 0.4",
+      "dev_gain_one_run": 0.0926,
+      "true_gain": 0.058,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": true,
+      "ci_1run": [
+        0.0851,
+        0.1001
+      ],
+      "ci_3runs": [
+        0.0662,
+        0.0773
+      ],
+      "ci_3runs_two_level": [
+        0.0582,
+        0.0851
+      ]
+    },
+    {
+      "variant": "hidden 32",
+      "dev_gain_one_run": -0.0717,
+      "true_gain": -0.1072,
+      "autoresearch_keeps": false,
+      "honestlab_1run_keeps": false,
+      "honestlab_3runs_keeps": false,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        -0.0775,
+        -0.0654
+      ],
+      "ci_3runs": [
+        -0.0894,
+        -0.0809
+      ],
+      "ci_3runs_two_level": [
+        -0.0986,
+        -0.0714
+      ]
+    },
+    {
+      "variant": "hidden 128",
+      "dev_gain_one_run": 0.0439,
+      "true_gain": -0.0001,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": true,
+      "ci_1run": [
+        0.0383,
+        0.0498
+      ],
+      "ci_3runs": [
+        0.0348,
+        0.0413
+      ],
+      "ci_3runs_two_level": [
+        0.0221,
+        0.0543
+      ]
+    },
+    {
+      "variant": "embedding 8",
+      "dev_gain_one_run": -0.0597,
+      "true_gain": -0.0839,
+      "autoresearch_keeps": false,
+      "honestlab_1run_keeps": false,
+      "honestlab_3runs_keeps": false,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        -0.0652,
+        -0.054
+      ],
+      "ci_3runs": [
+        -0.0715,
+        -0.0646
+      ],
+      "ci_3runs_two_level": [
+        -0.0827,
+        -0.053
+      ]
+    },
+    {
+      "variant": "embedding 24",
+      "dev_gain_one_run": 0.0252,
+      "true_gain": -0.0055,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        0.0195,
+        0.0309
+      ],
+      "ci_3runs": [
+        0.0061,
+        0.0123
+      ],
+      "ci_3runs_two_level": [
+        -0.0041,
+        0.0229
+      ]
+    },
+    {
+      "variant": "context 4",
+      "dev_gain_one_run": 0.0676,
+      "true_gain": 0.0251,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": true,
+      "ci_1run": [
+        0.0601,
+        0.0747
+      ],
+      "ci_3runs": [
+        0.0395,
+        0.0485
+      ],
+      "ci_3runs_two_level": [
+        0.0304,
+        0.0573
+      ]
+    },
+    {
+      "variant": "context 6",
+      "dev_gain_one_run": 0.0469,
+      "true_gain": -0.0044,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        0.0403,
+        0.0539
+      ],
+      "ci_3runs": [
+        0.0001,
+        0.0103
+      ],
+      "ci_3runs_two_level": [
+        -0.0265,
+        0.0328
+      ]
+    },
+    {
+      "variant": "batch 64",
+      "dev_gain_one_run": 0.0803,
+      "true_gain": 0.044,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": true,
+      "ci_1run": [
+        0.0746,
+        0.0865
+      ],
+      "ci_3runs": [
+        0.0478,
+        0.0553
+      ],
+      "ci_3runs_two_level": [
+        0.0368,
+        0.066
+      ]
+    },
+    {
+      "variant": "batch 256",
+      "dev_gain_one_run": -0.0736,
+      "true_gain": -0.1046,
+      "autoresearch_keeps": false,
+      "honestlab_1run_keeps": false,
+      "honestlab_3runs_keeps": false,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        -0.0777,
+        -0.0692
+      ],
+      "ci_3runs": [
+        -0.1064,
+        -0.0982
+      ],
+      "ci_3runs_two_level": [
+        -0.1172,
+        -0.0874
+      ]
+    },
+    {
+      "variant": "smaller start weights",
+      "dev_gain_one_run": 0.017,
+      "true_gain": -0.0043,
+      "autoresearch_keeps": true,
+      "honestlab_1run_keeps": true,
+      "honestlab_3runs_keeps": true,
+      "honestlab_3runs_two_level_keeps": false,
+      "ci_1run": [
+        0.0114,
+        0.0223
+      ],
+      "ci_3runs": [
+        0.0043,
+        0.0106
+      ],
+      "ci_3runs_two_level": [
+        -0.0066,
+        0.0218
+      ]
+    }
+  ]
+}

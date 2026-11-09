@@ -1,0 +1,48 @@
+diff --git a/src/model.py b/src/model.py
+index a902dd5..d287f9d 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -24,7 +24,7 @@ CONTEXT = 8
+ EMBED = 16
+ HIDDEN = 256
+ BATCH = 128
+-LR = 0.1
++LR = 0.3
+ 
+ 
+ def _forward(params, ctx):
+@@ -39,12 +39,15 @@ def _forward(params, ctx):
+ 
+ 
+ def train(ids, vocab, seconds, rng):
+-    deadline = time.time() + seconds * 0.9
++    start = time.time()
++    total = seconds * 0.9
++    deadline = start + total
+     params = [rng.normal(0, 0.1, (vocab, EMBED)), rng.normal(0, 0.1, (CONTEXT * EMBED, HIDDEN)),
+               np.zeros(HIDDEN), rng.normal(0, 0.1, (HIDDEN, vocab)), np.zeros(vocab)]
+     padded = np.concatenate([np.zeros(CONTEXT, dtype=ids.dtype), ids])
+     windows = np.lib.stride_tricks.sliding_window_view(padded, CONTEXT + 1)
+-    while time.time() < deadline:
++    while (now := time.time()) < deadline:
++        lr = LR * max(0.02, 1 - (now - start) / total)
+         batch = windows[rng.integers(0, len(windows), BATCH)]
+         ctx, y = batch[:, :CONTEXT], batch[:, CONTEXT]
+         x, h, p = _forward(params, ctx)
+@@ -56,11 +59,11 @@ def train(ids, vocab, seconds, rng):
+         dh = (d @ w2.T) * (1 - h * h)
+         gw1, gb1 = x.T @ dh, dh.sum(axis=0)
+         dx = (dh @ w1.T).reshape(BATCH, CONTEXT, EMBED)
+-        np.add.at(emb, ctx, -LR * dx)
+-        w1 -= LR * gw1
+-        b1 -= LR * gb1
+-        w2 -= LR * gw2
+-        b2 -= LR * gb2
++        np.add.at(emb, ctx, -lr * dx)
++        w1 -= lr * gw1
++        b1 -= lr * gb1
++        w2 -= lr * gw2
++        b2 -= lr * gb2
+     return params
+ 
+ 

@@ -1,0 +1,52 @@
+{
+  "scenario": "modelo_noite",
+  "version": "stress",
+  "expect": "overnight",
+  "completed": true,
+  "human_messages": 3,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 47.2,
+  "lab": {
+    "frozen": true,
+    "experiments": 14,
+    "references": [
+      "ngram"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: monte o exemplo do modelo de letras e deixe treinando sozinho por 40 minutos."
+    },
+    {
+      "role": "agent",
+      "seconds": 199,
+      "text": "O exemplo está pronto. Agora falta só a sua aprovação; depois disso eu treino sozinho por 40 minutos.\n\n**O que o exemplo testa:** uma rede neural pequena, treinada por 60 segundos, consegue adivinhar a próxima letra de *Dom Casmurro* melhor que o método clássico de contar sequências de letras?\n\n**Pontos de partida (medidos agora):**\n- A rede minúscula de hoje precisa de 2,66 bits por letra. Menor é melhor; um texto comum usa 8.\n- O método clássico precisa de 2,38.\n- Só conta como sucesso se a rede chegar a pelo menos 0,05 abaixo do clássico, ou seja, 2,33 ou menos. Isso vale nos capítulos de teste e também nos capítulos guardados (127 a 148), que ninguém olha até a prova final.\n\n**Para aprovar:**\n1. Digite `aprovar` como sua próxima mensagem.\n2. O honestlab mostra a página real e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nPrecisa ser você porque assim nem eu consigo mudar a regra no meio do caminho.\n\nDepois da aprovação, deixe o computador ligado na tomada e com a tampa aberta durante os 40 minutos. Se quiser parar antes, digite `parar`."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 3383   (leia a página abaixo antes)\n\n# Página de aprovação: modelo_noite\n\n**A pergunta:** uma pequena rede neural, treinada por 60 segundos neste computador, consegue adivinhar a próxima letra de *Dom Casmurro* melhor do que o método clássico de contar sequências de letras?\n\n**Como vamos medir:** quantos bits por letra o modelo precisa, em capítulos que ele nunca viu. Menor é melhor. Um arquivo de texto comum usa 8.\n\n**Com o que vamos comparar:** o ponto de partida (uma rede minúscula, cerca de 2,65) e o método clássico de contagem com suavização Witten-Bell (cerca de 2,38), já registrado.\n\n**O que conta como sucesso:** precisar de pelo menos 0,05 bit a menos por letra que o método clássico, nos capítulos de desenvolvimento e nos capítulos guardados, com uma checagem estatística.\n\n**Dados guardados para a prova final:** os capítulos 127 a 148, que ninguém olha até o fim.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, o tempo de treino de 60 segundos, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas sozinho, cerca de uma hora. Cada tentativa é treinada 3 vezes por 60 segundos, porque o treino muda um pouco de uma vez para outra. Se você pedir, ele roda a noite toda.\n\n**Limitações:** é um exemplo de aprendizado com um livro só. O resultado vale para este computador e este tempo de treino.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 3383\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 3383"
+    },
+    {
+      "role": "agent",
+      "seconds": 2621,
+      "text": "Os 40 minutos terminaram. A rede melhorou bastante, mas não passou do método clássico. O veredito é **\"não encontrou\"**.\n\n- **Onde chegou:** a rede caiu de 2,66 para 2,384 bits por letra em 14 tentativas. Isso é quase igual ao método clássico de contar sequências de letras, que marca 2,378. Menor é melhor. Esses números foram medidos nos capítulos de teste.\n- **Por que não conta:** a regra que você aprovou pedia 2,33 ou menos, ou seja, 0,05 abaixo do clássico. Por isso a prova final nos capítulos guardados nem foi usada.\n- **O que ajudou:** duas mudanças. Primeiro, começar com passos grandes de aprendizado que encolhem até o fim. Segundo, olhar só as 5 letras anteriores. Olhar 12 letras piorou, porque em 60 segundos a rede não tem tempo de aprender com tanto passado.\n- **O que não ajudou:** trocar o método de ajuste dos pesos, mudar o tamanho dos lotes, adicionar uma ligação direta das letras à resposta e aumentar mais a rede.\n- **Confiança:** média, segundo o próprio relatório. Foram 14 tentativas e nenhuma chegou perto da meta.\n\n\"Não encontrou\" também é uma resposta útil. Com 60 segundos de treino neste computador, a rede pequena empata com o método clássico, mas não o vence. Para bater a meta, seria preciso testar ideias de outro tipo, porque mexer no tamanho da rede e do contexto já parou de dar ganho.\n\nO relatório está em `REPORT.md`, nesta pasta. O diário de cada tentativa está em `notes/journal.md`.\n\nPara repetir a alguém: em 40 minutos, a rede empatou com o método clássico, mas não o venceu pela margem combinada."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

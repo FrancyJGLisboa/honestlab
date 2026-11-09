@@ -100,6 +100,8 @@ em cada plano ainda não foi medido.
 
 **Quanto tempo leva?** Os dois testes registrados levaram de 4 a 5 minutos do início ao fim,
 com poucos experimentos. Uma rodada completa leva mais, dependendo de quão lenta é a medição.
+Você também pode pedir que o agente rode a noite toda: depois da aprovação, ele continua
+experimentando até a hora que você escolher, e você para antes digitando `parar`.
 
 **Para onde vão meus dados?** O honestlab não faz nenhuma conexão de rede. Seu agente lê seus
 arquivos do mesmo jeito que em qualquer outra sessão, sob os termos de sempre do agente.
@@ -132,6 +134,11 @@ Use honestlab: monte o exemplo de empacotamento em caixas e rode.
 
 O exemplo é o empacotamento online em caixas, um dos problemas em que o FunSearch, da DeepMind,
 trabalhou. A aprovação da página continua sendo sua.
+
+Para ver o honestlab treinar um modelo, diga `Use honestlab: monte o exemplo do modelo de letras
+e rode.` O agente melhora uma pequena rede neural que adivinha a próxima letra de *Dom Casmurro*.
+Cada treino dura 60 segundos no processador do seu computador, e a rede precisa vencer um método
+clássico de contagem em capítulos que ela nunca viu. Precisa do numpy.
 
 ## Outros agentes
 
@@ -181,11 +188,17 @@ AlphaEvolve acha. O que ele faz é dizer, com honestidade, se a sua ideia se sus
   simulados por cenário sem efeito real, o honestlab nunca disse "encontrou"; quando havia uma
   melhora real, mas menor que a meta combinada, disse "encontrou" em até 15% das vezes, e agora o
   relatório avisa quando isso é possível. [Detalhes](stress/RESULTS.md) (em inglês).
+- **Ruído do treino.** No exemplo do modelo de letras, 14 mudanças de um ajuste cada foram treinadas 6
+  vezes. A regra "um treino, guarda se ficou menor", que o autoresearch usa, guardou 10 mudanças: 4
+  ajudaram de verdade em capítulos que nenhuma regra viu, e 5 eram ruído, incluindo as duas cópias do
+  código sem mudança. A regra anterior do honestlab guardou as mesmas 10. Agora o honestlab treina
+  cada tentativa 3 vezes e conta essa variação: guardou 5, das quais 4 ajudaram de verdade. Uma
+  tarefa, um computador. [Detalhes](stress/RESULTS.md) (em inglês).
 - **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 71 casos de ponta a ponta, 48
   casos da aprovação e do destrancamento pela conversa e do plugin, 17 repetições dos ataques do
-  teste de estresse e 48
-  casos de robustez (saída malformada do avaliador, registros danificados, caminhos estranhos, dois
-  `run` ao mesmo tempo) (`bash tests/run_all.sh`). Cada afirmação desta
+  teste de estresse, 64 casos de robustez (saída malformada do avaliador, registros danificados,
+  caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos) e 24
+  casos do modo noite (`bash tests/run_all.sh`). Cada afirmação desta
   página está ligada ao comando que a confere no [VERIFICATION.md](VERIFICATION.md) (em inglês).
 
 **Estado: inicial (0.5).** Testado ao vivo com o Claude Code 2.1 no Linux, incluindo o plugin e a

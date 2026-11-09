@@ -1,0 +1,29 @@
+{
+  "baseline": 2.6604292053422127,
+  "baseline_holdout": 2.693175267031712,
+  "best": 2.3842477075704016,
+  "best_id": "E0012",
+  "fingerprint": "ffe327ca5efa498c09fb5fd2275f0e80656759bcadc259389bff33941583108d",
+  "freeze_commit": "587afecd21196926b2eb3bfd692ace8a793ee775",
+  "frozen": true,
+  "hashes": {
+    "APPROVAL.md": "967316c03eb3ef5c2bfbd9f37bf347351ff1b42d9fd7d8d5844b7c2b9af028b8",
+    "SPEC.md": "a61cd51e4679c31b11e74e04ff6f7ae344fdcd4a8202850bbdeb16c7e31535e9",
+    "data/dev/text.txt": "bdd95dd6deb5e65c9bf6480357d9ccddd01ef9c132918cd363aab14076441080",
+    "data/holdout/text.txt": "ccbec8a84e2fd50bd63badbc99c3022d755fa4689f79f921c978bf18005183a5",
+    "data/train/text.txt": "1c619548eae569fdd7d8fbad2ac7f83e5ce1c4d685bd0d66d8c8583bc5d8dfdc",
+    "eval/evaluate.py": "9a4d3900f34c57e8a65c20cb5b4a5ff739aa900f57344b56d46b1f19a3a9a526",
+    "lab.json": "a6dd88d5a03c1ecaf805bca8594e19f95a1745ba8d4241bacd31800a9cb33118",
+    "references/ngram/src/model.py": "73931163d499195ca2ebd79bf90323b3e6a0b64ef756a2dfd7e7e35f2c2d707b"
+  },
+  "holdout_runs": 0,
+  "next_exp": 15,
+  "next_finding": 1,
+  "references": {
+    "ngram": {
+      "description": "interpolated character 6-gram with Witten-Bell smoothing (Witten and Bell 1991)",
+      "dev": 2.3783661088387023,
+      "holdout": 2.3560512735270898
+    }
+  }
+}
