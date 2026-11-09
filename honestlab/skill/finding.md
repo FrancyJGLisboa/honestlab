@@ -31,5 +31,7 @@
    - Give it `literature.md` too. Under `## Prior work re-check` it runs one search of its
      own and fills `Query:`, `Source:` and `Missed:` (`none`, or the missed work with
      its link).
-5. Run `honestlab finding verify F00N`, then go to Phase 6 (report). Never publish or
+5. Run `honestlab reproduce F00N`. It copies the lab from its history into a new folder and
+   measures again. If it says DIFFERENT, stop and tell the person: the result is not solid.
+6. Run `honestlab finding verify F00N`, then go to Phase 6 (report). Never publish or
    announce anything; that is the person's decision.

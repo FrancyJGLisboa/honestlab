@@ -11,4 +11,7 @@ echo "== red-team regressions ==";      bash "$T/redteam_test.sh" | tail -1
 echo "== robustness ==";                 python3 "$T/robust_test.py" "$L" | tail -1
 echo "== overnight mode ==";             python3 "$T/overnight_test.py" "$L" | tail -1
 echo "== ablation ==";                   python3 "$T/ablate_test.py" "$L" | tail -1
+echo "== reproduction ==";               python3 "$T/reproduce_test.py" "$L" | tail -1
+echo "== machine-speed drift ==";        python3 "$T/drift_test.py" "$L" | tail -1
+echo "== explain-back checker ==";       python3 "$T/explain_back_test.py" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"

@@ -50,7 +50,7 @@ flowchart LR
     A["Você: uma frase"] --> B["O agente faz<br/>até 5 perguntas simples"]
     B --> C["Você aprova uma página<br/>digite aprovar, depois o código"]
     C --> D["O agente roda os experimentos<br/>cada um medido e registrado"]
-    D --> E["REPORT.md<br/>encontrou / promissor mas frágil / não encontrou"]
+    D --> E["REPORT.md e um gráfico do progresso<br/>encontrou / promissor mas frágil / não encontrou"]
 ```
 
 A página que você aprova vem no seu idioma. Ela diz qual é a pergunta, como a resposta vai ser
@@ -113,6 +113,17 @@ própria. O relatório então diz "já conhecido", "existe trabalho parecido" ou
 encontrado", ao lado do veredito. Não achar nada não prova que é novo, e o honestlab confere o
 formato da busca, não se ela foi completa. Se o resultado é útil, isso é medido: ele precisa
 superar o melhor método conhecido pela margem que você escolheu.
+
+**Outra pessoa consegue conferir o resultado?** Sim, com um comando. Quem tiver a pasta do
+laboratório roda `honestlab reproduce F001`. O honestlab copia o laboratório do histórico para uma
+pasta nova, confere que nada protegido mudou, mede tudo de novo com o avaliador trancado e diz se o
+veredito é o mesmo.
+
+**Vou entender o relatório?** Nós testamos. Um modelo fazendo o papel de uma pessoa sem formação
+técnica leu 8 relatórios reais, 3 vezes cada, e explicou com as próprias palavras. 22 de 24
+explicações tinham o veredito certo e só números verdadeiros. Com os mesmos resultados no formato
+de registro do autoresearch (uma linha por tentativa), 5 de 24 tinham. Um modelo não é uma pessoa,
+então isto é uma primeira conferência, não uma prova. [Detalhes](usability/RESULTS.md) (em inglês).
 
 **O agente pode trapacear?** O honestlab foi feito para um agente bem-intencionado que pode
 cortar caminho ou exagerar, e torna a trapaça difícil e visível. Quando você aprova, o código que
@@ -202,11 +213,16 @@ AlphaEvolve acha. O que ele faz é dizer, com honestidade, se a sua ideia se sus
   código sem mudança. A regra anterior do honestlab guardou as mesmas 10. Agora o honestlab treina
   cada tentativa 3 vezes e conta essa variação: guardou 5, das quais 4 ajudaram de verdade. Uma
   tarefa, um computador. [Detalhes](stress/RESULTS.md) (em inglês).
-- **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 80 casos de ponta a ponta, 48
+- **Velocidade da máquina.** Quando o treino tem um limite em segundos, um computador ocupado treina
+  menos. Num teste real, um ponto de partida medido com o computador ocupado fez um modelo sem mudança
+  parecer 6,1% melhor depois, e ele foi guardado. Com `"remeasure_best": true`, o honestlab mede o
+  melhor atual de novo ao lado de cada mudança, e o mesmo modelo sem mudança foi descartado. Um
+  teste, um computador. [Detalhes](stress/RESULTS.md) (em inglês).
+- **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 83 casos de ponta a ponta, 48
   casos da aprovação e do destrancamento pela conversa e do plugin, 17 repetições dos ataques do
   teste de estresse, 64 casos de robustez (saída malformada do avaliador, registros danificados,
   caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos), 24
-  casos do modo noite e 17 casos de ablação (`bash tests/run_all.sh`). Cada afirmação desta
+  casos do modo noite, 17 casos de ablação, 11 casos de reprodução, 30 casos de variação de velocidade da máquina e 22 casos do conferidor de explicação (`bash tests/run_all.sh`). Cada afirmação desta
   página está ligada ao comando que a confere no [VERIFICATION.md](VERIFICATION.md) (em inglês).
 
 **Estado: inicial (0.5).** Testado ao vivo com o Claude Code 2.1 no Linux, incluindo o plugin e a

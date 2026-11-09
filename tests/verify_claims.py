@@ -140,7 +140,7 @@ else:
     clean = bool(g) and g.group(1) == g.group(2) and all(f == "0" for _, f in e)
     flat = re.sub(r"\s+", " ", README)
     m = re.search(r"(\d+) hook decisions.*?(\d+) end-to-end cases, (\d+) cases for approving.*?(\d+) replays.*?"
-                  r"(\d+) robustness cases.*?(\d+) overnight mode cases.*?(\d+) ablation cases", flat)
+                  r"(\d+) robustness cases.*?(\d+) overnight mode cases.*?(\d+) ablation cases.*?(\d+) reproduction cases.*?(\d+) machine-speed drift cases.*?(\d+) explain-back checker cases", flat)
     claimed = tuple(int(x) for x in m.groups()) if m else None
     report("V10", clean and got == claimed, "the README's test counts match a fresh run, all passing",
            f"run {got}, README {claimed}")
@@ -193,6 +193,24 @@ if kr.exists():
            f"honestlab {t['kept']}/{t['kept_really_better']}/{t['kept_really_worse_or_equal']}")
 else:
     report("V13", None, "training noise", "stress/keep_rule.json not present")
+
+# V14 explain-back numbers in the README match the recorded readings, re-scored with today's checker
+eb_dir = KIT / "usability/runs/explain_back"
+if (eb_dir / "before_fix.json").exists():
+    sys.path.insert(0, str(KIT / "usability"))
+    import explain_back as eb
+    rows = json.loads((eb_dir / "before_fix.json").read_text())["rows"]
+    labs = {r["lab"]: eb.truth(KIT / "stress/runs" / r["lab"]) for r in rows}
+    n = {k: sum(eb.check(r["claims"], labs[r["lab"]])["pass"] for r in rows if r["kind"] == k)
+         for k in ("report", "log")}
+    tot = {k: sum(1 for r in rows if r["kind"] == k) for k in ("report", "log")}
+    flat = re.sub(r"\s+", " ", README)
+    claim = (f"{n['report']} of {tot['report']} explanations had the right verdict" in flat
+             and f"{n['log']} of {tot['log']} did" in flat)
+    report("V14", claim, "explain-back numbers in the README match usability/runs/explain_back",
+           f"report {n['report']}/{tot['report']}, log {n['log']}/{tot['log']}")
+else:
+    report("V14", None, "explain-back", "usability/runs/explain_back not present")
 
 print()
 print(f"{results.count('PASS')} passed, {results.count('FAIL')} failed, {results.count('SKIP')} skipped")

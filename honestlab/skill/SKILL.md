@@ -102,7 +102,9 @@ When the best result reaches the margin on the approval page, or `honestlab repo
 - Run `honestlab report`, open the report, and replace the placeholder under "Em palavras
   simples" / "In plain words" with three to five sentences: what was asked, what happened,
   the verdict, how sure, the next step. Use only facts written in the report.
-- Then tell the person the same three to five sentences and where the report is.
+- Then tell the person the same three to five sentences and where the report is. Tell
+  them that `PROGRESS.html` shows every attempt as a chart, and that it opens in a browser
+  with a double-click.
   "Não encontrou" is a normal and useful result: say what it means for them.
 
 ## Never

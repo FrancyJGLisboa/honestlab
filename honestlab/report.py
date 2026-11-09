@@ -26,6 +26,10 @@ T = {
         "best": "Melhor resultado do agente",
         "bar": "Margem combinada para contar como achado",
         "newdata": "Em dados novos (trancados até o fim)",
+        "newdata_line": "{cand} ({fid}) {c} contra {r} de {ref}: {pct}{better}",
+        "better_w": " melhor", "worse_w": " pior",
+        "ci_units": "; faixa provável da diferença: {lo} a {hi} em `{metric}`",
+        "not_tested": "Atenção: o melhor resultado ({best}) é diferente do achado testado em dados novos ({cand}). {best} não foi testado em dados novos.",
         "tried_h": "O que foi tentado",
         "tried": "{n} tentativa(s): {k} guardadas (melhoraram), {d} desfeitas, {e} com erro. Todas ficam registradas.",
         "top": "Melhores ideias", "fails": "Ideias que não funcionaram (exemplos)",
@@ -95,6 +99,10 @@ T = {
         "best": "Agent's best result",
         "bar": "Agreed margin to count as a finding",
         "newdata": "On new data (locked until the end)",
+        "newdata_line": "{cand} ({fid}) {c} against {r} for {ref}: {pct}{better}",
+        "better_w": " better", "worse_w": " worse",
+        "ci_units": "; likely range of the difference: {lo} to {hi} in `{metric}`",
+        "not_tested": "Note: the best result ({best}) is not the finding tested on new data ({cand}). {best} was not tested on new data.",
         "tried_h": "What was tried",
         "tried": "{n} attempt(s): {k} kept (improved), {d} undone, {e} errors. All of them are recorded.",
         "top": "Best ideas", "fails": "Ideas that did not work (examples)",
@@ -277,12 +285,27 @@ def build(root, cfg, st):
               f"- {L['known']}: {ref_name or L['none']} = {_fmt(ref_dev)}",
               f"- {L['best']}: {_fmt(best)} ({st.get('best_id')}){gap}",
               f"- {L['bar']}: {bar_txt}"]
+    tested = []
     for fid, f in sorted(finds.items()):
         hc = f.get("holdout_comparison")
         if hc:
-            ci = f", CI [{_fmt(hc.get('lo'))}, {_fmt(hc.get('hi'))}]" if hc.get("lo") is not None else ""
-            lines.append(f"- {L['newdata']} ({fid}, {f.get('best_id')} vs {f.get('holdout_reference') or f.get('reference')}): "
-                         f"{(hc.get('rel') or 0) * 100:+.1f}%{ci}")
+            ref = f.get("holdout_reference") or f.get("reference") or "baseline"
+            mine = core.load_sample(root, f"{fid}-holdout") or {}
+            theirs = (core.load_sample(root, f"{fid}-reference-holdout")  # measured again next to the candidate
+                      or core.load_sample(root, "baseline-holdout" if ref == "baseline" else f"ref-{ref}-holdout") or {})
+            rel = hc.get("rel") or 0
+            pct = f"{abs(rel) * 100:.1f}%" + (L["better_w"] if rel >= 0 else L["worse_w"])
+            if mine.get("score") is not None and theirs.get("score") is not None:
+                txt = L["newdata_line"].format(cand=f.get("best_id"), fid=fid, c=_fmt(mine["score"]),
+                                               r=_fmt(theirs["score"]), ref=ref, pct=pct, better="").rstrip()
+            else:
+                txt = f"{f.get('best_id')} ({fid}) vs {ref}: {pct}"
+            if hc.get("lo") is not None:
+                txt += L["ci_units"].format(lo=_fmt(hc.get("lo")), hi=_fmt(hc.get("hi")), metric=cfg["metric"])
+            lines.append(f"- {L['newdata']}: {txt}")
+            tested.append(f.get("best_id"))
+    if tested and st.get("best_id") not in tested:
+        lines.append(f"- {L['not_tested'].format(best=st.get('best_id'), cand=', '.join(tested))}")
     lines.append("")
 
     # tried

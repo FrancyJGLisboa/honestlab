@@ -52,6 +52,7 @@ DEFAULT_CONFIG = {
     "repeats": 1,
     "keep_rule": "significant",
     "keep_alpha": 0.1,
+    "remeasure_best": False,
     "bootstrap": 2000,
     "finding": {"compare_to": "strongest", "min_effect": None, "effect": "absolute", "alpha": 0.05},
 }
@@ -245,9 +246,13 @@ def ledger_rel(cfg: dict) -> str:
     return lab_rel(cfg, LEDGER)
 
 
+def progress_rel(cfg: dict) -> str:
+    return lab_rel(cfg, "PROGRESS.html")
+
+
 def free_dirs(cfg: dict) -> list:
     """Paths agents may edit at any time (their notebook, finding write-ups and the final report)."""
-    return [lab_rel(cfg, "notes"), lab_rel(cfg, "findings"), report_rel(cfg)]
+    return [lab_rel(cfg, "notes"), lab_rel(cfg, "findings"), report_rel(cfg), progress_rel(cfg)]
 
 
 def text_only_paths(cfg: dict) -> list:
@@ -624,23 +629,74 @@ def evaluate(root: Path, cfg: dict, split: str):
     sample = {"score": mean metric, "units": per-instance scores or None, "repeats": [metric per run]}
     """
     reps = max(1, int(cfg.get("repeats") or 1))
-    scores, unit_runs, logs, extras, warn = [], [], [], {}, None
+    acc = _Runs()
     for r in range(reps):
-        s, ex, log, err = run_evaluator(root, cfg, split, {"HONESTLAB_REPEAT": str(r), "HONESTLAB_SEED": str(r)})
-        logs.append(log)
+        err = acc.add(root, cfg, split, r, reps)
         if err:
-            return None, ex, "\n".join(logs), (f"repeat {r + 1}/{reps}: " + err) if reps > 1 else err
+            return None, acc.extras, "\n".join(acc.logs), err
+    return acc.sample() + ("\n".join(acc.logs), None)
+
+
+def evaluate_paired(root: Path, cfg: dict, split: str, put):
+    """Measure two versions of the code in alternation: A B, B A, A B, ... (`repeats` runs each).
+
+    put("a") and put("b") switch the code and return an error text or "". A slow or busy machine
+    then slows both versions about alike, so the comparison stays fair. The swapped order in every
+    second pair also evens out a machine that gets steadily faster or slower. The code ends as "b".
+    Return (sample_a, sample_b, extras_b, log, error).
+    """
+    reps = max(1, int(cfg.get("repeats") or 1))
+    acc = {"a": _Runs(), "b": _Runs()}
+    for r in range(reps):
+        for which in (("a", "b") if r % 2 == 0 else ("b", "a")):
+            e = put(which)
+            if e:
+                put("b")
+                return None, None, {}, "", f"could not switch the code to measure it: {e}"
+            err = acc[which].add(root, cfg, split, r, reps)
+            if err:
+                put("b")
+                who = "the current best, measured again" if which == "a" else "the change"
+                return None, None, acc["b"].extras, "\n".join(acc["a"].logs + acc["b"].logs), f"{who}: {err}"
+    e = put("b")
+    if e:
+        return None, None, {}, "", f"could not put the change back after measuring: {e}"
+    sa, _ = acc["a"].sample()
+    sb, extras = acc["b"].sample()
+    return sa, sb, extras, "\n".join(acc["b"].logs), None
+
+
+class _Runs:
+    """Scores and per-unit values from several runs of the evaluator."""
+
+    def __init__(self):
+        self.scores, self.unit_runs, self.logs, self.extras, self.warn = [], [], [], {}, None
+
+    def add(self, root, cfg, split, r, reps):
+        s, ex, log, err = run_evaluator(root, cfg, split, {"HONESTLAB_REPEAT": str(r), "HONESTLAB_SEED": str(r)})
+        self.logs.append(log)
+        if err:
+            self.extras = ex
+            return (f"repeat {r + 1}/{reps}: " + err) if reps > 1 else err
         pu = ex.pop("per_unit", None)
         if pu is not None:
             if not isinstance(pu, list) or not pu or not all(
                     isinstance(x, (int, float)) and not isinstance(x, bool) and _finite(x) for x in pu):
-                warn, pu = "per_unit ignored: it must be a non-empty list of finite numbers", None
+                self.warn, pu = "per_unit ignored: it must be a non-empty list of finite numbers", None
             elif abs(sum(pu) / len(pu) - s) > 1e-4 * max(1.0, abs(s)):  # allows rounding to a few decimals
-                warn, pu = (f"per_unit ignored: its mean ({sum(pu) / len(pu):.6g}) is not the metric "
-                            f"({s:.6g}); per_unit must be the per-instance values the metric averages"), None
-        unit_runs.append(pu)
-        scores.append(s)
-        extras = ex
+                self.warn, pu = (f"per_unit ignored: its mean ({sum(pu) / len(pu):.6g}) is not the metric "
+                                 f"({s:.6g}); per_unit must be the per-instance values the metric averages"), None
+        self.unit_runs.append(pu)
+        self.scores.append(s)
+        self.extras = ex
+        return None
+
+    def sample(self):
+        return _make_sample(self.scores, self.unit_runs, self.extras, self.warn)
+
+
+def _make_sample(scores, unit_runs, extras, warn):
+    reps = len(scores)
     units = None
     if all(u is not None for u in unit_runs) and len({len(u) for u in unit_runs}) == 1:
         units = [sum(col) / len(col) for col in zip(*unit_runs)]
@@ -649,7 +705,7 @@ def evaluate(root: Path, cfg: dict, split: str):
     sample = {"score": sum(scores) / len(scores), "units": units, "repeats": scores}
     if units is not None and reps >= 2:
         sample["unit_runs"] = unit_runs  # lets the comparison count run-to-run noise
-    return sample, extras, "\n".join(logs), None
+    return sample, extras
 
 
 def save_sample(root: Path, name: str, sample: dict) -> None:

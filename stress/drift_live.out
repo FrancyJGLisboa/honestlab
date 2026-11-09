@@ -1,0 +1,12 @@
+== baselines while the computer is busy (8 busy processes)
+Baseline bpc = 3.04348 (minimize).
+Reference ngram: 2.37837
+Baseline bpc = 3.01951 (minimize).
+Reference ngram: 2.37837
+Frozen
+Frozen
+== the same model, computer idle
+-- plain (remeasure_best false)
+E0001 KEEP: bpc 3.04348 -> 2.85687 (new best).  [effect 0.1866 (6.13%), 90.0% CI [0.1794, 0.1938]; two-level bootstrap over runs (3 vs 3) and 125 paired units vs baseline]
+-- again (remeasure_best true)
+E0001 DISCARD: bpc 2.86229, did not beat best 2.85554 (measured again now). Change reverted; patch kept in experiments/E0001.patch.  [effect -0.006751 (-0.24%), 90.0% CI [-0.01568, 0.001391]; two-level bootstrap over runs (3 vs 3) and 125 paired units vs baseline measured again now: 2.85554]

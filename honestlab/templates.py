@@ -626,6 +626,7 @@ LAB_JSON_CHARLM = {
     "evaluator": "{python} eval/evaluate.py",
     "timeout_sec": 300,
     "repeats": 3,
+    "remeasure_best": True,
     "min_improvement": 0.0,
     "editable": ["src"],
     "protected": ["eval", "data", "lab.json", "SPEC.md"],

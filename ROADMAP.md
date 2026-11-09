@@ -14,7 +14,7 @@ Native libraries allowed in candidate code, the character model example, overnig
 two-level bootstrap that counts run-to-run training noise. See `stress/RESULTS.md`, "Training
 round".
 
-## Step 3: results a person can trust and repeat (in progress)
+## Step 3: results a person can trust and repeat (done)
 
 1. **A prior-work search that can be checked (done).** Before, `literature.md` was free text, and
    `honestlab finding verify` only checked that it existed. The change:
@@ -34,10 +34,22 @@ round".
    (each diff hunk, or each file when there are more than 12 hunks) alone, measures it on dev, and
    says which parts help, hurt, have no clear effect or are needed for the code to run. The
    report lists them under "What made the difference".
-3. **A progress chart page.** Every attempt, the best so far and the known methods, in one
-   picture the person can read without the terminal.
-4. **One-command reproduction.** Run the finding again from a clean copy and get the same verdict.
-5. **An explain-back test.** After the report, a simulated person explains the result in their
-   own words, and the test checks that the explanation matches the numbers.
+3. **A progress chart page (done).** `honestlab report` also writes `PROGRESS.html`: every
+   attempt (kept or undone), the best so far, the starting point, the best known method and
+   the bar, with the verdict on top, hover details and a table view. No network.
+4. **One-command reproduction (done).** `honestlab reproduce [F00N]` clones the lab from its git
+   history, checks the ledger and the approval fingerprints, measures the start, the strongest
+   reference and the candidate again (dev, and held-out data already used for that finding), and
+   says whether the verdict is the same. Differences are judged against the noise.
+5. **An explain-back test (done).** A simulated person reads the report and explains the result
+   in their own words. A second model writes down the claims, and Python checks them against the
+   lab's records. 22 of 24 readings of `REPORT.md` passed, against 5 of 24 for an
+   autoresearch-style `results.tsv`. The test found a confusing line in the report, which is now
+   fixed. See `usability/RESULTS.md`.
 
-Open: a whole-night live run, so that the Stop hook blocks a real agent at least once.
+Open:
+- A whole-night live run, so that the Stop hook blocks a real agent at least once.
+- Time-budget drift (done, one part not yet live): `"remeasure_best": true` measures the current
+  best again next to each change (live check in `stress/RESULTS.md`), and `finding new` measures
+  the known method and the candidate again side by side. The finding part is tested with a fake
+  speed file only. Open: a live finding on a time-budget lab.

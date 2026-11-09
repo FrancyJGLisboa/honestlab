@@ -46,6 +46,10 @@ data" and "holdout data" mean the paths it prints.
      sampling, a time budget), seed the randomness from the `HONESTLAB_SEED` environment
      variable and set `"repeats": 3` in `lab.json`. With `repeats` at 1, `honestlab
      baseline` runs the starting point twice and refuses when the two runs differ.
+   - If the evaluator trains for a fixed number of seconds, also set
+     `"remeasure_best": true`. Each run then measures the current best again next to the
+     change, and `finding new` measures the known method and the candidate again side by
+     side, so a busy or idle computer cannot make a change look better or worse.
    - Prefer the Python standard library. If packages are needed, create `.venv` in the
      project, install them there, and point `evaluator` in `lab.json` at
      `.venv/bin/python <evaluator path>`.

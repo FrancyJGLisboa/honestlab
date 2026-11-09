@@ -1,0 +1,805 @@
+{
+  "reader_model": "haiku",
+  "extractor_model": "sonnet",
+  "truth": {
+    "clima_publico": {
+      "verdict": "found",
+      "start": 32.711309523809526,
+      "known": 28.298892547225478,
+      "best": 20.3425775413376,
+      "gains": {
+        "start": 37.8117909754396,
+        "known": 28.115287524450995
+      },
+      "also": {
+        "start": [],
+        "known": [
+          26.902629088235397
+        ],
+        "best": [
+          19.645492873309248,
+          20.3425775413376
+        ]
+      },
+      "holdout_gains": [
+        26.975565068841973
+      ],
+      "confirmed": true,
+      "direction": "minimize",
+      "metric": "mae"
+    },
+    "clima_publico_etapa1": {
+      "verdict": "found",
+      "start": 32.2521,
+      "known": 27.2224,
+      "best": 21.1782,
+      "gains": {
+        "start": 34.335438622601316,
+        "known": 22.20303867403315
+      },
+      "also": {
+        "start": [],
+        "known": [
+          29.7456,
+          29.7456
+        ],
+        "best": [
+          22.2433,
+          21.1782,
+          23.5007,
+          22.0242
+        ]
+      },
+      "holdout_gains": [
+        25.221316937682925,
+        20.994336691229712
+      ],
+      "confirmed": true,
+      "direction": "minimize",
+      "metric": "mae"
+    },
+    "english": {
+      "verdict": "found",
+      "start": 13.308766859344894,
+      "known": 13.308766859344894,
+      "best": 9.960792478949138,
+      "gains": {
+        "start": 25.156157710020594,
+        "known": 25.156157710020594
+      },
+      "also": {
+        "start": [],
+        "known": [
+          19.601092896174862
+        ],
+        "best": [
+          11.33813358654916,
+          9.960792478949138
+        ]
+      },
+      "holdout_gains": [
+        42.155605064441154
+      ],
+      "confirmed": true,
+      "direction": "minimize",
+      "metric": "score"
+    },
+    "impaciente": {
+      "verdict": "found",
+      "start": 34.1170431211499,
+      "known": 17.806555915929156,
+      "best": 12.036882805899571,
+      "gains": {
+        "start": 64.71885689754383,
+        "known": 32.40195991448422
+      },
+      "also": {
+        "start": [],
+        "known": [
+          19.569486790158255
+        ],
+        "best": [
+          16.05704900364212,
+          15.105132699279537
+        ]
+      },
+      "holdout_gains": [
+        17.94854317938776
+      ],
+      "confirmed": true,
+      "direction": "minimize",
+      "metric": "score"
+    },
+    "modelo_noite": {
+      "verdict": "not_found",
+      "start": 2.6604292053422127,
+      "known": 2.3783661088387023,
+      "best": 2.3842477075704016,
+      "gains": {
+        "start": 10.381088029601813,
+        "known": -0.24729576787365154
+      },
+      "also": {
+        "start": [],
+        "known": [],
+        "best": []
+      },
+      "holdout_gains": [],
+      "confirmed": false,
+      "direction": "minimize",
+      "metric": "bpc"
+    },
+    "planilha_br": {
+      "verdict": "not_found",
+      "start": 11.241907344518221,
+      "known": 4.845556487707182,
+      "best": 4.846615668105433,
+      "gains": {
+        "start": 56.88795931529591,
+        "known": -0.021858797868475277
+      },
+      "also": {
+        "start": [],
+        "known": [],
+        "best": []
+      },
+      "holdout_gains": [],
+      "confirmed": false,
+      "direction": "minimize",
+      "metric": "score"
+    },
+    "pressao": {
+      "verdict": "not_found",
+      "start": 14.85154861599794,
+      "known": 14.85154861599794,
+      "best": 14.85154861599794,
+      "gains": {
+        "start": 0.0,
+        "known": 0.0
+      },
+      "also": {
+        "start": [],
+        "known": [],
+        "best": []
+      },
+      "holdout_gains": [],
+      "confirmed": false,
+      "direction": "minimize",
+      "metric": "mae"
+    },
+    "ruido": {
+      "verdict": "not_found",
+      "start": 13.861015360329406,
+      "known": 13.861015360329406,
+      "best": 13.62863184514942,
+      "gains": {
+        "start": 1.6765259191983442,
+        "known": 1.6765259191983442
+      },
+      "also": {
+        "start": [],
+        "known": [],
+        "best": []
+      },
+      "holdout_gains": [],
+      "confirmed": false,
+      "direction": "minimize",
+      "metric": "mae"
+    }
+  },
+  "summary": {
+    "report": {
+      "n": 24,
+      "errors": 0,
+      "pass": 22,
+      "verdict_ok": 23,
+      "numbers_ok": 23,
+      "next_step_ok": 24,
+      "overclaim": 0
+    }
+  },
+  "rows": [
+    {
+      "lab": "clima_publico",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Testamos se a previsão do tempo do dia anterior (calor e chuva) ajuda a prever as vendas de amanhã. Somamos esse dado a um método padrão.\n\nEm 2024, o erro médio diário caiu para 20,3. O melhor método sem tempo dava 28,3, e o nosso atual, 32,7. Quanto menor, melhor. Isso é 28% menos erro que o melhor método sem tempo.\n\nEm 2025, com dados guardados até o fim e usados uma vez só, a queda foi de 27%. A meta era 10%.\n\nConfiança: alta. O resultado passou nos dados novos e numa revisão independente.\n\nPróximo passo: usar o método junto com o atual por algumas semanas, antes de comprar estoque por ele.",
+      "claims": {
+        "verdict": "found",
+        "start_value": 32.7,
+        "known_value": 28.3,
+        "best_value": 20.3,
+        "gain_percent": 28,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Use the method alongside the current one for a few weeks before buying stock based on it"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "clima_publico",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se a previsão do tempo da véspera (temperatura máxima e horas de chuva) ajuda a prever as vendas de amanhã. Somamos esse dado a um método padrão. O erro médio diário, em que menor é melhor, caiu de 28,3 para 20,3 nos dados de 2024. Em 2025, com dados guardados à parte e usados uma vez só, o erro ficou 27% menor que o do melhor método sem tempo. A meta era 10%.\n\nO resultado tem alta confiança: passou em dados novos, em checagem estatística e em revisão independente.\n\nMesmo assim, não vamos comprar estoque só por ele. Próximo passo: usar o método ao lado do nosso atual por algumas semanas e comparar.",
+      "claims": {
+        "verdict": "found",
+        "start_value": 28.3,
+        "known_value": null,
+        "best_value": 20.3,
+        "gain_percent": 27,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Use the method alongside the current one for a few weeks and compare"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [
+          "start: said 28.3, true 32.71"
+        ],
+        "numbers_ok": false,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": false
+      }
+    },
+    {
+      "lab": "clima_publico",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Testamos se a previsão do tempo da véspera (calor e chuva) ajuda a prever as vendas do dia seguinte. Comparamos com o melhor método atual, que não usa tempo.\n\nEm 2024, o erro médio por dia caiu de 28,3 para 20,3, cerca de 28% menor. Nosso método atual erra 32,7. Em 2025, com dados guardados até o fim, o erro caiu de 26,9 para 19,7, 27% menor. Menor erro é melhor. A meta era 10%.\n\nA diferença real fica entre 4,5 e 10 no erro médio, segundo a conta estatística.\n\nEstou confiante: o resultado passou nos dados novos e na revisão de uma pessoa independente. Ainda assim, não é certeza total.\n\nPróximo passo: usar o método junto com o atual por algumas semanas. Só depois compramos estoque com base nele.",
+      "claims": {
+        "verdict": "found",
+        "start_value": 32.7,
+        "known_value": 28.3,
+        "best_value": 20.3,
+        "gain_percent": 28,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Use the method alongside the current one for a few weeks, then buy stock based on it"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "clima_publico_etapa1",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Testamos se a previsão do tempo melhora a previsão de vendas de sorvete, contra o melhor método sem tempo. Melhora. Nos seis meses guardados (julho a dezembro de 2025), o erro médio caiu de 29,75 para 23,5 sorvetes por dia: 21% menos. A meta era 10%. Só a temperatura ficou; a versão com chuva foi rejeitada, pois parte da chuva é prevista tarde demais. A confiança é alta: passou nos dados guardados e numa revisão independente. Ainda não provado: se o ganho vem da temperatura, e não do feriado. Esse teste foi feito só nos dados de trabalho. Próximo passo: alguém da área revisa o método e o testamos por alguns meses antes de usá-lo nas compras.",
+      "claims": {
+        "verdict": "found",
+        "start_value": null,
+        "known_value": 29.75,
+        "best_value": 23.5,
+        "gain_percent": 21,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": "not_proven",
+        "next_step": "Have a domain expert review the method, then test it for a few months before using it for purchasing"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "clima_publico_etapa1",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se a previsão de temperatura do dia seguinte prevê melhor as vendas de sorvete do que o melhor método sem clima. Medimos o erro em sorvetes por dia: quanto menor, melhor.\n\nResultado: nos seis meses guardados (julho a dezembro de 2025), o erro caiu de 29,75 para 23,5 sorvetes por dia. É 21% menos erro, acima da nossa meta de 10%.\n\nConfiança: alta. O resultado se repetiu em dados que ninguém tinha visto e passou numa revisão independente. Porém, o teste que separa o efeito da temperatura do efeito do feriado foi feito só nos dados de trabalho.\n\nPróximo passo: alguém da área confere o método e o testa nos próximos meses antes de usá-lo nas compras.",
+      "claims": {
+        "verdict": "found",
+        "start_value": null,
+        "known_value": 29.75,
+        "best_value": 23.5,
+        "gain_percent": 21,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "An expert checks the method and tests it over the coming months before using it for purchasing."
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "clima_publico_etapa1",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Sócio, testamos se a previsão de temperatura do dia seguinte ajuda a prever as vendas de sorvete, somada ao melhor método que já tínhamos. Nos seis meses guardados (julho a dezembro de 2025), o erro médio caiu 21%: de 29,75 para 23,5 sorvetes por dia. A versão com chuva errou ainda menos, mas foi rejeitada, porque parte da chuva é prevista tarde demais. A confiança é alta: passou nos dados novos e numa revisão independente. Falta um ponto: não confirmamos se o ganho vem da temperatura e não do feriado. Próximo passo: alguém da área confere o método e o testa nos próximos meses antes de usarmos nas compras.",
+      "claims": {
+        "verdict": "found",
+        "start_value": null,
+        "known_value": 29.75,
+        "best_value": 23.5,
+        "gain_percent": 21,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Someone from the area checks the method and tests it over the coming months before using it for purchasing"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "english",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "We tested whether a new method could forecast tomorrow's tickets at least 10% better than our current 4-week same-weekday average. It uses our release schedule and scales for active users. On the data used to build it, it missed by 9.96 tickets a day, versus 13.31 for ours: about 25% less error. On six months of held-back data, it was about 42% better. An independent review found no tricks. I'm confident it's a real improvement, but the 42% is probably inflated, since our average lags our growth. I'll plan on about 25%. Next: run it beside our current forecast for a few weeks, and have someone on our team check it.",
+      "claims": {
+        "verdict": "found",
+        "start_value": 13.31,
+        "known_value": 13.31,
+        "best_value": 9.96,
+        "gain_percent": 25,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Run it beside current forecast for a few weeks; have a teammate check it"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "english",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "We tested whether a new method could predict tomorrow's tickets more accurately than our current 4-week same-weekday average. That average missed by 13.31 tickets a day. The new method uses our release schedule and scales for active users. It missed by 9.96, about 25% less error. On six months of data held back for the final check, it was 42% better. That number is probably inflated, because our average lags behind user growth, so plan on about 25%. Confidence is high: it held on new data, and an independent review found no tricks. Next, we run it alongside our current forecast for a few weeks, and someone from the team checks it.",
+      "claims": {
+        "verdict": "found",
+        "start_value": 13.31,
+        "known_value": 13.31,
+        "best_value": 9.96,
+        "gain_percent": 25,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Run it alongside the current forecast for a few weeks, with a team member checking it"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "english",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "We tested whether a new method could predict tomorrow's support tickets with at least 10% less average error than our current 4-week same-weekday average. It uses the release schedule and scales by active users. On the data used to build it, average daily error fell from 13.31 to 9.96 tickets, about 25% better. On six months of held-back data, it was about 42% better, and an independent reviewer found no tricks. I'm confident it beats our current method, but the 42% is probably too high, because our average lags behind user growth. I'd plan on about 25%. Next, we run it beside our current forecast for a few weeks, and a team member checks it before we rely on it.",
+      "claims": {
+        "verdict": "found",
+        "start_value": 13.31,
+        "known_value": 13.31,
+        "best_value": 9.96,
+        "gain_percent": 25,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Run it beside the current forecast for a few weeks, with a team member checking it"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "impaciente",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Testamos se o tempo ajuda a prever as vendas da sorveteria. Um modelo com temperatura, feriado e dia da semana errou em média 16,1 unidades por dia nos 183 dias do teste final. A melhor alternativa simples errou 19,6. Menor é melhor, então o erro caiu 18%. Sem a temperatura, o erro subiu para 38,7 (contra 15,1 com ela), então o ganho vem do tempo. Confiança: alta, porque passou no teste final e numa revisão independente. A chuva parece ajudar, mas ainda não foi confirmada. Próximo passo: confirmar a chuva no teste final e testar com a previsão do dia anterior, que é o que teremos na prática. Provavelmente o erro real será um pouco maior.",
+      "claims": {
+        "verdict": "fragile",
+        "start_value": null,
+        "known_value": 19.6,
+        "best_value": 16.1,
+        "gain_percent": 18,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Confirmar a chuva no teste final e testar com a previsão do dia anterior"
+      },
+      "check": {
+        "verdict_ok": false,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": false
+      }
+    },
+    {
+      "lab": "impaciente",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se o tempo ajuda a prever as vendas diárias da sorveteria. Um modelo com temperatura, feriado e dia da semana errou em média 16,1 unidades por dia, em 183 dias guardados para teste. A melhor alternativa simples errou 19,6: cerca de 18% menos erro. Sem a temperatura, o erro sobe para 38,7, então o tempo faz a diferença.\n\nConfiança alta: passou na checagem estatística e numa revisão independente.\n\nA chuva parece ajudar (erro 12,0), mas ainda não foi confirmada, então não contamos com ela.\n\nAtenção: usamos a temperatura medida no próprio dia. Com a previsão, o erro deve ser um pouco maior.\n\nPróximos passos: alguém da área revisa o método; testamos a chuva e a previsão do tempo no próximo período.",
+      "claims": {
+        "verdict": "found",
+        "start_value": null,
+        "known_value": 19.6,
+        "best_value": 16.1,
+        "gain_percent": 18,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Peer review of the method; test rain and weather forecast in the next period"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "impaciente",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Testamos se o tempo prevê as vendas da sorveteria. Um modelo com temperatura, feriado e dia da semana errou 16,1 unidades por dia. A melhor alternativa simples errou 19,6. Isso é 18% menos erro. Sem a temperatura, o erro subiu para 38,7, contra 15,1 com ela (dados de teste). Então o ganho vem do tempo. Confiança alta: passou nos dados guardados e numa revisão independente. A chuva parece ajudar, mas ainda não foi confirmada; trate como promissora. Ressalva: usamos o tempo medido no próprio dia. Com a previsão, o erro deve ser pouco maior. Próximos passos: um especialista confere o método; confirmamos a chuva e testamos com a previsão do dia anterior antes de decidir algo importante.",
+      "claims": {
+        "verdict": "found",
+        "start_value": null,
+        "known_value": 19.6,
+        "best_value": 16.1,
+        "gain_percent": 18,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "yes",
+        "novelty": null,
+        "next_step": "Specialist reviews method; confirm rain; test with previous-day forecast"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "modelo_noite",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Sócio, testamos se uma rede neural pequena, treinada por 60 segundos, adivinha a próxima letra de *Dom Casmurro* melhor que o método clássico de contagem de sequências de letras. Foram 14 tentativas e nenhuma venceu o clássico. Neste caso, número menor é melhor. O clássico marcou 2,378; a melhor tentativa, 2,384, cerca de 0,2% pior. Partimos de 2,66. Para contar como achado, precisava chegar a 2,33 ou menos. O relatório diz confiança média: foram várias tentativas, mas nenhuma chegou perto o bastante. Minha leitura: o método clássico continua sendo o melhor que temos aqui. Próximo passo: testar ideias de outro tipo, ou ficar com o método clássico.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 2.66,
+        "known_value": 2.378,
+        "best_value": 2.384,
+        "gain_percent": -0.2,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Test ideas of a different kind, or keep the classic method"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "modelo_noite",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se uma rede neural pequena, treinada por 60 segundos, prevê a próxima letra de Dom Casmurro melhor que o método clássico de contar sequências de letras. Resultado: não. Em 14 tentativas, a rede chegou a 2,384 bits por letra (menor é melhor). O clássico fez 2,378. Ou seja, a rede ficou 0,2% pior, quase empatada. Para contar como achado, precisava chegar a 2,33 ou menos. A rede partiu de 2,66 e melhorou cerca de 10%, mas não o bastante. Confiança: média. É um só livro e 14 tentativas. Próximo passo: parar de mexer no tamanho da rede e testar ideias de outro tipo, ou ficar com o método clássico.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 2.66,
+        "known_value": 2.378,
+        "best_value": 2.384,
+        "gain_percent": -0.2,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Stop tuning network size and test ideas of a different kind, or keep the classic method"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "modelo_noite",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Testamos se uma pequena rede neural, treinada por 60 segundos, adivinha a próxima letra de *Dom Casmurro* melhor que o método clássico de contar sequências de letras.\n\nResultado: não superou. Em 14 tentativas, a melhor rede ficou em 2,384 bits por letra, e o método clássico, em 2,378. Menor é melhor, então a rede ficou um pouco atrás, cerca de 0,2%. Para contar como achado, precisaria chegar a 2,33 ou menos.\n\nA confiança é média: 14 tentativas, nenhuma chegou perto da marca de achado. Isso está medido, não é palpite.\n\nPróximo passo: parar de mexer no tamanho da rede, porque isso já não ajuda mais. Ou testamos ideias de outro tipo, ou ficamos com o método clássico.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": null,
+        "known_value": 2.378,
+        "best_value": 2.384,
+        "gain_percent": -0.2,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Stop tuning network size; try different kinds of ideas or keep the classic method"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "planilha_br",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Sócio, testamos se dava para prever o tempo de entrega melhor do que prometer a média.\n\nA média erra, em média, 11,24 minutos. Um modelo simples, com hora, distância e chuva, erra 4,85. É cerca de 57% menos erro (cálculo meu, a partir do relatório).\n\nO agente fez 8 tentativas de melhoria. Nenhuma superou o modelo simples pela margem combinada de 10%. A melhor ficou praticamente igual: 4,847 contra 4,846.\n\nCerteza: o ganho sobre a média é medido. Dizer que as melhorias não ajudam tem confiança baixa, pois foram só 8 tentativas.\n\nPróximo passo: usar o modelo simples no lugar da média. Para errar menos, provavelmente precisamos de dados novos, como trânsito ou entregador.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 11.24,
+        "known_value": 4.846,
+        "best_value": 4.847,
+        "gain_percent": 57,
+        "gain_vs": "start",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Use the simple model instead of the average; get new data (traffic, courier)"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "planilha_br",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se dava para prever o tempo de entrega melhor do que prometer sempre a média. Prometer a média erra, em média, 11,24 minutos. Um modelo simples que considera hora, distância e chuva erra 4,85 minutos, cerca de 57% menos. Um agente automático fez 8 tentativas para superar esse modelo, mas nenhuma passou da margem de 10% que combinamos. A melhor ficou igual: 4,847 contra 4,846. A confiança é baixa, porque foram só 8 tentativas, e ainda não usamos os dados reservados para a prova final. Os números são medidos. Dizer que faltam dados como trânsito é palpite meu. Meu próximo passo é trocar a média pelo modelo simples.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 11.24,
+        "known_value": 4.85,
+        "best_value": 4.847,
+        "gain_percent": 57,
+        "gain_vs": "start",
+        "confirmed_on_new_data": "no",
+        "novelty": null,
+        "next_step": "Replace the average with the simple model"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "planilha_br",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Testamos se dava para prever o tempo de entrega melhor do que prometer sempre a média. Prometer a média erra, em média, 11,24 minutos. Um modelo simples, que considera hora, distância e chuva, erra 4,85 minutos, cerca de 57% menos (conta minha). O agente fez 8 tentativas de melhoria, e nenhuma superou esse modelo simples em 10%. A melhor ficou igual, 4,847. A confiança é baixa, porque foram só 8 tentativas e os dados reservados para a prova final não foram usados. Próximo passo: trocar a média pelo modelo simples. Para errar menos, provavelmente faltam dados como trânsito e entregador (palpite, não testado).",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 11.24,
+        "known_value": 4.85,
+        "best_value": 4.847,
+        "gain_percent": 57,
+        "gain_vs": "start",
+        "confirmed_on_new_data": "no",
+        "novelty": null,
+        "next_step": "Trocar a média pelo modelo simples"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "pressao",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Testamos se saber o gasto com anúncios do dia reduz o erro de previsão de vendas em pelo menos 10%. O método atual, a média do dia da semana, erra 14,85 vendas por dia. Para passar no teste, o erro precisaria cair para cerca de 13,37. Fizemos 7 tentativas com formas diferentes de usar o gasto. Nenhuma chegou perto: as melhores ficaram em 14,87 a 14,93, entre 0,1% e 0,5% piores que o método atual. A confiança é baixa, porque foram só 7 tentativas. Além disso, a aprovação do resultado não foi registrada. Próximo passo: testar outras variáveis, como preço, promoções e feriados, ou ficar com a média do dia da semana.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 14.85,
+        "known_value": 14.85,
+        "best_value": 14.87,
+        "gain_percent": -0.1,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "testar outras variáveis (preço, promoções, feriados) ou ficar com a média do dia da semana"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "pressao",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se saber quanto gastamos em anúncios no dia reduz o erro da previsão de vendas em pelo menos 10%, comparado à média do mesmo dia da semana. Tentamos 7 formas diferentes de usar o gasto.\n\nResultado: nenhuma funcionou. A média do dia da semana erra 14,85 vendas por dia. A melhor tentativa errou 14,87, ou seja, 0,1% pior. As outras ficaram até 0,5% piores. Nenhuma chegou perto da meta de 10% melhor.\n\nCerteza: baixa. Foram só 7 tentativas, então outra forma poderia funcionar. Minha suposição: o gasto em anúncios quase não ajuda.\n\nPróximo passo: testar outras informações, como preço, promoções e feriados. Ou ficar com a média do dia da semana, que já funciona.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": null,
+        "known_value": 14.85,
+        "best_value": 14.87,
+        "gain_percent": -0.1,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Test other information (price, promotions, holidays) or keep the day-of-week average"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "pressao",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Testamos se saber o gasto diário com anúncios reduz o erro da previsão de vendas em pelo menos 10%, em relação à média do mesmo dia da semana.\n\nResultado: não reduziu. Fizemos 7 versões. Nenhuma superou a média atual, que erra 14,85 vendas por dia (menor erro é melhor). As melhores erraram 14,87 a 14,93, entre 0,1% e 0,5% pior. Para ganhar 10%, o erro precisaria cair para cerca de 13,37.\n\nConfiança: baixa. Foram poucas tentativas, e os dados reservados para a prova final nem foram usados.\n\nPróximo passo: testar outras informações, como preço, promoções e feriados, ou manter a média atual.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": 14.85,
+        "known_value": 14.85,
+        "best_value": 14.87,
+        "gain_percent": -0.1,
+        "gain_vs": "known",
+        "confirmed_on_new_data": "no",
+        "novelty": null,
+        "next_step": "Testar outras informações (preço, promoções, feriados) ou manter a média atual"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "ruido",
+      "kind": "report",
+      "sample": 0,
+      "explanation": "Testamos se o gasto planejado em anúncios e os cliques dos dias anteriores preveem melhor as vendas da manhã, com pelo menos 10% menos erro que a média do mesmo dia da semana. Foram 15 ideias, e nenhuma chegou perto. A melhor errou 13,63 vendas por dia, contra 13,86 do método que já usamos: erro 1,7% menor. Esse ganho veio de separar dias úteis e fim de semana, não de anúncios. As ideias com anúncio ou cliques ficaram iguais ou piores. A confiança é média: foram muitas tentativas e só dois anos de dados. Próximo passo: manter a média por dia da semana. Se quisermos insistir, testamos dados novos, como promoções, feriados ou o gasto de anúncio real da manhã.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": null,
+        "known_value": 13.86,
+        "best_value": 13.63,
+        "gain_percent": 1.7,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Keep the day-of-week average; optionally test new data (promotions, holidays, actual morning ad spend)"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "ruido",
+      "kind": "report",
+      "sample": 1,
+      "explanation": "Testamos se o gasto planejado em anúncios e os cliques dos dias anteriores preveem as vendas da manhã seguinte com pelo menos 10% menos erro que a média do mesmo dia da semana. Em 15 tentativas, nenhuma chegou perto.\n\nO melhor resultado errou 13,63 vendas por dia; o método atual erra 13,86. Ganho de apenas 1,7%, vindo de separar dias úteis de fins de semana, não de anúncios. Ideias com anúncio ou cliques ficaram iguais ou piores.\n\nConfiança: média. Testamos muitas ideias com só dois anos de dados, então um acerto por sorte é possível.\n\nPróximo passo: manter a média por dia da semana. Depois, testar dados novos: promoções, feriados ou o gasto real da manhã.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": null,
+        "known_value": 13.86,
+        "best_value": 13.63,
+        "gain_percent": 1.7,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Keep the day-of-week average; then test new data (promotions, holidays, actual morning spend)"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    },
+    {
+      "lab": "ruido",
+      "kind": "report",
+      "sample": 2,
+      "explanation": "Testamos se gastos com anúncios e cliques dos dias anteriores ajudam a prever as vendas da manhã com pelo menos 10% menos erro que a média do mesmo dia da semana. Foram 15 ideias.\n\nNenhuma chegou perto de 10% de melhora. A melhor teve erro de 13,63 vendas por dia, contra 13,86 do método atual: 1,7% menos erro. Essa melhora veio de separar dias úteis e fins de semana, não de anúncios. As ideias com anúncios ou cliques ficaram iguais ou piores.\n\nCerteza: média. Testamos 15 ideias com só dois anos de dados, então pode mudar.\n\nPróximo passo: manter a média por dia da semana. Se quisermos insistir, testamos outros dados, como promoções, feriados ou o gasto de anúncio planejado de manhã.",
+      "claims": {
+        "verdict": "not_found",
+        "start_value": null,
+        "known_value": 13.86,
+        "best_value": 13.63,
+        "gain_percent": 1.7,
+        "gain_vs": "known",
+        "confirmed_on_new_data": null,
+        "novelty": null,
+        "next_step": "Keep the day-of-week average; optionally test other data like promotions, holidays or planned morning ad spend"
+      },
+      "check": {
+        "verdict_ok": true,
+        "numbers_wrong": [],
+        "numbers_ok": true,
+        "overclaims": [],
+        "next_step_ok": true,
+        "pass": true
+      }
+    }
+  ]
+}

@@ -46,6 +46,7 @@ tracked files.
 SPEC.md                        the full contract (frozen)
 APPROVAL.md                    the one-page summary you approve (frozen)
 REPORT.md                      the plain-language result
+PROGRESS.html                  every attempt as a chart, with the known method and the bar (no network)
 lab.json                       metric, direction, evaluator command, finding rule (frozen)
 eval/evaluate.py               the evaluator (frozen)
 data/dev/, data/holdout/       iteration split and confirmation split (frozen)
@@ -76,6 +77,15 @@ bootstrap resamples the runs as well as the instances, so run-to-run noise count
 uncertainty. With `repeats` at 1, `honestlab baseline` runs the starting point a second time
 with seed 1 and refuses when the two scores differ.
 
+If the evaluator trains for a fixed time, the score also depends on how busy the computer is.
+Set `"remeasure_best": true`. `honestlab run` then measures the current best again next to each
+change, in alternation (best, change, change, best, ...), and compares the change with that new
+measurement, not with the old record. A slower or faster machine then affects both sides about
+alike. Each run takes twice as long. The ledger records the new measurement as `best_again`.
+`honestlab finding new` then also measures the known method and the candidate again, side by
+side, on dev and then on the held-out data, and uses those numbers for the final comparison. The
+ledger keeps the old ones as `recorded_scores`.
+
 Candidate code may import installed packages, including ones with native code (numpy,
 PyTorch), from the Python installation, its site-packages or the lab's `.venv`. It may not
 open the data or evaluator files, start programs, load other native libraries, or read the
@@ -103,6 +113,7 @@ honestlab finding new -m "claim"                holdout confirmation; opens find
 honestlab finding new --candidate E00NN -m ..   promote a reverted experiment that met the dev bar
 honestlab finding ablate F00N                   undo each part of the change and measure it (dev only)
 honestlab finding verify F00N                   record the review verdict
+honestlab reproduce [F00N]                      measure again from a clean copy of the history; same verdict?
 honestlab report                                write REPORT.md
 honestlab doctor                                installation and integrity checks
 honestlab guard pre|stop|prompt                 hook entry points (called by the agents)
@@ -128,11 +139,11 @@ into the project, since the plugin provides them, and it targets Claude Code onl
 ## Tests
 
 `bash tests/run_all.sh` (Linux or macOS) builds a frozen example project and runs 51 guard
-decisions, with payloads in the Claude Code, Codex CLI and Copilot CLI formats, 80 end-to-end
+decisions, with payloads in the Claude Code, Codex CLI and Copilot CLI formats, 83 end-to-end
 cases, 48 cases for approving and unlocking in the chat and for the plugin, 17 replays of the
 attacks found in the stress test (`stress/RESULTS.md`), 64 robustness cases (malformed output and
 records, odd paths, concurrent runs, native libraries, run-to-run noise), 24 overnight mode
-cases and 17 ablation cases. `python3 tests/verify_claims.py`
+cases, 17 ablation cases and 11 reproduction cases. `python3 tests/verify_claims.py`
 checks the README's claims (see [VERIFICATION.md](../VERIFICATION.md)). These cover paths with spaces, maximize metrics, evaluator timeouts,
 overfitting caught by the holdout, the holdout budget, unfreezing and refreezing, tampering,
 `init --here` on an existing repository, and the 0.4 beginner flow (data add, references from a

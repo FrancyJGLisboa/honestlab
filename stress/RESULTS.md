@@ -260,6 +260,65 @@ Limit: the agent kept going by itself, so honestlab's Stop hook never had to blo
 The hook's blocking is covered by `tests/overnight_test.py` with Claude Code payloads, but it was
 not exercised in a live session, and no run lasted a whole night.
 
+## Reproduction on a time-budget evaluator
+
+`honestlab reproduce` was run on a character model lab with training cut to 10 seconds per run
+(3 runs per measurement). One experiment was kept (learning rate 0.3). Recorded against
+reproduced, on dev:
+
+| What | Recorded (3 runs) | Reproduced (3 runs) | Within noise |
+|---|---|---|---|
+| starting model | 2.970 (2.982, 2.957, 2.972) | 2.885 | no |
+| n-gram reference | 2.378 | 2.378 | yes (it does not depend on time) |
+| kept experiment | 2.756 | 2.759 | yes |
+
+All three recorded runs of the starting model were slow in the same way, so this was not one
+unlucky run: the machine gave less training to the starting model while it was measured. The cause
+is unknown (other work on the machine is the likely one). The keep decision compared the experiment
+with that slow measurement, so its recorded gain (0.214) is larger than the gain measured in the
+copy (0.126). The experiment still helps.
+
+What this shows: with a training budget in seconds, a measurement depends on how busy the machine
+was at that moment, and runs taken at different times are not fully comparable. Two-level
+statistics cannot see this, because all runs of one measurement share the same moment.
+`honestlab reproduce` caught it.
+
+### The fix: measure the current best again next to each change
+
+New option `"remeasure_best": true` (on in the character model example). `honestlab run`
+measures the current best and the change in alternation (best, change, change, best, change,
+best) and compares the change with the new measurement of the best, not with the old record.
+Each run takes twice as long.
+
+Live check (`stress/drift_live.sh`, output in `stress/drift_live.out`), the character model with
+a 10-second budget and 3 runs per measurement, two labs:
+1. Both starting points are measured while 8 busy processes load the computer: 3.043 and 3.020.
+2. The load stops. Each lab gets a "change" that only adds a comment, so the model is the same.
+
+| | remeasure_best off | remeasure_best on |
+|---|---|---|
+| The unchanged model scored | 2.857 | 2.862 |
+| Compared with | 3.043 (recorded under load) | 2.856 (the best, measured again now) |
+| Decision | KEEP, "6.1% better", interval 0.179 to 0.194 | DISCARD, difference -0.007, interval -0.016 to 0.001 |
+
+Without the option, a quieter computer produced a false finding with a narrow interval. With the
+option, the same situation shows no difference. `tests/drift_test.py` (30 cases) covers the same
+situation with a fake speed file, a machine that gets faster during the runs, new files in the
+change, crashes and `repeats` 1.
+
+The final comparison is protected the same way. `honestlab finding new` measures the known method
+and the candidate again, side by side, on dev and then on the held-out data, and compares those.
+In `tests/drift_test.py`, without the option, an unchanged model measured on a faster machine
+became a confirmed finding. With it, a real gain of 2 is measured as 2 (not 4), and a real gain of
+0.05, below the 0.1 margin, is refused before any held-out look. This part is checked only with
+the fake speed file, not yet live.
+
+Limits:
+- The starting point and the references in the report's number list are still the values recorded
+  at approval. The finding's own comparison uses the new ones.
+- Alternation evens out drift that changes slowly or steadily. A burst of load during one run
+  still adds noise to that run.
+
 ## Still open
 
 - **The review is not independent by construction.** `honestlab finding verify` checks that a review

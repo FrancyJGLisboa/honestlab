@@ -76,3 +76,61 @@ table of how the gain shrinks as forecasts get worse.
 Limitations: as above (one run per cell after the fix, a model playing the person, permissions
 granted up front, Claude Code on Linux only). The plugin was installed from a local folder, since
 the repository is not yet published, so the one-line install itself was not exercised.
+
+## 0.5: explain-back test (can a person repeat the result correctly?)
+
+Method (`explain_back.py`, data in `runs/explain_back/`):
+1. A reader model (Claude Haiku) plays a person with no technical training. It reads one document
+   once and explains the result to a business partner in 120 words or fewer.
+2. An extractor model (Claude Sonnet) reads only that explanation and writes down what it claims:
+   verdict, numbers, whether it was confirmed on new data, whether it is new.
+3. Python compares the claims with the truth computed from each lab's state, configuration and
+   ledger, not from the report text. A reading passes when the verdict is right, every number
+   it states is a true number (within 2%, or 2 points for a percentage), and it does not
+   overclaim.
+
+Two documents on the same 8 finished labs from `stress/runs` (4 found, 4 not found), 3 readings
+each:
+- **report**: honestlab's `REPORT.md`.
+- **log**: what autoresearch leaves behind, a `results.tsv` with one row per attempt (id, score,
+  keep or discard, description), built from the same ledger.
+
+| | report | log |
+|---|---|---|
+| Readings that pass | 22 of 24 | 5 of 24 |
+| Verdict right | 22 of 24 | 5 of 24 |
+| Every stated number true | 24 of 24 | 18 of 24 |
+| Says something false about the result | 0 | 1 |
+
+(First run, scored with the final checker. The first checker version did not know the
+held-out scores, so it marked true numbers as wrong.)
+
+Why the log fails: it does not contain the best known method or the agreed margin, so the reader
+cannot know whether the result is a finding. In 18 of 24 log readings the reader said
+"promising, not proven". In the not-found labs that hides the answer the person needs. One log
+reader of the delivery lab said the simple model was a new finding, but that model was already a
+known method. In the ice-cream lab, log readers called the starting point the known method. This is
+a limit of the log format by construction, not of the reader.
+
+**What the test found in the report.** In the ice-cream lab (`impaciente`), all 3 readers mixed
+two candidates: the confirmed finding (E0001, 16.1 vs 19.6 on new data) and a later, better
+attempt that was never tested on new data (E0003, 12.04). One reader wrote: "the report says
+high confidence, but its numbers do not match each other". The numbers section showed E0003 as
+the best result and a new-data line with a percentage next to an interval in score units.
+Fix in `report.py`:
+- The new-data line shows both scores ("E0001 (F001) 16.06 against 19.57 for so_temperatura:
+  17.9% better"), and labels the interval with its unit.
+- When the best result is not the finding tested on new data, the report says so.
+
+After the fix (same 8 labs, 3 new readings each): 22 of 24 pass. Readers of the ice-cream lab no
+longer said the numbers do not match. But 1 of 3 still called the verdict "fragile", because the
+report also says that the rain variant is not confirmed. The other failure is the extractor's: a
+reader wrote "fell from 28.3 to 20.3" (known method to best), and the extractor called 28.3 the
+starting point. 22 of 24 before and after: the fix removed a confusion, but this test cannot
+show a change in the pass rate with 24 readings.
+
+Limits:
+- A model plays the person. It reads more carefully than many people do, and it never skims.
+- The extractor can misread an explanation. Each failure above was read by hand.
+- The log comparison is unfair to the log by design: it lacks the information. The test shows
+  that the missing information changes what a person repeats.

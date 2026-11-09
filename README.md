@@ -51,7 +51,7 @@ flowchart LR
     A["You: one sentence"] --> B["The agent asks<br/>up to 5 simple questions"]
     B --> C["You approve one page<br/>type aprovar, then the code"]
     C --> D["The agent runs the experiments<br/>each one measured and recorded"]
-    D --> E["REPORT.md<br/>found / promising but fragile / not found"]
+    D --> E["REPORT.md and a progress chart<br/>found / promising but fragile / not found"]
 ```
 
 The page you approve is written in your language. It says what the question is, how the answer
@@ -114,6 +114,17 @@ runs one search of its own. The report then says "already known", "similar work 
 "nothing similar found", next to the verdict. Finding nothing does not prove a result is new, and
 honestlab checks the form of the search, not that it was complete. Whether the result is useful is
 measured: it must beat the best known method by the margin you chose.
+
+**Can someone else check the result?** Yes, with one command. Anyone with the lab folder runs
+`honestlab reproduce F001`. honestlab copies the lab from its history into a new folder, checks
+that nothing protected changed, measures everything again with the frozen evaluator, and says
+whether the verdict is the same.
+
+**Will I understand the report?** We tested it. A model playing a person with no technical
+training read 8 real reports, 3 times each, and explained them in its own words. 22 of 24
+explanations had the right verdict and only true numbers. With the same results as an
+autoresearch-style log (one row per attempt), 5 of 24 did. A model is not a person, so this is a
+first check, not proof. [Details](usability/RESULTS.md).
 
 **Can the agent cheat?** honestlab is built for an agent that means well but may cut corners or
 overclaim, and it makes cheating hard and visible. When you approve, the measuring code, the data
@@ -199,10 +210,16 @@ AlphaEvolve finds. What it does is tell you honestly whether your idea holds up.
   honestlab's earlier rule kept the same 10. honestlab now trains each attempt 3 times and counts
   that variation: it kept 5, of which 4 really helped. One task, one machine.
   [Details](stress/RESULTS.md).
-- **Tests.** 51 hook decisions in the formats of the three agents, 80 end-to-end cases, 48 cases
+- **Machine speed.** With training limited in seconds, a busy computer trains less. In a live
+  check, a starting point measured while the computer was busy made an unchanged model look 6.1%
+  better later, and it was kept. With `"remeasure_best": true`, honestlab measures the current best
+  again next to each change, and the same unchanged model was discarded. One check, one machine.
+  [Details](stress/RESULTS.md).
+- **Tests.** 51 hook decisions in the formats of the three agents, 83 end-to-end cases, 48 cases
   for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the
   stress test, 64 robustness cases (malformed evaluator output, damaged records, odd paths, two
-  runs at once, native libraries, run-to-run noise), 24 overnight mode cases and 17 ablation cases
+  runs at once, native libraries, run-to-run noise), 24 overnight mode cases, 17 ablation cases, 11 reproduction cases,
+  30 machine-speed drift cases and 22 explain-back checker cases
   (`bash tests/run_all.sh`). Every claim on
   this page is mapped to the command that checks it in [VERIFICATION.md](VERIFICATION.md).
 

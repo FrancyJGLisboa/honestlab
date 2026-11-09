@@ -341,6 +341,9 @@ p.write_text(s)
 PYPLAIN
 "$L" report >/dev/null
 check "report keeps the agent's plain words when the verdict is unchanged" "grep -q 'Texto simples do agente' REPORT.md"
+check "report also writes PROGRESS.html, in the lab's language, with the verdict" "grep -q 'Progresso' PROGRESS.html && grep -q 'Encontrou' PROGRESS.html"
+check "PROGRESS.html has one mark per attempt and a table view" "[ \$(grep -o 'class=\"hit\"' PROGRESS.html | wc -l) -eq \$(grep -c '\"type\": \"experiment\"' ledger.jsonl) ] && grep -q '<table>' PROGRESS.html"
+check "PROGRESS.html loads nothing from the network" "! grep -Eq '(src|href)=\"(https?:)?//' PROGRESS.html"
 cd "$W"
 mkdir velho && cd velho && git init -q && git config user.name t && git config user.email t@t && echo 'print(1)' > app.py && git add -A && git commit -qm init
 "$L" init >/dev/null

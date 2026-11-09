@@ -244,6 +244,54 @@ def _snapshot_editable(root, cfg, dest):
             shutil.copy2(src, dest / rel)
 
 
+def _install(root, cfg, st, name, patch=None):
+    """Put one version of the editable paths in the working tree: "baseline" (the code at approval),
+    a registered reference, or "candidate" (HEAD plus an optional patch). Return an error text or ""."""
+    _revert_editable(root, cfg)
+    if name == "candidate":
+        if patch is not None:
+            r = core.git(root, "apply", str(patch), check=False)
+            return "" if r.returncode == 0 else (r.stderr.strip() or "git apply failed")[:300]
+        return ""
+    if name == "baseline":
+        src = st.get("freeze_commit")
+        for rel in cfg["editable"]:
+            tgt = root / rel
+            if tgt.is_dir():
+                shutil.rmtree(tgt)
+            elif tgt.exists():
+                tgt.unlink()
+            if src and core.git(root, "cat-file", "-e", f"{src}:{rel}", check=False).returncode == 0:
+                core.git(root, "checkout", "-q", src, "--", rel)
+        return ""
+    snap = _refs_dir(root, cfg) / name
+    if not snap.is_dir():
+        return f"reference snapshot {snap} is missing"
+    for rel in cfg["editable"]:
+        tgt = root / rel
+        if tgt.is_dir():
+            shutil.rmtree(tgt)
+        elif tgt.exists():
+            tgt.unlink()
+        s_ = snap / rel
+        if s_.is_dir():
+            shutil.copytree(s_, tgt)
+        elif s_.exists():
+            tgt.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(s_, tgt)
+    return ""
+
+
+def _measure_side_by_side(root, cfg, st, ref_name, cand_patch, split):
+    """The known method and the candidate, measured in alternation on one split. The tree ends at HEAD."""
+    def put(which):
+        return _install(root, cfg, st, ref_name if which == "a" else "candidate", cand_patch)
+    try:
+        return core.evaluate_paired(root, cfg, split, put)
+    finally:
+        _revert_editable(root, cfg)
+
+
 def _measure_reference(root, cfg, name, split):
     """Put a reference snapshot in place of the editable paths, evaluate, restore HEAD.
 
@@ -479,7 +527,12 @@ def cmd_report(a):
     old = path.read_text(encoding="utf-8") if path.exists() else ""
     text = report.keep_plain_words(old, text)
     core.write_file(path, text)
-    out(f"Wrote {core.report_rel(cfg)} (verdict: {verdict}).")
+    from . import progress
+    import re as _re
+    m = _re.search(r"\n\*\*(.+?)\*\*\n", text)
+    core.write_file(root / core.progress_rel(cfg), progress.build(root, cfg, st, m.group(1) if m else ""))
+    out(f"Wrote {core.report_rel(cfg)} (verdict: {verdict}) and {core.progress_rel(cfg)} (the progress chart; "
+        "open it in a browser).")
     out("Next: replace the placeholder under the 'plain words' heading with 3 to 5 sentences for the person, "
         "using only facts from this report, then show them the verdict.")
 
@@ -628,6 +681,22 @@ def unfreeze_unlock(root, cfg, st, via: str, reason: str = "", evidence: dict = 
 
 # --------------------------------------------------------------------------- run
 
+def _switcher(root, cfg):
+    """put("a") = the current best (HEAD), put("b") = the staged change. Working tree only."""
+    from .ablate import _apply
+    patch = core.git(root, "diff", "--cached", "--binary", "--", *cfg["editable"]).stdout
+    now = {"at": "b"}
+
+    def put(which):
+        if which == now["at"]:
+            return ""
+        e = _apply(root, patch, reverse=(which == "a"))
+        if not e:
+            now["at"] = which
+        return e
+    return put
+
+
 def cmd_run(a):
     from . import stats
     root, cfg, st = ctx()
@@ -664,22 +733,32 @@ def cmd_run(a):
     exp_dir.mkdir(parents=True, exist_ok=True)
     core.write_file(exp_dir / f"{exp_id}.patch", patch)
 
-    out(f"{exp_id}: evaluating on dev ...")
-    sample, extras, log, err = core.evaluate(root, cfg, "dev")
-    core.write_file(exp_dir / f"{exp_id}.log", log[-20000:])
     best_before, best_id = st["best"], st["best_id"]
+    again = None
+    if cfg.get("remeasure_best") and best_id is not None:
+        out(f"{exp_id}: evaluating on dev, alternating with the current best ({best_id}) so that both "
+            f"run under the same conditions ...")
+        again, sample, extras, log, err = core.evaluate_paired(root, cfg, "dev", _switcher(root, cfg))
+    else:
+        out(f"{exp_id}: evaluating on dev ...")
+        sample, extras, log, err = core.evaluate(root, cfg, "dev")
+    core.write_file(exp_dir / f"{exp_id}.log", log[-20000:])
     cmp = None
     score = sample["score"] if sample else None
     if err:
         decision, why = "error", err
     else:
         core.save_sample(root, f"{exp_id}-dev", sample)
-        ref = core.load_sample(root, "baseline-dev" if best_id == "baseline" else f"{best_id}-dev")
-        point_ok = core.better(cfg, score, best_before)
+        if again is not None:
+            core.save_sample(root, f"{exp_id}-best-again-dev", again)
+            ref, bar = again, again["score"]
+        else:
+            ref, bar = core.load_sample(root, "baseline-dev" if best_id == "baseline" else f"{best_id}-dev"), best_before
+        point_ok = core.better(cfg, score, bar)
         if ref is not None:
             cmp = stats.compare(sample, ref, cfg["direction"], float(cfg["keep_alpha"]), int(cfg["bootstrap"]))
         if not point_ok:
-            decision, why = "discard", f"did not beat best {fmt(best_before)}"
+            decision, why = "discard", f"did not beat best {fmt(bar)}" + (" (measured again now)" if again else "")
         elif cfg["keep_rule"] == "significant" and cmp and cmp["lo"] is not None and not stats.significant(cmp):
             decision, why = "discard", "better on average but not significant (the CI includes zero)"
         else:
@@ -694,10 +773,12 @@ def cmd_run(a):
     core.save_state(root, st)
     core.append_ledger(root, {"type": "experiment", "id": exp_id, "hypothesis": hyp, "decision": decision,
                               "score": score, "best_before": best_before, "vs": best_id, "error": err,
+                              "best_again": again and again["score"],
                               "comparison": cmp, "files": src_changed, "extras": extras})
     core.commit(root, f"honestlab: {exp_id} {decision} ({cfg['metric']}={fmt(score)}): {hyp[:60]}")
 
-    detail = f"  [{stats.describe(cmp)} vs {best_id}]" if cmp else ""
+    detail = f"  [{stats.describe(cmp)} vs {best_id}" + (f" measured again now: {fmt(again['score'])}" if again else "") \
+        + "]" if cmp else ""
     if decision == "keep":
         out(f"{exp_id} KEEP: {cfg['metric']} {fmt(best_before)} -> {fmt(score)} (new best).{detail}")
     elif decision == "discard":
@@ -882,6 +963,16 @@ def cmd_finding_new(a):
     ref_dev, ref_hold = core.load_sample(root, f"{pre}-dev"), core.load_sample(root, f"{hpre}-holdout")
     if cand_dev is None or ref_dev is None or ref_hold is None:
         raise LabError("Missing stored evaluations for the comparison (was this project frozen with honestlab >= 0.3?).")
+    again = bool(cfg.get("remeasure_best"))
+    recorded = {"reference_dev": ref_dev["score"], "candidate_dev": cand_dev["score"], "reference_holdout": ref_hold["score"]}
+    if again:
+        # Scores taken at different times are not comparable when the computer's speed matters. Measure the
+        # known method and the candidate again, side by side, for the final comparison.
+        out(f"Measuring '{ref_name}' and {cand_id} again on dev, side by side, so both run under the same "
+            f"conditions ...")
+        ref_dev, cand_dev, _, _, e = _measure_side_by_side(root, cfg, st, ref_name, cand_patch, "dev")
+        if e:
+            raise LabError(f"Could not measure again on dev: {e}. No holdout run was spent.")
     dev_cmp = stats.compare(cand_dev, ref_dev, cfg["direction"], float(fnd["alpha"]), int(cfg["bootstrap"]))
     n_exp = st["next_exp"] - 1
     if not stats.meets(dev_cmp, fnd):
@@ -894,18 +985,29 @@ def cmd_finding_new(a):
                        "into a dev set. A human must provide a fresh holdout (unfreeze, replace, re-freeze).")
     out(f"Dev check passed against '{ref_name}'. Running the holdout split once; it will be compared with "
         f"'{hold_name}', the strongest registered solution on holdout ...")
-    if cand_patch is not None:
-        core.git(root, "apply", str(cand_patch))
-    try:
-        cand_hold, extras, log, err = core.evaluate(root, cfg, "holdout")
-    finally:
+    if again:
+        ref_hold_again, cand_hold, extras, log, err = _measure_side_by_side(root, cfg, st, hold_name, cand_patch,
+                                                                            "holdout")
+        if ref_hold_again is not None:
+            ref_hold = ref_hold_again
+    else:
         if cand_patch is not None:
-            _revert_editable(root, cfg)
+            core.git(root, "apply", str(cand_patch))
+        try:
+            cand_hold, extras, log, err = core.evaluate(root, cfg, "holdout")
+        finally:
+            if cand_patch is not None:
+                _revert_editable(root, cfg)
     st["holdout_runs"] += 1
     fid = f"F{st['next_finding']:03d}"
     st["next_finding"] += 1
     alpha_h = float(fnd["alpha"]) / int(cfg["max_holdout_runs"])  # Bonferroni over confirmatory holdout looks
     hold_cmp = None
+    if again:
+        core.save_sample(root, f"{fid}-reference-dev", ref_dev)
+        core.save_sample(root, f"{fid}-candidate-dev", cand_dev)
+        if err is None:
+            core.save_sample(root, f"{fid}-reference-holdout", ref_hold)
     if err is None:
         core.save_sample(root, f"{fid}-holdout", cand_hold)
         hold_cmp = stats.compare(cand_hold, ref_hold, cfg["direction"], alpha_h, int(cfg["bootstrap"]))
@@ -942,6 +1044,7 @@ def cmd_finding_new(a):
                               "holdout_score": cand_hold["score"] if cand_hold else None,
                               "holdout_confirmed": confirmed, "error": err, "best_id": cand_id,
                               "promoted_discarded": cand_patch is not None,
+                              "measured_again": again, "recorded_scores": recorded if again else None,
                               "experiments_tried": n_exp})
     core.commit(root, f"honestlab: {fid} candidate (holdout {'confirmed' if confirmed else 'NOT confirmed'})")
     if confirmed:
@@ -1091,6 +1194,50 @@ def cmd_finding_ablate(a):
         f"{core.lab_rel(cfg, 'findings', fid, 'ablation.md')}")
 
 
+def cmd_reproduce(a):
+    """Measure the lab's result again from a clean copy of its history, and compare the verdict."""
+    from . import reproduce
+    root, cfg, st = ctx()
+    if not st["frozen"]:
+        raise LabError("Reproduction needs an approved (frozen) lab.")
+    require_integrity(root, cfg, st)
+    if core.changed_paths(root):
+        out("Note: uncommitted changes are not part of the copy; only the recorded history is reproduced.")
+    out("Copying the lab from its git history to a temporary folder and measuring again "
+        "(this takes as long as the original measurements) ...")
+    res = reproduce.run(root, cfg, st, a.id)
+    lines = [f"# Reproduction{(' of ' + a.id) if a.id else ''}", "",
+             "A clean copy of the lab was made from its git history, and the frozen evaluator measured "
+             "everything again there.", "", "| Check | Result | Detail |", "|---|---|---|"]
+    lines += [f"| {n} | {'ok' if ok else 'FAILED'} | {d} |" for n, ok, d in res["checks"]]
+    lines += ["", f"| What | Data | Recorded {cfg['metric']} | Reproduced | Difference | Within noise |",
+              "|---|---|---|---|---|---|"]
+    for r in res["rows"]:
+        diff = (r["reproduced"] - r["recorded"]) if r["reproduced"] is not None and r["recorded"] is not None else None
+        lines.append(f"| {r['what']} | {r['split']} | {fmt(r['recorded'])} | "
+                     f"{fmt(r['reproduced']) if not r['error'] else 'error: ' + r['error'][:80]} | {fmt(diff)} | "
+                     f"{ {True: 'yes', False: 'NO', None: '-'}[r.get('consistent')]} |")
+    if "reproduced_confirmed" in res:
+        lines += ["", f"Recorded verdict: holdout {'confirmed' if res['recorded_confirmed'] else 'not confirmed'}. "
+                      f"Reproduced: {'confirmed' if res['reproduced_confirmed'] else 'not confirmed'}."]
+    same = res.get("verdict_same")
+    lines += ["", f"**{'Same result.' if same else 'DIFFERENT result: see the table.'}**", "",
+              "Small differences are expected when training or sampling is random; the verdict is what must match.", ""]
+    rel = core.lab_rel(cfg, "findings", a.id, "reproduction.md") if a.id else core.lab_rel(cfg, "notes", "reproduction.md")
+    core.write_file(root / rel, "\n".join(lines))
+    core.append_ledger(root, {"type": "reproduction", "id": f"{a.id or 'lab'}:reproduction", "finding": a.id,
+                              "same": bool(same), "checks": [[n, ok] for n, ok, _ in res["checks"]],
+                              "rows": res["rows"], "recorded_confirmed": res.get("recorded_confirmed"),
+                              "reproduced_confirmed": res.get("reproduced_confirmed")})
+    core.commit(root, f"honestlab: reproduction {'same' if same else 'DIFFERENT'}")
+    for r in res["rows"]:
+        out(f"  {r['what']:>12} {r['split']:8} recorded {fmt(r['recorded']):>10}  reproduced "
+            f"{fmt(r['reproduced']) if not r['error'] else 'error'}")
+    out(("Same result" if same else "DIFFERENT result") + f". Details: {rel}")
+    if not same:
+        raise LabError("The result did not reproduce. Read the details before trusting it.", 2)
+
+
 # --------------------------------------------------------------------------- doctor
 
 def cmd_doctor(a):
@@ -1195,6 +1342,10 @@ def build_parser():
     f.add_argument("id")
     f.set_defaults(fn=cmd_finding_verify)
 
+    s = sub.add_parser("reproduce", help="measure again from a clean copy of the lab's history; same verdict?")
+    s.add_argument("id", nargs="?", help="a finding, e.g. F001 (default: the starting point, references and best)")
+    s.set_defaults(fn=cmd_reproduce)
+
     sub.add_parser("doctor", help="check installation and project integrity").set_defaults(fn=cmd_doctor)
 
     s = sub.add_parser("setup", help="install the honestlab skill for your user (Claude Code, Codex, Copilot)")
@@ -1218,7 +1369,7 @@ def build_parser():
 
 
 # Commands that write the ledger, the state or git history. They take the lab lock.
-_CHANGES_RECORDS = {cmd_finding_ablate, cmd_budget, cmd_baseline, cmd_freeze, cmd_unfreeze, cmd_run, cmd_reference_add, cmd_finding_new,
+_CHANGES_RECORDS = {cmd_reproduce, cmd_finding_ablate, cmd_budget, cmd_baseline, cmd_freeze, cmd_unfreeze, cmd_run, cmd_reference_add, cmd_finding_new,
                     cmd_finding_verify, cmd_data_add, cmd_report, cmd_setup}
 
 
