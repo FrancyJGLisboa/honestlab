@@ -1,0 +1,1 @@
+{"scenario": "clima_publico", "version": "stress", "expect": "public_data", "completed": true, "human_messages": 4, "human_commands": 0, "confused": 0, "minutes": 11.4, "lab": {"frozen": true, "experiments": 4, "references": ["holt_winters", "ingenuo_sazonal"]}, "report_file": true, "plain_verdict": true}

@@ -323,6 +323,41 @@ def run_guard_damaged(work):
     (draft / "lab.json").write_text("{draft with a typo")
     got, err = guard(draft, {"tool_name": "Write", "tool_input": {"file_path": "lab.json", "content": "{}"}})
     check("guard: lab.json damaged before freeze -> the agent can still fix it", got == "allow", got + " " + err)
+    # before approval: creating the holdout through honestlab inside a longer command is not a holdout read
+    (draft / "lab.json").write_text(json.dumps({"project": "draft"}))
+    fetch = ("python3 notes/fetch.py raw.csv notes/tmp && honestlab data add notes/tmp/dev.csv --split dev && "
+             "honestlab data add notes/tmp/final.csv --split holdout && rm notes/tmp/final.csv")
+    got, err = guard(draft, {"tool_name": "Bash", "tool_input": {"command": fetch}})
+    check("guard: fetch script && honestlab data add --split holdout is allowed before approval", got == "allow",
+          got + " " + err)
+    got, err = guard(draft, {"tool_name": "Bash", "tool_input": {
+        "command": "honestlab data add f.csv --split dev && python eval/evaluate.py --split holdout"}})
+    check("guard: scoring on the holdout after a honestlab command is still blocked", got == "deny", got + " " + err)
+
+
+def run_per_unit_baseline(work):
+    rc, so, se = hl(work, "init", "pu")
+    lab = work / "pu"
+    c = json.loads((lab / "lab.json").read_text())
+    c["finding"]["min_effect"] = 0.1
+    (lab / "lab.json").write_text(json.dumps(c, indent=2))
+    for f in ("SPEC.md", "APPROVAL.md"):
+        (lab / f).write_text((lab / f).read_text().replace("TODO", "filled"))
+    (lab / "eval" / "evaluate.py").write_text(EVALUATOR)
+    (lab / "data" / "holdout").mkdir(parents=True, exist_ok=True)
+    (lab / "data" / "holdout" / "h.txt").write_text("x")
+    rounded = ("import json\ndef emit(split):\n    u = [10.0 + i / 7 for i in range(30)]\n"
+               "    print(json.dumps({'score': sum(u) / len(u), 'per_unit': [round(x, 4) for x in u]}))\n")
+    (lab / "src" / "sol.py").write_text(rounded)
+    rc, so, se = hl(lab, "baseline")
+    st = core.load_state(lab)
+    check("baseline: per_unit rounded to 4 decimals is accepted and used", rc == 0 and clean(rc, so, se)
+          and core.load_sample(lab, "baseline-dev").get("units") is not None, so + se)
+    wrong = ("import json\ndef emit(split):\n    print(json.dumps({'score': 12.0, 'per_unit': [10.0] * 30}))\n")
+    (lab / "src" / "sol.py").write_text(wrong)
+    rc, so, se = hl(lab, "baseline")
+    check("baseline: a per_unit that does not average to the metric refuses the baseline", rc != 0
+          and clean(rc, so, se) and "Baseline refused" in se and "per_unit" in se, so + se)
 
 
 def main():
@@ -334,6 +369,7 @@ def main():
         run_paths(work)
         run_concurrent(work)
         run_guard_damaged(work)
+        run_per_unit_baseline(work)
     finally:
         subprocess.run(["chmod", "-R", "u+w", str(work)], capture_output=True)
         shutil.rmtree(work, ignore_errors=True)

@@ -1,0 +1,82 @@
+"""Holt-Winters (weekly season) + weather correction.
+
+Base: additive Holt-Winters, parameters grid-fitted on history every 28 days.
+Correction: linear regression of the one-step Holt-Winters errors on the day-ahead weather
+forecast (temperature anomaly vs last 28 days, rain during opening hours) and holiday flag,
+fitted on history only.
+"""
+import itertools
+
+M = 7
+GRID = list(itertools.product([0.05, 0.1, 0.2, 0.3, 0.5], [0.0, 0.01, 0.05], [0.05, 0.1, 0.2, 0.3]))
+RIDGE = 1.0
+_cache = {}
+
+
+def _run(y, a, b, g):
+    level = sum(y[:M]) / M
+    trend = 0.0
+    season = [v - level for v in y[:M]]
+    sse = 0.0
+    errs = [None] * len(y)
+    for t in range(M, len(y)):
+        s = season[t % M]
+        f = level + trend + s
+        e = y[t] - f
+        sse += e * e
+        errs[t] = e
+        new_level = a * (y[t] - s) + (1 - a) * (level + trend)
+        trend = b * (new_level - level) + (1 - b) * trend
+        season[t % M] = g * (y[t] - new_level) + (1 - g) * s
+        level = new_level
+    return sse, level, trend, season, errs
+
+
+def _solve(A, b):
+    n = len(b)
+    m = [row[:] + [b[i]] for i, row in enumerate(A)]
+    for c in range(n):
+        p = max(range(c, n), key=lambda r: abs(m[r][c]))
+        m[c], m[p] = m[p], m[c]
+        piv = m[c][c]
+        for r in range(n):
+            if r != c:
+                f = m[r][c] / piv
+                for k in range(c, n + 1):
+                    m[r][k] -= f * m[c][k]
+    return [m[i][n] / m[i][i] for i in range(n)]
+
+
+def _features(rows, i, row):
+    past = [r["prev_tmax"] for r in rows[max(0, i - 28):i] if r["prev_tmax"] is not None]
+    if row["prev_tmax"] is None or len(past) < 7:
+        return None
+    anom = row["prev_tmax"] - sum(past) / len(past)
+    return [1.0, anom, row["prev_chuva_aberto"], float(row["feriado"])]
+
+
+def predict(history, target):
+    y = [h["vendas"] for h in history]
+    n = len(y)
+    if n < 2 * M:
+        return sum(y[-7:]) / len(y[-7:])
+    key = n // 28
+    if key not in _cache:
+        _cache[key] = min(GRID, key=lambda p: _run(y, *p)[0])
+    _, level, trend, season, errs = _run(y, *_cache[key])
+    base = level + trend + season[n % M]
+
+    X, Y = [], []
+    for i in range(14, n):
+        x = _features(history, i, history[i])
+        if x is not None and errs[i] is not None:
+            X.append(x)
+            Y.append(errs[i])
+    xt = _features(history, n, target)
+    if len(X) < 30 or xt is None:
+        return max(0.0, base)
+    k = len(xt)
+    A = [[sum(r[a] * r[b] for r in X) + (RIDGE if a == b and a > 0 else 0.0) for b in range(k)] for a in range(k)]
+    v = [sum(r[a] * yy for r, yy in zip(X, Y)) for a in range(k)]
+    w = _solve(A, v)
+    return max(0.0, base + sum(wi * xi for wi, xi in zip(w, xt)))

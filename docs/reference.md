@@ -79,7 +79,7 @@ honestlab reference add NAME --from FILE -m ..  register a known method (before 
 honestlab reference list                        baseline and references, on dev and holdout
 honestlab check-spec                            are SPEC.md and APPROVAL.md complete?
 honestlab baseline                              measure the starting solution (before approval)
-honestlab freeze | unfreeze                     human only
+honestlab freeze | unfreeze                     human only (in Claude Code: `aprovar` / `destrancar` in the chat)
 honestlab run -m "hypothesis"                   measure the change; keep or revert
 honestlab status | history [-n N]
 honestlab finding new -m "claim"                holdout confirmation; opens findings/F00N

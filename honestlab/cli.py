@@ -278,7 +278,8 @@ def _strongest(cfg, st, split="dev"):
 def cmd_baseline(a):
     root, cfg, st = ctx()
     if st["frozen"]:
-        raise LabError("Project is frozen; the baseline is fixed. A human can `honestlab unfreeze` to redo it.")
+        raise LabError("Project is frozen; the baseline is fixed. To change it, the person types `destrancar`/`unlock` "
+                       "in the Claude Code chat, or runs `honestlab unfreeze` in a terminal.")
     problems = core.check_spec(root, cfg)
     if problems:
         raise LabError("SPEC not ready, run `honestlab check-spec`:\n  - " + "\n  - ".join(problems), 2)
@@ -286,6 +287,11 @@ def cmd_baseline(a):
     if err:
         out(log[-3000:])
         raise LabError(f"Baseline evaluation failed: {err}")
+    if extras.get("honestlab_warning"):
+        # Before approval this is cheap to fix; after approval it silently removes the statistical check.
+        raise LabError("Baseline refused: " + extras["honestlab_warning"] + ". Fix the evaluator: per_unit must be "
+                       "the exact per-item values whose mean is the metric (do not round them). Without it honestlab "
+                       "cannot check that a gain is more than luck.")
     score = sample["score"]
     core.save_sample(root, "baseline-dev", sample)
     st.update(baseline=score, best=score, best_id="baseline")
@@ -310,8 +316,6 @@ def cmd_baseline(a):
     out(f"Baseline {cfg['metric']} = {score:.6g} ({cfg['direction']}).")
     for n, r in sorted(refs.items()):
         out(f"Reference {n}: {r['dev']:.6g}")
-    if extras.get("honestlab_warning"):
-        out("WARNING: " + extras["honestlab_warning"])
     if not sample["units"] and len(sample["repeats"]) < 2:
         out("Note: the evaluator reports no per_unit scores and repeats=1, so decisions use point estimates only. "
             "Print per_unit (per-instance scores) to get statistical keep/finding decisions.")
@@ -583,6 +587,12 @@ def cmd_unfreeze(a):
     require_human("unfreeze")
     confirm_name(cfg, ("Destrancar invalida a medição inicial: tudo será medido de novo." if core.is_pt(cfg) else
                        "Unfreezing invalidates the baseline: everything is measured again."))
+    unfreeze_unlock(root, cfg, st, "terminal", a.reason or "")
+    out("Unfrozen. Edit SPEC/evaluator, then `honestlab baseline` and `honestlab freeze` again.")
+
+
+def unfreeze_unlock(root, cfg, st, via: str, reason: str = "", evidence: dict = None) -> None:
+    """Unlock the contract. Past experiments stay in the ledger; the baseline must be measured again."""
     core.set_writable(root, cfg, True)
     refs = st.get("references") or {}
     for r in refs.values():
@@ -590,9 +600,11 @@ def cmd_unfreeze(a):
     st.update(frozen=False, hashes={}, baseline=None, best=None, best_id=None,
               baseline_holdout=None, freeze_commit=None, references=refs)
     core.save_state(root, st)
-    core.append_ledger(root, {"type": "unfreeze", "id": "unfreeze", "reason": a.reason or ""})
+    entry = {"type": "unfreeze", "id": "unfreeze", "reason": reason, "via": via}
+    if evidence:
+        entry["evidence"] = evidence
+    core.append_ledger(root, entry)
     core.commit(root, "honestlab: unfreeze")
-    out("Unfrozen. Edit SPEC/evaluator, then `honestlab baseline` and `honestlab freeze` again.")
 
 
 # --------------------------------------------------------------------------- run

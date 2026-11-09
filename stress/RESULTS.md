@@ -153,6 +153,21 @@ Three problems in honestlab came out of the run:
   `honestlab data add ... --split holdout` was denied as a holdout read. Each part alone is
   allowed, and the agent split the command.
 
+**Fixed, then run again** (`runs/clima_publico_etapa1.json`):
+
+- `per_unit` now tolerates rounding (relative 1e-4), and `honestlab baseline` refuses to start,
+  before approval, when `per_unit` is given but unusable.
+- The person unlocks in the chat: `destrancar` / `unlock`, then `sim` and a code that only the
+  person sees, exactly like approving. A live Claude Code session confirmed it (the lab was
+  unlocked, and the ledger recorded `via: chat`).
+- A plain `honestlab` command inside a longer shell command no longer counts as a holdout read.
+
+In the rerun the person sent 4 messages (10 before), ran 0 terminal commands (3 before) and was
+confused 0 times, in 11.4 minutes. The agent again used the forecast made the day before and gave
+observed weather only for past days. Verdict: found. On the locked second half of 2025 the error
+was 23.5 against 29.7 for the best method without weather (21% less; the margin was 10%) and 31.4
+for the owner's method.
+
 The first attempt (`runs/clima_publico_try1.json`) failed because of the test setup, not
 honestlab: the work folder was inside the plugin folder (write-protected) and inside the home
 folder (so the tester's own `CLAUDE.md` was loaded), and the simulator ran commands without a

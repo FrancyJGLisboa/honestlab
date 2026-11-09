@@ -1,0 +1,13 @@
+diff --git a/src/model.py b/src/model.py
+index d391588..e6f44cd 100644
+--- a/src/model.py
++++ b/src/model.py
+@@ -52,7 +52,7 @@ def _features(rows, i, row):
+     if row["prev_tmax"] is None or len(past) < 7:
+         return None
+     anom = row["prev_tmax"] - sum(past) / len(past)
+-    return [1.0, anom, row["prev_chuva_aberto"], float(row["feriado"])]
++    return [1.0, float(row["feriado"])]  # control: no weather
+ 
+ 
+ def predict(history, target):

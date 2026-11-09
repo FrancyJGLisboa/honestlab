@@ -56,7 +56,9 @@ flowchart LR
 A página que você aprova vem no seu idioma. Ela diz qual é a pergunta, como a resposta vai ser
 medida, com o que vai ser comparada e o que conta como sucesso. Para aprovar, você digita
 `aprovar` na conversa. O próprio honestlab, e não o agente, mostra a página e um código de 4
-dígitos que só você vê. Você responde, por exemplo, `sim 4821`, e o agente segue sozinho.
+dígitos que só você vê. Você responde, por exemplo, `sim 4821`, e o agente segue sozinho. Se algo
+precisar mudar depois, você digita `destrancar` e confirma do mesmo jeito. No Claude Code, você nunca
+precisa do terminal.
 
 A partir daí, ninguém muda a pergunta, a medida, os dados nem a regra de sucesso, nem mesmo o
 agente. Esse é o segredo. A barra é definida antes de alguém ver os resultados, e uma parte dos
@@ -179,8 +181,9 @@ AlphaEvolve acha. O que ele faz é dizer, com honestidade, se a sua ideia se sus
   simulados por cenário sem efeito real, o honestlab nunca disse "encontrou"; quando havia uma
   melhora real, mas menor que a meta combinada, disse "encontrou" em até 15% das vezes, e agora o
   relatório avisa quando isso é possível. [Detalhes](stress/RESULTS.md) (em inglês).
-- **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 71 casos de ponta a ponta, 37
-  casos da aprovação pela conversa e do plugin, 17 repetições dos ataques do teste de estresse e 44
+- **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 71 casos de ponta a ponta, 48
+  casos da aprovação e do destrancamento pela conversa e do plugin, 17 repetições dos ataques do
+  teste de estresse e 48
   casos de robustez (saída malformada do avaliador, registros danificados, caminhos estranhos, dois
   `run` ao mesmo tempo) (`bash tests/run_all.sh`). Cada afirmação desta
   página está ligada ao comando que a confere no [VERIFICATION.md](VERIFICATION.md) (em inglês).

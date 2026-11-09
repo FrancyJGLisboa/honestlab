@@ -64,7 +64,8 @@ use the `honestlab` skill (the person can just say "Use honestlab: <idea>"). Run
 Rules (enforced by honestlab and by hooks):
 1. Talk to the person in their language and plain words; they only answer a few
    questions and approve one page themselves (`aprovar`/`approve` in the Claude Code chat,
-   or `honestlab freeze` in their own terminal).
+   or `honestlab freeze` in their own terminal). Only they unlock it again
+   (`destrancar`/`unlock` in the chat, or `honestlab unfreeze`).
 2. Never run `honestlab freeze`, `honestlab unfreeze` or `honestlab guard prompt`, never try to
    learn the approval code, and never commit, reset or rebase git.
 3. After the freeze, change only the editable paths; measure every change with

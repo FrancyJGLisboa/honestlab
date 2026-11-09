@@ -58,6 +58,29 @@ check "the ledger records approval in the chat" "grep -q '\"approved_via\": \"ch
 check "the pending code is deleted" "[ ! -e .honestlab/pending_approval.json ]"
 check "after freezing, approve is an ordinary message" "[ -z \"\$(hook approve)\" ]"
 check "the run loop works after a chat approval" "printf '\n' >> src/heuristic.py && honestlab run -m noop >/dev/null 2>&1; honestlab status | grep -q 'Frozen:    yes'"
+
+# unlocking in the chat: same two-message flow as approving
+out=$(hook unlock)
+check "unlock blocks the message and shows the person what unlocking means" "[ \"\$(echo \"\$out\" | field 'd.get(\"decision\")')\" = block ] && echo \"\$out\" | grep -q 'TO UNLOCK, SEND  yes [0-9]'"
+check "the unlock code is not in the agent's context" "! echo \"\$out\" | grep -q additionalContext"
+ucode=$(echo "$out" | field 'd["reason"]' | grep -o 'yes [0-9]\{4\}' | tail -1 | cut -d' ' -f2)
+uwrong=$(printf '%04d' $(( (10#$ucode + 1) % 10000 )))
+check "a wrong unlock code is refused" "hook \"yes $uwrong\" | grep -q 'Wrong code' && grep -q '\"frozen\": true' .honestlab/state.json"
+out=$(hook "yes $ucode")
+check "the right code unlocks the lab" "grep -q '\"frozen\": false' .honestlab/state.json"
+check "the agent is told to re-measure and ask for approval again" "echo \"\$out\" | grep -q 'honestlab baseline' && echo \"\$out\" | grep -q approve"
+check "the ledger records unlocking in the chat, and past experiments stay" "grep -q '\"via\": \"chat\"' ledger.jsonl && grep -q '\"type\": \"experiment\"' ledger.jsonl && honestlab doctor >/dev/null 2>&1; python3 -c \"import sys; sys.path.insert(0, '$KIT'); from honestlab import core; from pathlib import Path; assert core.verify_ledger(Path('.'))[0]\""
+check "the protected files are writable again" "[ -w lab.json ]"
+check "after unlocking, unlock is an ordinary message" "[ -z \"\$(hook unlock)\" ]"
+honestlab baseline >/dev/null
+out=$(hook approve); code=$(echo "$out" | field 'd["reason"]' | grep -o 'yes [0-9]\{4\}' | tail -1 | cut -d' ' -f2)
+hook "yes $code" >/dev/null
+check "the lab can be approved again after unlocking" "grep -q '\"frozen\": true' .honestlab/state.json"
+out=$(hook destrancar)
+check "destrancar is accepted too" "[ \"\$(echo \"\$out\" | field 'd.get(\"decision\")')\" = block ]"
+ucode=$(echo "$out" | field 'd["reason"]' | grep -o 'yes [0-9]\{4\}' | tail -1 | cut -d' ' -f2)
+printf '\n' >> src/heuristic.py; honestlab run -m "an experiment between request and confirmation" >/dev/null 2>&1
+check "an unlock code issued before a new experiment is refused" "hook \"yes $ucode\" | grep -q 'changed after the request' && grep -q '\"frozen\": true' .honestlab/state.json"
 g() { echo "$1" | honestlab guard pre >/dev/null 2>&1; echo $?; }
 check "the agent cannot call the prompt hook itself" "[ \$(g '{\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"echo {} | honestlab guard prompt\"}}') = 2 ]"
 check "the agent cannot write the pending file" "[ \$(g '{\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\".honestlab/pending_approval.json\",\"content\":\"x\"}}') = 2 ]"

@@ -219,8 +219,9 @@ def _pre(root, payload: dict) -> int:
 
     if kind == "shell" and HUMAN_ONLY.search(cmd):
         return _deny("Approving (`honestlab freeze`, the approval hook) and `honestlab unfreeze` are reserved for "
-                     "the person. In Claude Code they type `aprovar`/`approve` in the chat; elsewhere they run "
-                     "`honestlab freeze` in their own terminal.", copilot)
+                     "the person. In Claude Code they type `aprovar`/`approve` to approve and `destrancar`/`unlock` "
+                     "to unlock, in the chat; elsewhere they run `honestlab freeze` or `honestlab unfreeze` in "
+                     "their own terminal.", copilot)
 
     if APPROVAL_TAMPER.search(all_text):
         return _deny("honestlab's approval belongs to the person: do not call honestlab's internals, read the "
@@ -240,7 +241,13 @@ def _pre(root, payload: dict) -> int:
     if not st.get("frozen"):
         # Before freeze the framing agent may CREATE the holdout, but never look at it or score on it:
         # `honestlab freeze` measures the baseline there, and that is the only pre-freeze holdout run.
-        peeks = HOLDOUT_FLAG.search(all_text) or (kind == "read" and holdout and _mentions(all_text, [holdout]))
+        text = all_text
+        if kind == "shell":
+            # A segment that is itself a plain honestlab command (e.g. `honestlab data add f --split holdout`)
+            # creates the holdout through honestlab; drop it so `fetch.py && honestlab data add ...` is allowed.
+            kept = [seg for seg in re.split(r"&&|\|\||[;|\n]", cmd) if not HONESTLAB_ONLY.match(seg.strip())]
+            text = "\n".join(kept + [s for s in _strings(args) if s != _command_text(args)])
+        peeks = HOLDOUT_FLAG.search(text) or (kind == "read" and holdout and _mentions(all_text, [holdout]))
         if peeks and not (kind == "shell" and HONESTLAB_ONLY.match(cmd.strip())):
             return _deny(f"do not read {holdout}/ or run the evaluator on it, even before freeze. Generate it "
                          "with a script if needed; `honestlab freeze` measures the baseline on it.", copilot)

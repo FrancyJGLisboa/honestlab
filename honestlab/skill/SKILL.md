@@ -72,6 +72,12 @@ Explain why it must be them, in one sentence: "assim nem eu consigo mudar a regr
 do caminho". Then stop and wait. When they come back, check `honestlab status` shows
 `Frozen: yes`. If they want changes, change the contract first and ask again.
 
+If the contract must change after approval (for example, you find a defect in the
+evaluator), stop. Tell the person in plain words what is wrong and what you will change.
+Ask them to type `destrancar` (or `unlock`) in the chat. honestlab shows them a code, and
+they send `sim` and the code. In another agent, they run `honestlab unfreeze` in a terminal.
+Then make only that change, run `honestlab baseline`, and ask for approval again.
+
 ## Phase 4: experiments (you, alone)
 Follow `experiment.md`. Default: 15 experiments unless the person chose another number.
 Say roughly how long it will take before you start.
@@ -88,7 +94,8 @@ When the best result reaches the margin on the approval page, or `honestlab repo
   "Não encontrou" is a normal and useful result: say what it means for them.
 
 ## Never
-- Never run `honestlab freeze`, `honestlab unfreeze` or `honestlab guard prompt`. Never commit, reset or rebase git.
+- Never run `honestlab freeze`, `honestlab unfreeze` or `honestlab guard prompt`. The person
+  approves and unlocks. Never commit, reset or rebase git.
 - Never read the held-out data (the holdout folder) or score anything on it yourself.
 - Never edit the evaluator, data, lab.json, SPEC or approval page after the freeze.
 - Never claim more than `honestlab report` says. If a rule blocks you, explain it simply

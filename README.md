@@ -58,7 +58,8 @@ The page you approve is written in your language. It says what the question is, 
 will be measured, what it will be compared with, and what counts as success. To approve it, you
 type `approve` (or `aprovar`) in the chat. honestlab itself, not the agent, then shows you the
 page and a 4-digit code that only you can see. You send it back, for example `yes 4821`, and the
-agent carries on.
+agent carries on. If something must change later, you type `unlock` (or `destrancar`) and confirm
+the same way. In Claude Code you never need a terminal.
 
 From that moment, nobody can change the question, the measure, the data or the success rule,
 not even the agent. That is the whole trick. The bar is set before anyone sees the results, and
@@ -177,9 +178,9 @@ AlphaEvolve finds. What it does is tell you honestly whether your idea holds up.
   labs per scenario with no real effect, honestlab never said "found"; when a real improvement
   existed but was smaller than the agreed margin, it said "found" up to 15% of the time, and the
   report now warns when that is possible. [Details](stress/RESULTS.md).
-- **Tests.** 51 hook decisions in the formats of the three agents, 71 end-to-end cases, 37 cases
-  for approving in the chat and for the plugin, 17 replays of the attacks from the stress test, and
-  44 robustness cases (malformed evaluator output, damaged records, odd paths, two runs at once)
+- **Tests.** 51 hook decisions in the formats of the three agents, 71 end-to-end cases, 48 cases
+  for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the stress test, and
+  48 robustness cases (malformed evaluator output, damaged records, odd paths, two runs at once)
   (`bash tests/run_all.sh`). Every claim on
   this page is mapped to the command that checks it in [VERIFICATION.md](VERIFICATION.md).
 

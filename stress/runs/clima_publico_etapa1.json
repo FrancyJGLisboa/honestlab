@@ -1,0 +1,62 @@
+{
+  "scenario": "clima_publico",
+  "version": "stress",
+  "expect": "public_data",
+  "completed": true,
+  "human_messages": 4,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 11.4,
+  "lab": {
+    "frozen": true,
+    "experiments": 4,
+    "references": [
+      "holt_winters",
+      "ingenuo_sazonal"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: acho que o tempo (calor e chuva) ajuda a prever as vendas de amanhã da minha sorveteria melhor do que a média que eu uso hoje, mas eu só tenho a planilha de vendas. As vendas estão em vendas.csv nesta pasta."
+    },
+    {
+      "role": "agent",
+      "seconds": 25,
+      "text": "Vou te fazer algumas perguntas rápidas para transformar sua ideia em um teste que dê para medir.\n\n**Sua ideia, em uma frase:** saber o tempo (calor e chuva) ajuda a prever as vendas de amanhã melhor do que a média que você usa hoje.\n\nVocê só tem as vendas, mas isso não é problema: dados de tempo do passado são públicos e eu mesmo vou buscá-los. Já olhei sua planilha. Ela tem as vendas de cada dia de janeiro de 2024 a dezembro de 2025, com o dia da semana e os feriados.\n\nResponda em uma frase cada (pode dizer \"não sei\" ou \"pode escolher\"):\n\n1. **Em que cidade fica a sorveteria?** (preciso disso para buscar o tempo certo)\n2. **Como é exatamente a média que você usa hoje?** Por exemplo: a média dos últimos 7 dias, ou a média do mesmo dia da semana nas últimas semanas.\n3. **Quanto melhor a previsão precisa ficar para valer a pena para você?** Por exemplo: errar 10% menos.\n4. **Quando você faz a previsão?** Na noite anterior, ou de manhã no próprio dia?"
+    },
+    {
+      "role": "novice",
+      "text": "1. Fica em Pinheiros, na cidade de São Paulo.\n2. Pego a média das últimas 4 vezes daquele mesmo dia da semana. Por exemplo, para prever uma terça, faço a média das últimas 4 terças.\n3. Se errar uns 10% menos, já me ajuda a comprar o estoque certo.\n4. Não sei, pode escolher por mim."
+    },
+    {
+      "role": "agent",
+      "seconds": 219,
+      "text": "Está tudo pronto para você aprovar. Antes, uma descoberta: **um método clássico que não usa o tempo já erra uns 16% menos que a sua média.**\n\nOs números, nos dias de março de 2024 a junho de 2025:\n- **Sua média** das últimas 4 vezes do mesmo dia da semana erra em média **32,3 sorvetes por dia**.\n- **Holt-Winters**, que acompanha a tendência e o padrão da semana, erra **27,2 por dia**, sem olhar o tempo.\n- **Repetir o mesmo dia da semana passada** erra 37,6 por dia.\n\nIsso muda a pergunta. Se eu comparasse o tempo só com a sua média, o modelo poderia \"ganhar\" sem que o tempo tivesse ajudado em nada. Por isso a regra é mais exigente: o modelo com tempo precisa errar **pelo menos 10% menos que o Holt-Winters**, ou seja, cerca de **24,5 por dia ou menos**. Esse resultado precisa se repetir nos últimos seis meses de 2025, que ficam guardados e ninguém olha até o fim.\n\n**De onde vem o tempo:** baixei do Open-Meteo, um serviço público. Usei a previsão feita cerca de 24 horas antes de cada dia, ou seja, o que você saberia na noite anterior, e não o tempo que fez de fato.\n\n**Limitações:**\n- O Open-Meteo é grátis só para uso não comercial. Para usar isso na loja todo dia, seria preciso um plano pago ou outra fonte, como o INMET (Instituto Nacional de Meteorologia). O site do INMET não respondeu hoje.\n- Para as últimas horas da noite, a previsão foi feita um pouco depois das 20h. Isso pode deixar o resultado um pouco otimista.\n- São dois anos de uma loja só. O resultado vale para ela, não para qualquer sorveteria.\n\n**Para aprovar:**\n1. Digite `aprovar` como sua próxima mensagem.\n2. O honestlab vai mostrar a página completa e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nPrecisa ser você: assim nem eu consigo mudar a regra no meio do caminho. Depois da aprovação, faço até 15 tentativas sozinho, em poucos minutos, e todas ficam registradas.\n\nFontes consultadas:\n- [Forecasting Seasonal Products: A Case of Ice-Cream Sales (Emerald, 2021)](https://Www.Emeraldinsight.com/insight/content/doi/10.1108/S1477-407020210000014003/full/html)\n- [Weathering the Forecast (AIUB)](https://dspace.aiub.edu/jspui/handle/123456789/2663)\n- [Best Practices in Weather-based Sales Forecasting](https://www.scm.dk/best-practices-weather-based-sales-forecasting)\n- [Open-Meteo: termos de uso](https://open-meteo.com/en/terms) e [preços](https://open-meteo.com/en/pricing)\n- [Open-Meteo Previous Model Runs API](https://open-meteo.com/en/docs/previous-runs-api)"
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 3,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 4106   (leia a página abaixo antes)\n\n# Página de aprovação: clima_publico\n\n**A pergunta:** usar a previsão do tempo (calor e chuva) de Pinheiros faz a previsão de vendas de amanhã errar pelo menos 10% menos do que o melhor método que não usa o tempo?\n\n**Como vamos medir:** quantos sorvetes a previsão erra por dia, em média (para mais ou para menos). Quanto menor, melhor. A previsão é feita \"na noite anterior\": usa só as vendas até ontem e a previsão do tempo para o dia.\n\n**De onde vêm os dados:** as vendas são da sua planilha (2024 e 2025). O tempo vem do Open-Meteo, um serviço público de dados do tempo, baixado em 09/11/2026: a previsão feita cerca de 24 horas antes, e o tempo que realmente fez nos dias anteriores.\n\n**Com o que vamos comparar** (erro médio por dia, de março de 2024 a junho de 2025):\n- sua média das últimas 4 vezes do mesmo dia da semana: erra 32,3 por dia;\n- repetir o mesmo dia da semana passada: erra 37,6 por dia;\n- Holt-Winters, um método clássico que acompanha a tendência e o padrão da semana, sem olhar o tempo: erra 27,2 por dia. É o mais forte, e é ele que precisa ser vencido.\n\n**O que conta como sucesso:** o modelo com tempo precisa errar pelo menos 10% menos que o Holt-Winters (cerca de 24,5 por dia ou menos). Isso tem de valer nos dados de trabalho e também nos dados guardados, com uma conta de segurança que verifica que não foi sorte.\n\n**Dados guardados para a prova final:** os últimos seis meses (julho a dezembro de 2025). Ninguém olha para eles até o fim.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas, sozinho, cada uma registrada, mesmo as que não derem certo.\n\n**Limitações:**\n- O Open-Meteo é grátis só para uso não comercial. Para usar isto no dia a dia da loja, seria preciso um plano pago ou outra fonte, por exemplo o INMET (Instituto Nacional de Meteorologia).\n- A previsão do tempo de cada dia está um pouco \"adiantada\": as últimas horas da noite vêm de previsões feitas algumas horas depois das 20h. Isso pode deixar o resultado um pouco otimista.\n- São só dois anos de vendas de uma loja. O resultado vale para ela, não para qualquer sorveteria.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 4106\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 4106"
+    },
+    {
+      "role": "agent",
+      "seconds": 414,
+      "text": "**Sim: saber a temperatura prevista para amanhã ajuda a prever as vendas, e a melhora se confirmou nos dados guardados.** Na prática, você erra menos na compra de estoque. Isso também vale para os dias que nenhum modelo tinha visto.\n\n**Os números** (erro médio, em sorvetes por dia, de julho a dezembro de 2025, os seis meses guardados até o fim):\n- **Sua média** das 4 últimas vezes do mesmo dia da semana: erra 31,4.\n- **Holt-Winters**, o melhor método sem tempo: erra 29,7.\n- **Holt-Winters + temperatura prevista:** erra 23,5. São 21% a menos que o Holt-Winters, e a meta era 10%.\n\n**Como funciona:** o Holt-Winters acompanha a tendência e o padrão de cada dia da semana. A temperatura corrige essa conta. Quando a previsão diz que amanhã fará mais calor que o normal do último mês, o modelo aumenta a estimativa de vendas. Quando diz que fará mais frio, diminui.\n\n**O quanto dá para confiar:**\n- **Medido:** o resultado passou em dois testes. O primeiro foram os meses guardados, com uma conta que verifica que não foi sorte. O segundo foi uma revisão independente.\n- **Teste de controle:** o mesmo modelo, só com feriado e sem tempo, quase não melhora. Então o ganho vem da temperatura. Esse controle foi feito só nos dados de trabalho, não nos meses guardados.\n- **Versão com chuva:** ela errou ainda menos, mas o revisor a rejeitou com razão. Parte da chuva usada só é prevista depois das 20h, quando você já decidiu a compra. Por isso a conclusão vale só para a temperatura.\n\n**Onde pode falhar:** são dois anos de uma única loja. E o serviço de tempo que usei (Open-Meteo) é grátis só para uso não comercial. Para usar isso na loja todo dia, você precisaria de um plano pago ou de outra fonte, como o INMET.\n\n**Duas observações:**\n- Parei depois de 4 das 15 tentativas, porque a pergunta já estava respondida. Ainda resta 1 dos 3 testes nos meses guardados.\n- O modelo que ficou na pasta `src` ainda é a versão com chuva. A versão aprovada, só com temperatura, está salva em `experiments/E0004.patch`.\n\nO relatório completo está em `REPORT.md`. O próximo passo é alguém da área conferir o método e testá-lo nos próximos meses, antes de você usá-lo para comprar estoque.\n\n**Uma frase para repetir:** \"Usar a temperatura prevista para amanhã fez a previsão de vendas errar 21% menos.\""
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

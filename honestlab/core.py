@@ -608,7 +608,7 @@ def evaluate(root: Path, cfg: dict, split: str):
             if not isinstance(pu, list) or not pu or not all(
                     isinstance(x, (int, float)) and not isinstance(x, bool) and _finite(x) for x in pu):
                 warn, pu = "per_unit ignored: it must be a non-empty list of finite numbers", None
-            elif abs(sum(pu) / len(pu) - s) > 1e-6 * max(1.0, abs(s)):
+            elif abs(sum(pu) / len(pu) - s) > 1e-4 * max(1.0, abs(s)):  # allows rounding to a few decimals
                 warn, pu = (f"per_unit ignored: its mean ({sum(pu) / len(pu):.6g}) is not the metric "
                             f"({s:.6g}); per_unit must be the per-instance values the metric averages"), None
         unit_runs.append(pu)
