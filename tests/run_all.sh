@@ -14,4 +14,5 @@ echo "== ablation ==";                   python3 "$T/ablate_test.py" "$L" | tail
 echo "== reproduction ==";               python3 "$T/reproduce_test.py" "$L" | tail -1
 echo "== machine-speed drift ==";        python3 "$T/drift_test.py" "$L" | tail -1
 echo "== explain-back checker ==";       python3 "$T/explain_back_test.py" | tail -1
+echo "== measures beyond the mean ==";  python3 "$T/measure_test.py" "$L" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"

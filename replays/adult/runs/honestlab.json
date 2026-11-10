@@ -1,0 +1,80 @@
+{
+  "scenario": "renda_adult",
+  "version": "replay",
+  "expect": "unknown",
+  "completed": true,
+  "human_messages": 6,
+  "human_commands": 0,
+  "confused": 1,
+  "minutes": 13.1,
+  "lab": {
+    "frozen": true,
+    "experiments": 9,
+    "references": [
+      "lightgbm",
+      "xgboost"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: quero achar um modelo que preveja a renda deste projeto melhor do que o jeito mais conhecido de resolver esse problema, com até 15 tentativas."
+    },
+    {
+      "role": "agent",
+      "seconds": 269,
+      "text": "Preparei o teste, mas ele ainda não começou. Falta a sua aprovação.\n\n**O que está pronto**\n- **Pergunta:** o projeto é o Adult Income, que prevê se a renda passa de 50 mil dólares por ano. Dá para bater o melhor método conhecido em até 15 tentativas?\n- **Medida:** erro de probabilidade (log loss) por pessoa. Menor é melhor.\n- **Dados:** baixei os 32.561 registros da UCI (o repositório de dados da Universidade da Califórnia). Guardei 20% (6.513) para a prova final, e ninguém olha esses até o fim.\n- **Com quem comparamos** (medido no desenvolvimento):\n  - Regressão logística, o jeito simples: 0,319.\n  - LightGBM: 0,279.\n  - XGBoost: 0,278. É o mais forte, então é ele que temos de bater.\n- **O que conta como sucesso:** erro pelo menos 2% menor que o do XGBoost, ou seja, abaixo de cerca de 0,272. Isso vale no desenvolvimento e nos dados guardados, com teste estatístico.\n\n**Por que 2% e não 5%:** foi escolha minha. Estes dados já são muito explorados, e 5% provavelmente não seria alcançável. Mudo se você preferir.\n\n**Certeza:** os números de 0,319, 0,279 e 0,278 foram medidos aqui. Não achei log loss publicado e comparável, então não há número externo para conferir. A busca na web trouxe só acurácia (cerca de 87,6%) e AUC (cerca de 0,93, de uma fonte não verificada).\n\n**Limitações:**\n- A divisão dos dados é aleatória, não por época.\n- Os dados são de 1994.\n- O modelo prevê \"acima de 50 mil\" (sim ou não), não o valor exato da renda.\n\n**Para aprovar:**\n1. Digite `aprovar` como próxima mensagem.\n2. O honestlab mostra a página real e um código de 4 dígitos que só você vê.\n3. Envie `sim` e o código, por exemplo `sim 4821`.\n\nIsso tem de ser você, para que nem eu consiga mudar a regra no meio do caminho. Depois da aprovação, rodo as 15 tentativas sozinho.\n\nEm uma frase: vamos ver se algum modelo erra pelo menos 2% menos que o XGBoost, e só vale se passar também nos dados guardados.\n\nFontes da pesquisa: [FLAIRS](https://journals.flvc.org/FLAIRS/article/download/130611/133942/233046), [MLJAR](https://mljar.com/machine-learning/lightgbm-vs-xgboost), [Hugging Face](https://huggingface.co/AurelPx/BoostingEnsemble-Income-Classification)."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 7819   (leia a página abaixo antes)\n\n# Aprovação\n\n**A pergunta:** Dá para prever a chance de uma pessoa ganhar mais de 50 mil dólares/ano melhor do que os melhores métodos conhecidos, em até 15 tentativas?\n\n**Como vamos medir:** erro de probabilidade (log loss) por pessoa. Menor é melhor.\n\n**De onde vêm os dados:** Adult Income, do repositório UCI (Census 1994), baixado em 10/11/2026. Todas as 32.561 pessoas, sem remover nenhuma.\n\n**Com o que vamos comparar:** regressão logística (jeito simples), e LightGBM e XGBoost (os métodos mais conhecidos). Os números atuais estão em `honestlab reference list`.\n\n**O que conta como sucesso:** erro pelo menos 2% menor que o melhor método conhecido, nos dados de desenvolvimento e também nos dados guardados, com teste estatístico de segurança. Escolhi 2% (e não 5%) porque este conjunto já é muito explorado e o ganho possível é pequeno.\n\n**Dados guardados para a prova final:** 20% das pessoas (6.513), escolhidas ao acaso. Ninguém olha até o final.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas, sozinho, cada uma registrada.\n\n**Limitações:**\n- A divisão é aleatória, não por época; não prova que funciona em dados de outro ano.\n- Dados de 1994: resultado vale para este conjunto, não necessariamente para renda hoje.\n- Prevê \"acima de 50 mil\" (sim/não), não o valor exato da renda.\n\n**Para aprovar:** digite `aprovar` no chat.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 7819\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 7819"
+    },
+    {
+      "role": "agent",
+      "seconds": 442,
+      "text": "Não encontramos um modelo melhor que o jeito mais conhecido. Parei em 9 das 15 tentativas porque os resultados já estavam travados num patamar.\n\n**Resultado**\n- O melhor modelo foi uma mistura de XGBoost, LightGBM e CatBoost. Teve erro de 0,2771 nos dados de desenvolvimento, contra 0,2780 do XGBoost. É um ganho de cerca de 0,3%.\n- A meta era errar pelo menos 2% menos, ou seja, chegar abaixo de cerca de 0,2724. Ficou longe.\n- Sobre o ponto de partida simples (regressão logística, 0,319), a melhora foi grande, de cerca de 13%. Mas esse não era o critério, e o XGBoost sozinho já dá esse salto.\n\n**Por que parei em 9 e não em 15:**\n- Quatro direções diferentes ficaram todas entre 0,277 e 0,279: ajuste de parâmetros, variáveis novas, mistura de modelos e aprendizado mais lento.\n- Mais tentativas do mesmo tipo provavelmente não fechariam um buraco de 1,7 ponto percentual. Isso é minha inferência, não algo medido. Se quiser, posso gastar as 6 restantes em ideias mais diferentes.\n\n**Certeza:**\n- Medi todos os números na divisão de desenvolvimento.\n- Não usei os dados guardados, porque nada chegou perto da meta. A prova final só roda quando há um candidato que merece.\n- Pode haver um ganho pequeno real da mistura (0,3%), mas ele não é estatisticamente seguro contra o XGBoost.\n\n**O que isso significa para você:** use o XGBoost, que já dá o grosso do ganho. Para melhorar de verdade, o espaço está em dados novos (outras variáveis), não em trocar de modelo. Neste conjunto, o erro parece chegar perto de um piso.\n\n**Onde ver:** o relatório está em `lab/REPORT.md`. O gráfico de todas as tentativas está em `lab/PROGRESS.html`, que abre no navegador com duplo clique.\n\nEm uma frase: nenhum modelo errou 2% menos que o XGBoost neste conjunto, então o jeito conhecido continua sendo o melhor."
+    },
+    {
+      "role": "novice",
+      "text": "Entendi, obrigada. Então a melhor opção é o XGBoost e a mistura não vale a pena. Só queria confirmar uma coisa em palavras simples: \"erro de 0,2771\" quer dizer o quê, na prática? Errar 27% das vezes?"
+    },
+    {
+      "role": "agent",
+      "seconds": 11,
+      "text": "Não. 0,2771 não é a porcentagem de erros. Quem vai ler essa frase em outro lugar não deve repetir \"27% de erro\".\n\n**O que o número mede**\n\nO modelo não responde só \"sim\" ou \"não\". Ele diz uma chance, por exemplo \"80% de chance de ganhar mais de 50 mil\". O log loss (o nome técnico dessa medida) pune o modelo por chances ruins. Se ele dá 80% e a pessoa de fato ganha mais, a punição é pequena. Se ele dá 80% e a pessoa ganha menos, a punição é grande. O 0,2771 é a média dessas punições, por pessoa.\n\n**Como ler a escala**\n- 0 seria um modelo perfeito e sempre certo de si.\n- Cerca de 0,55 é o que sai de um modelo que só chuta a taxa geral do conjunto, sem olhar a pessoa (inferência minha, a partir de uma taxa de renda alta de cerca de 24%; não medi isso aqui).\n- 0,319 foi a regressão logística, o ponto de partida simples.\n- 0,277 é o XGBoost e a mistura. Quanto menor, melhor.\n\n**Quanto isso erra \"na prática\"?**\n\nNão medi a taxa de acerto neste projeto, então não tenho um número direto. Os estudos que achei na busca falam em cerca de 87,6% de acerto para esse tipo de modelo (MLJAR). Esse é um número de outra fonte, em outro teste. Nos nossos dados, o certo seria medir.\n\n**Sobre sua conclusão**\n\nConcordo com a primeira parte: o XGBoost é a escolha prática, porque a mistura só ganhou 0,3% e isso não passou no teste estatístico. Mas \"a mistura não vale a pena\" depende do que você faz com ela. Ela custa três modelos para treinar e ganha quase nada. Na maioria dos casos, não compensa.\n\nSe quiser, posso calcular a taxa de acerto do XGBoost nos dados de desenvolvimento. Seria uma conta separada do teste, sem mexer no que está trancado.\n\nEm uma frase: 0,2771 é uma nota de qualidade das chances que o modelo dá, e menor é melhor; não é a porcentagem de erros."
+    },
+    {
+      "role": "novice",
+      "text": "Entendi a ideia: 0,2771 é uma nota, e quanto menor, melhor. Não é a porcentagem de erros.\n\nSó uma dúvida: você disse que a mistura \"ganhou 0,3%\" e que isso \"não passou no teste estatístico\". Eu não sei o que é esse teste. Em palavras simples, o que ele checou? E o que significa dizer que o resultado \"não passou\"?\n\nQuero também que você calcule a taxa de acerto do XGBoost nos dados de desenvolvimento, como você sugeriu. Pode seguir, desde que não mexa no que está trancado."
+    },
+    {
+      "role": "agent",
+      "seconds": 21,
+      "text": "O XGBoost acerta cerca de 87,1% nos dados de desenvolvimento, ou seja, erra cerca de 12,9% das vezes. Ele está certo sobre a classe (\"passa de 50 mil\" ou não) em 5.673 de 6.512 pessoas, usando 50% de chance como linha de corte. Esse número é medido por mim agora. Ele bate com os cerca de 87,6% que a literatura relata, perto o bastante para o tipo de teste.\n\nUm chute de \"ninguém ganha mais de 50 mil\" acertaria 76,1%. Então o ganho real do modelo é de 76% para 87%, e não de 0% para 87%.\n\n**O que o teste estatístico checou**\n\nCorrijo algo do que eu disse. O teste que o honestlab roda compara duas versões do modelo, pessoa por pessoa. Ele pergunta: essa diferença de nota é grande o bastante para não ser sorte da amostra?\n\n- **Como funciona:** ele reamostra as 6.512 pessoas muitas vezes (bootstrap) e vê se, em quase todas as reamostras, a versão nova continua melhor. Se a diferença some em muitas reamostras, ele conclui que pode ser acaso.\n- **\"Não passou\"** significa que o intervalo de confiança incluiu zero. Ou seja, com esses dados não dá para distinguir \"melhor\" de \"igual com um pouco de sorte\".\n\n**Onde eu me expressei mal**\n- A mistura ganhou de forma significativa contra a versão anterior minha (E2). Esse teste passou.\n- Contra o XGBoost conhecido, eu não rodei o teste. Eu disse que o ganho de 0,3% \"não é estatisticamente seguro\", e isso foi uma suposição minha, não uma medida. O que está medido é que 0,3% fica longe dos 2% exigidos, e isso basta para a conclusão.\n- O teste \"não passou\" que citei de fato aconteceu em outra comparação: a mistura de dois modelos (E4) contra E2.\n\nEm uma frase: o XGBoost acerta cerca de 87% das pessoas, e \"não passou no teste\" quer dizer que a diferença pode ser sorte."
+    },
+    {
+      "role": "novice",
+      "text": "[CONFUSO] Não entendi bem. Você falou em \"bootstrap\", \"intervalo de confiança\" e \"2% exigidos\", e eu não sei o que isso quer dizer. No fim, o que eu preciso saber é: achamos um modelo melhor que o XGBoost ou não? Pode me dizer isso em palavras simples e dizer qual é o próximo passo?"
+    },
+    {
+      "role": "agent",
+      "seconds": 8,
+      "text": "**Não, não achamos um modelo melhor que o XGBoost.**\n\nNossa melhor mistura ficou só um pouco à frente (0,2771 contra 0,2780). A diferença é tão pequena que não faz diferença prática. Nossa régua era errar pelo menos 2% menos, e ficamos em 0,3% menos. Então o XGBoost continua sendo a melhor escolha.\n\n(Aquelas palavras técnicas só descreviam como medimos se uma diferença é sorte ou real. Pode esquecer.)\n\n**Próximo passo, o que eu recomendo:** use o XGBoost como está e encerre aqui. Ele acerta cerca de 87% das pessoas, e não achamos jeito simples de melhorar isso com os mesmos dados.\n\n**Se quiser tentar mais:** o espaço está em dados novos, com informações que a tabela atual não tem. Trocar de modelo, não. Isso é inferência minha, não algo medido. Também posso gastar as 6 tentativas que sobraram em ideias mais diferentes, mas espero pouco ganho.\n\nEm uma frase: o XGBoost continua sendo o melhor, e nossa mistura não melhorou o bastante para valer a pena."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "scenario": "renda_adult",
+  "version": "replay",
+  "expect": "unknown",
+  "completed": true,
+  "human_messages": 6,
+  "human_commands": 0,
+  "confused": 2,
+  "minutes": 15.4,
+  "lab": {
+    "frozen": true,
+    "experiments": 15,
+    "references": [
+      "lightgbm"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: quero achar um modelo que preveja a renda deste projeto melhor do que o jeito mais conhecido de resolver esse problema, com até 15 tentativas."
+    },
+    {
+      "role": "agent",
+      "seconds": 25,
+      "text": "Eu já abri o laboratório e li o projeto. O projeto é o Adult Income: prever se uma pessoa ganha mais de 50 mil dólares por ano. Hoje ele usa uma regressão logística simples. O jeito mais conhecido de resolver esse problema é o *gradient boosting*, que é XGBoost ou LightGBM bem ajustado.\n\nAntes de montar o contrato do teste, preciso de poucas respostas. Pode responder em uma frase cada:\n\n1. **O que você quer bater?** Proponho bater o gradient boosting bem ajustado, e não a regressão logística, que é fácil demais. Pode ser?\n2. **Qual métrica vale?** Proponho a AUC, que mede o quanto o modelo separa quem ganha mais de quem ganha menos. Quanto mais perto de 1, melhor. Pode ser?\n3. **Quanto melhor precisa ficar para valer a pena?** Por exemplo, +0,003 de AUC sobre o gradient boosting. O Adult é um problema muito explorado, então ganhos grandes são raros. Se não souber, eu escolho.\n4. **Dados:** vou usar o mesmo arquivo do Adult, com os mesmos 32 mil registros. Separo uma parte \"guardada\" para a prova final, que eu não vou olhar. Pode ser?\n5. **Como buscar?** Você prefere **explorar** (guardo toda tentativa que parecer melhor) ou **provar** (só guardo o que tiver evidência de não ser sorte)? Se não souber, eu escolho **provar**.\n\nEu já considero decidido o limite de 15 tentativas. Cada tentativa treina um modelo e leva no máximo uns 2 minutos, então a rodada toda deve durar entre 30 e 40 minutos."
+    },
+    {
+      "role": "novice",
+      "text": "[CONFUSO] Não entendi algumas coisas. O que é \"gradient boosting\", \"AUC\" e \"dados guardados\"? Eu só quero saber se dá para achar um modelo de verdade melhor do que o jeito mais conhecido. Pode escolher por mim nas perguntas 3 e 5? Nas outras, pode me explicar em palavras simples antes de eu responder?"
+    },
+    {
+      "role": "agent",
+      "seconds": 12,
+      "text": "Claro. Já escolhi as perguntas 3 e 5. As outras três eu explico agora, e depois você só diz \"pode ser\".\n\n**Gradient boosting (pergunta 1).**\n- É o jeito mais conhecido de resolver este tipo de problema, com tabelas de pessoas.\n- Funciona assim. O modelo faz um palpite ruim. Um segundo modelo pequeno aprende a corrigir os erros do primeiro. Um terceiro corrige os erros que sobraram, e assim por diante, por centenas de rodadas.\n- Hoje o projeto usa uma conta bem mais simples, que é fácil de bater. Se eu batesse só ela, a vitória não valeria nada. Por isso proponho bater o gradient boosting bem ajustado.\n- Certeza: o gradient boosting costuma ganhar nesse tipo de dado. Isso é o que a prática da área mostra, e eu ainda não medi neste projeto.\n\n**AUC (pergunta 2).**\n- É uma nota de 0,5 a 1 que mede se o modelo põe quem ganha mais acima de quem ganha menos.\n- Exemplo: sorteio uma pessoa que ganha mais de 50 mil e uma que ganha menos. A AUC é a chance de o modelo dar a nota maior para a primeira.\n- Regra de leitura: 0,5 é cara ou coroa, e 1,0 é perfeito.\n- Por que esta nota: ela não depende de onde se põe a linha de corte entre \"ganha mais\" e \"ganha menos\".\n\n**Dados guardados (pergunta 4).**\n- Eu separo uma parte das pessoas e não olho para ela durante os testes.\n- Só no fim eu confiro o melhor modelo nessa parte.\n- Mecanismo: se eu testasse 15 ideias sobre os mesmos dados, uma delas pareceria boa só por sorte. Os dados guardados são a prova final, porque nenhuma ideia foi ajustada em cima deles.\n- Um dado só vale uma vez como prova. Depois de olhado, vira dado de treino.\n\n**Minhas escolhas:**\n- **Pergunta 3 (quanto melhor):** só conto como achado um ganho de pelo menos **0,003 de AUC** sobre o gradient boosting, medido nos dados guardados. Esse número é uma escolha minha, não um fato.\n- **Pergunta 5 (como buscar):** modo **provar**. Só guardo o que tiver evidência de não ser sorte.\n\n**Onde isso pode falhar:** o Adult é um problema muito estudado. É possível que ninguém ache um ganho real em 15 tentativas. \"Não encontrou\" é um resultado válido, e eu te digo isso sem enfeitar.\n\nSe estiver de acordo com 1, 2 e 4, responda **\"pode ser\"**. Aí eu monto a página de aprovação para você ler.\n\nSe estiver de acordo, a frase que você pode repetir é: \"vamos testar 15 ideias contra o gradient boosting, e só valem ganhos confirmados em dados que ninguém olhou\"."
+    },
+    {
+      "role": "novice",
+      "text": "pode ser"
+    },
+    {
+      "role": "agent",
+      "seconds": 164,
+      "text": "O contrato está pronto. Falta só a sua aprovação.\n\n**Os números (medidos nos dados de desenvolvimento):**\n- Ponto de partida, a regressão logística do projeto: **AUC 0,904**.\n- LightGBM, o jeito mais conhecido: **AUC 0,924**. Este é o número a bater.\n- Para valer como achado, o modelo novo precisa chegar a pelo menos **0,927**, ou seja, +0,003 sobre o LightGBM.\n\nRegra de leitura: a diferença entre 0,904 e 0,924 é grande para esse tipo de problema. Já 0,003 é pequeno, e por isso a prova final nos dados guardados é obrigatória.\n\n**A página que você vai aprovar** (`lab/APPROVAL.md`) diz, em resumo:\n- Pergunta: em até 15 tentativas, dá para prever melhor que o LightGBM quem ganha mais de 50 mil dólares por ano?\n- Medida: AUC, quanto maior melhor.\n- Dados: Adult, do repositório público UCI. 20% das pessoas (6.033) ficam guardadas e ninguém olha para elas até o fim.\n- Sucesso: ganhar por pelo menos 0,003, com checagem estatística nos dados de desenvolvimento e depois nos dados guardados.\n- Limites: dados do censo americano de 1994, e o Adult é muito estudado, então pode não haver ganho real.\n\n**Para aprovar:**\n1. Digite `aprovar` na conversa.\n2. O honestlab mostra a página real e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nPrecisa ser você porque assim nem eu consigo mudar a regra no meio do caminho.\n\nDois pontos de honestidade sobre o que montei:\n- Os \"métodos conhecidos\" na SPEC vêm do meu conhecimento. Não pesquisei na web nesta sessão.\n- O LightGBM de referência usa configurações comuns, não um ajuste exaustivo. Se ele estiver fraco demais, vencê-lo vale menos.\n\nA frase para repetir: \"o LightGBM faz 0,924; só conta como achado quem fizer 0,927 ou mais nos dados guardados.\""
+    },
+    {
+      "role": "novice",
+      "text": "[CONFUSO] Não entendi bem. Você falou em \"AUC\", \"LightGBM\" e \"dados guardados\", e eu não sei o que isso quer dizer. Em palavras simples: o que eu estou aprovando? E o que acontece se eu aprovar?\n\nSe for só para seguir, posso digitar `aprovar`. Mas queria entender antes."
+    },
+    {
+      "role": "agent",
+      "seconds": 11,
+      "text": "Você está aprovando as regras de uma prova, antes de ela começar. A prova é: eu tento até 15 ideias para prever melhor quem ganha mais de 50 mil dólares por ano, e só conto como vitória se eu ganhar de um modelo bom que já existe.\n\n**Os três termos, sem jargão:**\n- **LightGBM** é o modelo bom que já existe. É o jeito mais usado hoje para prever coisas a partir de tabelas de pessoas. É o adversário a ser batido.\n- **AUC** é a nota que o modelo tira. Vai de 0,5 (chute, como cara ou coroa) a 1,0 (perfeito). O LightGBM tirou 0,924 neste problema. Medido.\n- **Dados guardados** são 6.033 pessoas que eu separei e não olho. No fim, o melhor modelo faz a prova final nelas. É como uma prova com questões que ninguém viu antes. Sem isso, eu poderia ajustar o modelo até ele parecer bom só por sorte.\n\n**O que você aprova, concretamente:** a pergunta, a nota (AUC), os dados e a regra de vitória (ganhar do LightGBM por pelo menos 0,003 de nota, confirmado nos dados guardados). Depois que você aprova, nem eu consigo mudar essas regras.\n\n**O que acontece depois que você digita `aprovar`:**\n1. O honestlab mostra a página real e um código de 4 dígitos. Você responde `sim` e o código.\n2. Eu rodo até 15 tentativas sozinho, cada uma registrada. Estimo de 30 a 40 minutos no total.\n3. Se alguma tentativa chegar perto da meta, eu faço a prova final nos dados guardados.\n4. Você recebe um relatório em palavras simples. Ele diz \"achei\" ou \"não achei\", e quão seguro isso é.\n\n**Onde pode falhar:** esse problema é muito estudado, e o LightGBM já é forte. O mais provável, na minha estimativa (é um palpite, não uma medida), é o resultado \"não encontrou\". Isso também é uma resposta útil: significa que o jeito conhecido já é difícil de bater aqui.\n\n**Risco para você:** aprovar não gasta dinheiro nem altera seus arquivos originais. O trabalho fica numa branch separada do git, e a principal fica intacta.\n\nFrase para repetir: \"Aprovar é combinar as regras da prova antes de ela começar, para ninguém poder mudá-las depois.\""
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 8408   (leia a página abaixo antes)\n\n# Página de aprovação: honestlab\n\n**A pergunta:** Dá para achar, em até 15 tentativas, um modelo que preveja melhor se uma pessoa ganha mais de 50 mil dólares por ano (base Adult) do que o LightGBM, o jeito mais conhecido?\n\n**Como vamos medir:** pela AUC, uma nota de 0,5 (cara ou coroa) a 1,0 (perfeito). Quanto maior, melhor.\n\n**De onde vêm os dados:** do repositório público UCI (adult.data), baixado em 10/11/2026. Linhas com dado faltando foram removidas (30.162 pessoas ficaram).\n\n**Com o que vamos comparar:** com o LightGBM (gradient boosting). O número exato dele aparece em `honestlab reference list` e está na SPEC. A regressão logística do projeto é só o ponto de partida.\n\n**O que conta como sucesso:** ganhar do LightGBM por pelo menos 0,003 de AUC, com a checagem estatística passando nos dados de desenvolvimento e de novo nos dados guardados.\n\n**Dados guardados para a prova final:** 20% das pessoas (6.033), sorteadas ao acaso. Ninguém olha para elas até o fim.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas sozinho, cada uma com no máximo 2 minutos de treino e todas registradas.\n\n**Modo:** provar. Só guardo mudanças com evidência de que não são sorte. Em qualquer modo, só digo \"encontrei\" com prova nos dados guardados.\n\n**Limitações:** (1) os dados são do censo americano de 1994; (2) o sorteio é ao acaso, e pessoas parecidas podem aparecer dos dois lados; (3) o Adult é muito estudado, e talvez não exista ganho real.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 8408\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 8408"
+    },
+    {
+      "role": "agent",
+      "seconds": 679,
+      "text": "**Resultado: não encontrei um modelo melhor que o jeito mais conhecido.**\n\n- O LightGBM, o método de referência, tirou **0,9243** de AUC.\n- Meu melhor modelo, uma mistura de LightGBM e XGBoost (tentativa 3), tirou **0,9253**. A diferença é 0,001, e a meta que você aprovou era 0,003, ou seja, 0,927 ou mais.\n- Medido nos dados de desenvolvimento. Uma diferença de 0,001 é pequena demais para eu afirmar que não é acaso.\n\n**O que foi tentado** (15 de 15):\n- Duas tentativas foram mantidas e 13 foram descartadas. Todas estão registradas.\n- Variáveis novas, mais modelos na mistura, árvores maiores e menores, redes neurais, regras de bom senso e codificação por alvo ficaram abaixo do melhor ou empataram com ele.\n- O resultado ficou parado em torno de 0,925 durante toda a busca.\n\n**Dados guardados:** não usei. A meta não foi atingida, então não havia candidato para a prova final.\n\n**Certeza:** média. Foram só 15 tentativas. Não posso afirmar que ninguém acharia ganho com muito mais esforço. Posso afirmar que, aqui, o jeito conhecido já está muito perto do teto.\n\n**Onde ler:**\n- O relatório está em `lab/REPORT.md`.\n- O gráfico de todas as tentativas está em `lab/PROGRESS.html`. Abra com duplo clique no navegador.\n\nFrase para repetir: \"em 15 tentativas, nada bateu o LightGBM por mais que 0,001 de AUC; a meta era 0,003.\""
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

@@ -9,3 +9,4 @@ usability/runs/*/.git/
 stress/runs/*/.venv/
 stress/runs/*/.git/
 stress/redteam/rt*/lab/.git/
+HANDOFF.md

@@ -86,6 +86,36 @@ alike. Each run takes twice as long. The ledger records the new measurement as `
 side, on dev and then on the held-out data, and uses those numbers for the final comparison. The
 ledger keeps the old ones as `recorded_scores`.
 
+For AUC (area under the ROC curve), set `"aggregate": "auc"` and `"direction": "maximize"`. AUC
+compares pairs of items, so it is not an average of per-item scores. The evaluator then prints
+`per_unit` as one `[label, prediction]` pair per item (label 0 or 1). honestlab checks that the
+pairs give the printed AUC, and it compares two versions by resampling items (and runs, with
+`repeats`) and computing AUC again on both sides.
+
+For any other measure computed from items (F1, median error, RMSE, rank correlation), set
+`"aggregate": "custom"` and `"aggregate_file"` to a file inside a protected path that defines
+`measure(items) -> float`. The evaluator prints `per_unit` as the list of items that function reads.
+honestlab checks that `measure(per_unit)` gives the printed score, and it compares two versions by
+resampling items and calling the function again on both sides.
+
+Items in time order usually depend on their neighbours, and resampling single items then makes the
+range too narrow. Keep `per_unit` in time order and set `"block_size"` to about how many neighbours
+move together: the bootstrap then draws runs of that many neighbours (a moving-block bootstrap). In
+`tests/measure_test.py`, with two equally good versions whose daily differences follow the day before
+(correlation 0.5, 200 days), single-day resampling called noise a gain in 24% of 80 series and blocks of
+10 days in 9% (the target is 5%). With stronger dependence (0.9) on 200 days, blocks of 20 still gave
+about 24% (single days: 47%); on 500 days, 11%. So blocks help, and the held-out later period stays
+the main check.
+
+How free the search is: `"keep_rule": "significant"` (the default, "prove") keeps an attempt only when
+its gain is unlikely to be luck. `"keep_rule": "point"` ("explore") keeps every attempt that beats the
+current best, so the agent can build on small or uncertain gains. The finding gate is the same in both
+modes: margin over the best known method on dev, then the held-out data. The report names the mode.
+
+Every package that the evaluator or the editable code imports must be in a dependency file
+(`pyproject.toml`, `requirements.txt` and similar). `honestlab check-spec` refuses an undeclared one,
+because a package installed only in the lab's `.venv` makes the result fail on another computer.
+
 Candidate code may import installed packages, including ones with native code (numpy,
 PyTorch), from the Python installation, its site-packages or the lab's `.venv`. It may not
 open the data or evaluator files, start programs, load other native libraries, or read the

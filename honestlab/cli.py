@@ -343,9 +343,11 @@ def cmd_baseline(a):
         raise LabError(f"Baseline evaluation failed: {err}")
     if extras.get("honestlab_warning"):
         # Before approval this is cheap to fix; after approval it silently removes the statistical check.
-        raise LabError("Baseline refused: " + extras["honestlab_warning"] + ". Fix the evaluator: per_unit must be "
-                       "the exact per-item values whose mean is the metric (do not round them). Without it honestlab "
-                       "cannot check that a gain is more than luck.")
+        what = {"auc": "the [label, prediction] pair of every item, with the exact predictions",
+                "custom": "the items that measure(items) in the aggregate_file turns into the metric"}.get(
+            cfg.get("aggregate"), "the exact per-item values whose mean is the metric (do not round them)")
+        raise LabError("Baseline refused: " + extras["honestlab_warning"] + f". Fix the evaluator: per_unit must be "
+                       f"{what}. Without it honestlab cannot check that a gain is more than luck.")
     score = sample["score"]
     if int(cfg.get("repeats") or 1) < 2:
         # A second run with another seed: an evaluator that trains or samples gives a different score,
@@ -376,14 +378,14 @@ def cmd_baseline(a):
     core.save_state(root, st)
     core.append_ledger(root, {"type": "baseline", "id": "baseline", "split": "dev", "score": score,
                               "references": {n: r["dev"] for n, r in refs.items()},
-                              "uncertainty": "per_unit" if sample["units"] else
+                              "uncertainty": "per_unit" if (sample["units"] or sample.get("auc_runs")) else
                                              ("repeats" if len(sample["repeats"]) > 1 else "none"),
                               "extras": extras, "env": core.env_info(cfg)})
     core.commit(root, f"honestlab: baseline {cfg['metric']}={score:.6g}")
     out(f"Baseline {cfg['metric']} = {score:.6g} ({cfg['direction']}).")
     for n, r in sorted(refs.items()):
         out(f"Reference {n}: {r['dev']:.6g}")
-    if not sample["units"] and len(sample["repeats"]) < 2:
+    if not sample["units"] and not sample.get("auc_runs") and len(sample["repeats"]) < 2:
         out("Note: the evaluator reports no per_unit scores and repeats=1, so decisions use point estimates only. "
             "Print per_unit (per-instance scores) to get statistical keep/finding decisions.")
     if not refs:
@@ -756,7 +758,8 @@ def cmd_run(a):
             ref, bar = core.load_sample(root, "baseline-dev" if best_id == "baseline" else f"{best_id}-dev"), best_before
         point_ok = core.better(cfg, score, bar)
         if ref is not None:
-            cmp = stats.compare(sample, ref, cfg["direction"], float(cfg["keep_alpha"]), int(cfg["bootstrap"]))
+            cmp = stats.compare(sample, ref, cfg["direction"], float(cfg["keep_alpha"]), int(cfg["bootstrap"]),
+                                measure=core.measure_fn(root, cfg), block=core.block_size(cfg))
         if not point_ok:
             decision, why = "discard", f"did not beat best {fmt(bar)}" + (" (measured again now)" if again else "")
         elif cfg["keep_rule"] == "significant" and cmp and cmp["lo"] is not None and not stats.significant(cmp):
@@ -973,7 +976,8 @@ def cmd_finding_new(a):
         ref_dev, cand_dev, _, _, e = _measure_side_by_side(root, cfg, st, ref_name, cand_patch, "dev")
         if e:
             raise LabError(f"Could not measure again on dev: {e}. No holdout run was spent.")
-    dev_cmp = stats.compare(cand_dev, ref_dev, cfg["direction"], float(fnd["alpha"]), int(cfg["bootstrap"]))
+    dev_cmp = stats.compare(cand_dev, ref_dev, cfg["direction"], float(fnd["alpha"]), int(cfg["bootstrap"]),
+                            measure=core.measure_fn(root, cfg), block=core.block_size(cfg))
     n_exp = st["next_exp"] - 1
     if not stats.meets(dev_cmp, fnd):
         raise LabError(
@@ -1010,7 +1014,8 @@ def cmd_finding_new(a):
             core.save_sample(root, f"{fid}-reference-holdout", ref_hold)
     if err is None:
         core.save_sample(root, f"{fid}-holdout", cand_hold)
-        hold_cmp = stats.compare(cand_hold, ref_hold, cfg["direction"], alpha_h, int(cfg["bootstrap"]))
+        hold_cmp = stats.compare(cand_hold, ref_hold, cfg["direction"], alpha_h, int(cfg["bootstrap"]),
+                                 measure=core.measure_fn(root, cfg), block=core.block_size(cfg))
     statistical = hold_cmp is not None and hold_cmp["lo"] is not None
     confirmed = (hold_cmp is not None and stats.meets(hold_cmp, fnd)
                  and (stats.significant(hold_cmp) if statistical else True))
@@ -1165,7 +1170,8 @@ def cmd_finding_ablate(a):
                 if eerr:
                     row.update(verdict="needed: the code fails without it", error=eerr[:300])
                 else:
-                    word, cmp = ablate.verdict_of(full, smp, cfg["direction"], alpha, budget)
+                    word, cmp = ablate.verdict_of(full, smp, cfg["direction"], alpha, budget, core.measure_fn(root, cfg),
+                                                    core.block_size(cfg))
                     row.update(verdict=word, score=smp["score"], effect=cmp["effect"], lo=cmp["lo"], hi=cmp["hi"])
             rows.append(row)
             out(f"  part {i}/{len(parts)}: {row['part']}: {row['verdict']}")

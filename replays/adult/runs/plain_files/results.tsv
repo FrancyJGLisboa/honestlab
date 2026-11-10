@@ -1,0 +1,17 @@
+commit	val_auc	status	description
+62dc2ce	0.860705	keep	baseline LogisticRegression C=1.0
+aa3ae89	0.923842	keep	XGBoost default params
+47339a9	0.926410	keep	XGB lr=0.03 n=600 depth5 subsample0.8 colsample0.8 mcw3
+9c0599f	0.926190	discard	LightGBM lr=0.03 n=600 leaves31 subsample0.8 colsample0.8
+e9f2395	0.926452	keep	XGB lr=0.02 n=1000 depth4
+19174b7	0.925145	discard	XGB + engineered features (net capital, flags, interactions)
+a3bdc20	0.926081	discard	XGB with one-hot categoricals
+7d5338a	0.925809	discard	XGB depth5 lr0.015 n1200 subsample0.7 colsample0.6 lambda5 mcw5
+7527bef	0.924546	discard	Soft voting XGB+LGBM+ExtraTrees
+39f9d2a	0.926881	keep	Soft voting XGB+LGBM
+d4695a9	0.927297	keep	Soft voting XGB+LGBM+LGBM8+HistGB
+4cb47cb	0.927792	keep	HistGB native categorical_features in ensemble
+30c1403	0.927883	keep	Add native-categorical LGBM to ensemble
+f534f1b	0.927780	discard	Retuned HistGB lr0.025 iter800 leaves12 msl40 l2=3
+2187cfe	0.927907	keep	Voting weights: native-cat models x2
+926547a	0.927860	discard	Simplify: drop ordinal LGBM from ensemble

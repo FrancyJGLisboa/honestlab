@@ -1,0 +1,80 @@
+{
+  "scenario": "renda_adult",
+  "version": "replay",
+  "expect": "unknown",
+  "completed": true,
+  "human_messages": 6,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 20.4,
+  "lab": {
+    "frozen": true,
+    "experiments": 15,
+    "references": [
+      "lightgbm_default",
+      "xgboost_common"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: quero achar um modelo que preveja a renda deste projeto melhor do que o jeito mais conhecido de resolver esse problema, com até 15 tentativas."
+    },
+    {
+      "role": "agent",
+      "seconds": 19,
+      "text": "Já preparei o laboratório. Agora preciso de duas respostas suas, curtas (o resto eu decido):\n\n1. **Quanto melhor precisa ficar para valer a pena?** Pelo que vi, o projeto prevê se a pessoa ganha mais de 50 mil por ano (base \"Adult Income\", cerca de 30 mil pessoas). Sugiro: bater o método mais usado hoje para tabelas assim (um tipo de \"floresta de árvores que aprendem com os erros uma da outra\") por uma margem pequena, mas além da sorte. Serve?\n2. **Você prefere explorar ou provar?**\n   - **Explorar**: guardo toda tentativa que parecer melhor e construo em cima, mesmo sem prova.\n   - **Provar**: só guardo o que tiver evidência de não ser sorte.\n\n   Nos dois casos, só digo \"encontrei\" com prova em dados guardados. Se não souber, escolho **provar**.\n\nResponda \"serve\" e \"provar\" (ou \"explorar\"). Sem nenhuma outra resposta, sigo com essas escolhas: 15 tentativas, comparando com o método mais usado."
+    },
+    {
+      "role": "novice",
+      "text": "serve. Pode ser \"provar\"."
+    },
+    {
+      "role": "agent",
+      "seconds": 259,
+      "text": "Tudo pronto para a sua aprovação. Resumo da página (`lab/APPROVAL.md`):\n\n- **Pergunta:** em 15 tentativas, dá para prever \"ganha mais de 50 mil dólares por ano?\" melhor que o método mais usado hoje para tabelas?\n- **Medida:** nota de 0,5 (chute) a 1 (perfeito). Quanto maior, melhor.\n- **Comparação, medida aqui nos dados de desenvolvimento:**\n  - LightGBM, o método mais usado: **0,928**. É a barra a bater.\n  - XGBoost, uma variante comum: 0,926.\n  - Regressão logística, o ponto de partida do projeto: 0,907.\n- **Sucesso:** nota pelo menos 0,002 acima de 0,928, nos dados de desenvolvimento e nos dados guardados, com teste de que não é sorte.\n- **Dados guardados:** 6.033 pessoas (20%). Ninguém olha até o fim.\n- **Limitação:** 0,002 é pouco e a base tem pouca folga. É provável que o resultado seja \"não encontrou\".\n\n**Para aprovar:**\n1. Digite `aprovar` como próxima mensagem.\n2. O honestlab mostra a página e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nTem que ser você, para que nem eu consiga mudar a regra no meio do caminho. Depois da aprovação, começo as 15 tentativas."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 6657   (leia a página abaixo antes)\n\n# Página de aprovação: honestlab\n\n**A pergunta:** em 15 tentativas, dá para prever \"ganha mais de 50 mil dólares por ano?\" melhor do que o método mais usado hoje para tabelas como esta?\n\n**Como vamos medir:** uma nota de 0,5 (chute) a 1 (perfeito) para a capacidade de separar quem ganha mais de quem ganha menos. Quanto MAIOR, melhor.\n\n**De onde vêm os dados:** da base pública \"Adult Income\" (UCI), já guardada no projeto. 30.162 pessoas, divididas como o projeto já fazia.\n\n**Com o que vamos comparar:** o método mais usado hoje para tabelas (LightGBM, árvores que aprendem com os erros umas das outras) tira 0,928 nos dados de desenvolvimento; uma variante comum (XGBoost) tira 0,926; o ponto de partida simples (regressão logística) tira 0,907. A barra a bater é a mais alta: 0,928.\n\n**O que conta como sucesso:** nota pelo menos 0,002 acima do melhor método conhecido, tanto nos dados de desenvolvimento quanto nos dados guardados, com um teste de que a diferença não é sorte.\n\n**Dados guardados para a prova final:** 6.033 pessoas (20%). Ninguém olha até a prova final; só 3 conferências são permitidas.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas sozinho, cada uma registrada, mudando só `src/model.py`.\n\n**Modo:** provar. Só guardo uma mudança se houver evidência de que não é sorte; \"encontrei\" exige prova nos dados guardados.\n\n**Limitações:** (1) 0,002 é um ganho pequeno e o teto da base é baixo: é provável que a resposta seja \"não encontrou\". (2) Os números de outros trabalhos citados na SPEC são de memória, não de busca; valem só as medidas feitas aqui. (3) Uma única base, de 1994.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta e rode o comando de congelar (`honestlab` + `freeze`), depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 6657\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 6657"
+    },
+    {
+      "role": "agent",
+      "seconds": 711,
+      "text": "**Resultado: não encontrei um modelo melhor que o método mais usado.**\n\n- **A barra:** o LightGBM, o método mais usado hoje para tabelas, tirou 0,928 numa nota de 0,5 (chute) a 1 (perfeito). Para valer, eu precisava chegar a 0,930.\n- **O que consegui:** a melhor das 15 tentativas tirou 0,9296 nos dados de desenvolvimento. Ficou 0,0004 abaixo da barra. O ponto de partida simples, a regressão logística, tirava 0,907.\n- **O que ajudou:** só uma ideia, tirar duas colunas de ruído (`fnlwgt` e `education`). Ela rendeu cerca de +0,0016. Esse ganho é só nos dados de desenvolvimento. É pequeno e pode ser sorte.\n- **O que não ajudou:** misturar modelos, fazer a média de vários, trocar a forma de tratar categorias, restringir o modelo e ajustar parâmetros.\n- **Dados guardados:** não abri a prova final, porque nenhuma tentativa chegou à barra. As 3 conferências continuam disponíveis.\n\nIsso é um resultado útil: nesta base, com essas 15 ideias, o método mais usado já está perto do teto. Em 0,930 o ganho exigido é pequeno.\n\n**Próximo passo:** você pode pedir mais uma rodada com ideias diferentes, ou conferir o ganho de 0,0016 nos dados guardados. Eu apostaria que ele não se confirma.\n\nO relatório está em `lab/REPORT.md`. O gráfico de todas as tentativas está em `lab/PROGRESS.html`; abre com duplo clique no navegador.\n\nOs números de outros trabalhos citados na SPEC são de memória, não de busca na web. Só valem as medidas feitas aqui.\n\nEm uma frase: em 15 tentativas não superei o LightGBM por 0,002; o melhor ganho (0,0016) é pequeno e não foi confirmado."
+    },
+    {
+      "role": "novice",
+      "text": "Entendi o resultado, mas tenho uma dúvida: vale a pena conferir o ganho de 0,0016 nos dados guardados? Você disse que apostaria que não se confirma. Se eu gastar essa conferência e der negativo, perco alguma coisa? Pode escolher por mim."
+    },
+    {
+      "role": "agent",
+      "seconds": 26,
+      "text": "Escolhi por você, e a resposta é **não conferir**. Também não era possível conferir.\n\n**O que aconteceu.** Tentei abrir a conferência. O honestlab recusou antes de olhar os dados guardados. A regra que você aprovou exige 0,002 de ganho nos dados de desenvolvimento, e a melhor tentativa deu 0,0016. Por isso a conferência nem começou.\n\n**Você perde alguma coisa?** Nada. As 3 conferências continuam todas disponíveis (0 de 3 usadas). Nada foi gasto.\n\n**Como seria dar negativo.** Se eu pudesse conferir e desse negativo, o custo seria pequeno. Seria um resultado negativo registrado, e a conferência gasta não volta. O que importa é que o ganho de 0,0016 é pequeno demais para valer a pena. Medido nos dados de desenvolvimento, o intervalo de segurança dele vai de 0,00007 a 0,003, e esse intervalo inclui valores abaixo da barra.\n\n**Para ir além disso**, seriam necessárias novas ideias. Cada nova rodada de tentativas aumenta a chance de achar um ganho por sorte, e por isso a prova final existe. Se quiser, faço outra rodada de até 15 tentativas com ideias diferentes. O mais honesto é registrar que a barra de 0,930 não foi alcançada.\n\nEm uma frase: o ganho de 0,0016 não chegou à barra aprovada, então a conferência final nem abriu e nada foi gasto."
+    },
+    {
+      "role": "novice",
+      "text": "Não entendi bem uma parte: o que é \"dados de desenvolvimento\" e \"intervalo de segurança\"? Mas entendi o principal: o ganho ficou abaixo da barra e nada foi gasto. Prefiro não fazer outra rodada agora. Pode registrar o resultado final como \"não encontrou\" no REPORT.md?"
+    },
+    {
+      "role": "agent",
+      "seconds": 175,
+      "text": "Registrei o resultado final como **\"Não encontrou\"** em `lab/REPORT.md`. O veredito, o texto em palavras simples e a decisão de não fazer outra rodada agora estão lá.\n\nRodei o gerador do relatório de novo por engano. Ele manteve o seu texto e o veredito, e só reescrevi as últimas frases.\n\nOs dois termos que ficaram confusos:\n\n- **Dados de desenvolvimento:** a parte dos dados onde treinei e testei as 15 ideias. Eu podia olhar para ela quantas vezes quisesse. Os dados guardados são a outra parte, que ninguém olha até a prova final.\n- **Intervalo de segurança:** a faixa em que o ganho real provavelmente está, já que a medida tem um pouco de sorte. Aqui o ganho foi de 0,0016, e a faixa ia de 0,00007 a 0,003. A barra era 0,002 e cabe dentro dessa faixa, então não dava para afirmar que o ganho a alcançava.\n\nRegra para reusar: se a barra cabe dentro da faixa, o resultado ainda não prova nada.\n\nEm uma frase: o ganho de 0,0016 ficou abaixo da barra de 0,002, e o resultado final é \"não encontrou\"."
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

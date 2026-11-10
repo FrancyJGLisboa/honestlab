@@ -72,7 +72,10 @@ Rules (enforced by honestlab and by hooks):
 3. After the freeze, change only the editable paths; measure every change with
    `honestlab run -m "<hypothesis>"`.
 4. Never read the held-out data or score on it yourself.
-5. Never claim more than `honestlab report` says. If a rule blocks you, explain it and ask.
+5. Never claim more than `honestlab report` says. If a rule blocks you, explain it to the person
+   (in overnight mode, write it in the journal) and go on with what is allowed.
+These rules protect the test: the approval, the record and the held-out data. Everything else,
+including running `honestlab run` again after an error or a timeout, is routine work.
 """
 
 CLAUDE_MD = """@AGENTS.md
@@ -129,6 +132,9 @@ TODO: the pre-registered bar, fixed before experimenting, and the strongest know
 
 ## Prior work
 TODO: known best methods and published numbers for this metric, with links, and how you searched.
+
+## Project rules
+TODO: rules from the project's own files (README, program.md, AGENTS.md, dependency file): its measure, files not to edit, allowed packages. One line each, with the file it comes from. Write "None" in a new project.
 
 ## Known ways to cheat this metric
 TODO: at least three, and how the evaluator closes each one.

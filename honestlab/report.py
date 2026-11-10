@@ -25,6 +25,9 @@ T = {
         "known": "Melhor método conhecido registrado",
         "best": "Melhor resultado do agente",
         "bar": "Margem combinada para contar como achado",
+        "mode": "Modo",
+        "mode_point": "exploração (guardou toda tentativa que pareceu melhor, mesmo sem prova; só o achado exige prova)",
+        "mode_sig": "prova (só guardou tentativas cuja melhora é improvável de ser sorte)",
         "newdata": "Em dados novos (trancados até o fim)",
         "newdata_line": "{cand} ({fid}) {c} contra {r} de {ref}: {pct}{better}",
         "better_w": " melhor", "worse_w": " pior",
@@ -98,6 +101,9 @@ T = {
         "known": "Best known method registered",
         "best": "Agent's best result",
         "bar": "Agreed margin to count as a finding",
+        "mode": "Mode",
+        "mode_point": "exploration (kept every attempt that looked better, even without proof; only a finding needs proof)",
+        "mode_sig": "proof (kept only attempts whose gain is unlikely to be luck)",
         "newdata": "On new data (locked until the end)",
         "newdata_line": "{cand} ({fid}) {c} against {r} for {ref}: {pct}{better}",
         "better_w": " better", "worse_w": " worse",
@@ -203,7 +209,8 @@ def build(root, cfg, st):
     meets_dev = []
     for e in exps:
         smp = core.load_sample(root, f"{e['id']}-dev")
-        if smp and ref_sample and stats.meets(stats.compare(smp, ref_sample, cfg["direction"], float(fnd["alpha"])), fnd):
+        if smp and ref_sample and stats.meets(stats.compare(smp, ref_sample, cfg["direction"], float(fnd["alpha"]),
+                                                                  measure=core.measure_fn(root, cfg), block=core.block_size(cfg)), fnd):
             meets_dev.append(e["id"])
 
     # verdict
@@ -284,7 +291,8 @@ def build(root, cfg, st):
               f"- {L['start']}: {_fmt(st.get('baseline'))}",
               f"- {L['known']}: {ref_name or L['none']} = {_fmt(ref_dev)}",
               f"- {L['best']}: {_fmt(best)} ({st.get('best_id')}){gap}",
-              f"- {L['bar']}: {bar_txt}"]
+              f"- {L['bar']}: {bar_txt}",
+              f"- {L['mode']}: {L['mode_point'] if cfg.get('keep_rule') == 'point' else L['mode_sig']}"]
     tested = []
     for fid, f in sorted(finds.items()):
         hc = f.get("holdout_comparison")

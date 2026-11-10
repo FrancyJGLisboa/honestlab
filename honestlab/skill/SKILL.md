@@ -45,11 +45,22 @@ there.
 - If the person brought an idea, restate it in one sentence.
 - If they brought a project but no idea, follow `scout.md`, then offer the best one to
   three options in plain words and let them pick.
+- Write the questions for someone with no technical training, also when the project is
+  technical. Do not name methods or measures in them ("gradient boosting", "AUC", "log
+  loss", "holdout"). Say what they do instead: "o método mais usado hoje para tabelas
+  como esta", "uma nota de 0,5 (chute) a 1 (perfeito)", "uma parte dos dados que ninguém
+  olha até a prova final". Technical names belong in the SPEC, not in the chat.
 - Ask at most five questions in a single message, each answerable in a phrase. Examples:
   "O que você usa hoje para isso?", "Quanto melhor precisaria ficar para valer a pena?
   (por exemplo, errar 10% menos)", "Quais dados você tem e de que período?", "Existe um
   método conhecido na sua área que você gostaria de bater?". Skip questions whose answer
   you can find in their files.
+- Ask how free the search should be, in plain words, for example: "Você prefere **explorar**
+  (eu guardo toda tentativa que parecer melhor e construo em cima, mesmo sem prova) ou
+  **provar** (eu só guardo o que tiver evidência de não ser sorte)? Nos dois casos, só digo
+  'encontrei' com prova em dados guardados." Explore fits new ideas, small data and gains
+  that may add up. Prove fits noisy measures and small gains. If they do not know, choose
+  prove.
 - If the idea needs data that the person does not have, do not reject the idea. Public
   sources often have it (`frame.md`, step 1). Stop only when the data does not exist yet.
 
@@ -102,15 +113,25 @@ When the best result reaches the margin on the approval page, or `honestlab repo
 - Run `honestlab report`, open the report, and replace the placeholder under "Em palavras
   simples" / "In plain words" with three to five sentences: what was asked, what happened,
   the verdict, how sure, the next step. Use only facts written in the report.
-- Then tell the person the same three to five sentences and where the report is. Tell
+- Then tell the person the same three to five sentences and where the report is. The
+  same plain-words rule as in Phase 1 holds here: say "a parte dos dados usada nas
+  tentativas", not "dados de desenvolvimento"; "a faixa provável do ganho", not
+  "intervalo de confiança". Tell
   them that `PROGRESS.html` shows every attempt as a chart, and that it opens in a browser
   with a double-click.
   "Não encontrou" is a normal and useful result: say what it means for them.
 
-## Never
-- Never run `honestlab freeze`, `honestlab unfreeze` or `honestlab guard prompt`. The person
-  approves and unlocks. Never commit, reset or rebase git.
-- Never read the held-out data (the holdout folder) or score anything on it yourself.
-- Never edit the evaluator, data, lab.json, SPEC or approval page after the freeze.
-- Never claim more than `honestlab report` says. If a rule blocks you, explain it simply
-  and ask the person; do not work around it.
+## Never (each rule protects the test itself)
+- Never run `honestlab freeze`, `honestlab unfreeze` or `honestlab guard prompt`: only the
+  person approves and unlocks. Never commit, reset or rebase git yourself: honestlab
+  commits each step, and its history is the record.
+- Never read the held-out data (the holdout folder) or score anything on it yourself: one
+  look spends its value as new data.
+- Never edit the evaluator, data, lab.json, SPEC or approval page after the freeze: they
+  are what the person approved.
+- Never claim more than `honestlab report` says. If a rule blocks you, do not work around
+  it: explain it simply to the person. In overnight mode, write it in the journal and go on
+  with what is allowed.
+
+Everything else in this skill is routine work: do it without asking, including the steps
+listed under "Use the whole budget" in `experiment.md`.

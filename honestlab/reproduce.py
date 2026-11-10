@@ -65,6 +65,7 @@ def run(root: Path, cfg: dict, st: dict, fid: str = None) -> dict:
             return result
         fnd = ccfg["finding"]
         alpha, budget = float(fnd["alpha"]), int(ccfg["bootstrap"])
+        msr = core.measure_fn(clone, ccfg)
         ref_name, _ = _strongest(ccfg, cst, "dev")
 
         def measure(label, split, how):
@@ -82,10 +83,10 @@ def run(root: Path, cfg: dict, st: dict, fid: str = None) -> dict:
             old = core.load_sample(clone, recorded)
             consistent = None
             if smp and old:
-                if old.get("units") and smp.get("units") and len(old["units"]) == len(smp["units"]):
+                if stats.paired(old, smp):
                     # Same code measured twice: consistent unless the difference is clearly more than noise.
-                    a = stats.compare(smp, old, ccfg["direction"], alpha, budget)
-                    b = stats.compare(old, smp, ccfg["direction"], alpha, budget)
+                    a = stats.compare(smp, old, ccfg["direction"], alpha, budget, msr, core.block_size(ccfg))
+                    b = stats.compare(old, smp, ccfg["direction"], alpha, budget, msr, core.block_size(ccfg))
                     consistent = not stats.significant(a) and not stats.significant(b)
                 else:
                     consistent = abs(smp["score"] - old["score"]) <= 1e-9 * max(1.0, abs(old["score"]))
@@ -139,11 +140,11 @@ def run(root: Path, cfg: dict, st: dict, fid: str = None) -> dict:
             else:
                 ref_hold, _ = measure("baseline", "holdout", base)
             cand_hold, _ = measure("candidate", "holdout", cand)
-            dev_ok = stats.meets(stats.compare(cand_dev, ref_dev, ccfg["direction"], alpha, budget), fnd)
+            dev_ok = stats.meets(stats.compare(cand_dev, ref_dev, ccfg["direction"], alpha, budget, msr, core.block_size(ccfg)), fnd)
             confirmed = False
             if dev_ok and cand_hold is not None and ref_hold is not None:
                 alpha_h = alpha / int(ccfg["max_holdout_runs"])
-                hc = stats.compare(cand_hold, ref_hold, ccfg["direction"], alpha_h, budget)
+                hc = stats.compare(cand_hold, ref_hold, ccfg["direction"], alpha_h, budget, msr, core.block_size(ccfg))
                 statistical = hc["lo"] is not None
                 confirmed = stats.meets(hc, fnd) and (stats.significant(hc) if statistical else True)
                 result["holdout_comparison"] = hc

@@ -447,6 +447,68 @@ def run_noisy(work):
     check("noise: a gain far larger than the noise is kept", e.get("decision") == "keep", so + se + json.dumps(e))
 
 
+# --------------------------------------------------------------------------- undeclared packages
+
+def run_packages(work):
+    """A package installed only in a local .venv makes the result fail elsewhere: check-spec refuses it."""
+    if not hasattr(sys, "stdlib_module_names"):
+        return
+    lab = make_lab(work, "pkgs", freeze=False)
+    sol = lab / "src" / "sol.py"
+    sol.write_text("import json, os\nimport catboost\nfrom sklearn.linear_model import Ridge\nimport helper\n" + BASE_SOL)
+    (lab / "src" / "helper.py").write_text("X = 1\n")
+    rc, so, se = hl(lab, "check-spec")
+    check("packages: an undeclared package fails check-spec",
+          rc != 0 and "'catboost' is imported in src/sol.py" in so + se and clean(rc, so, se), so + se)
+    check("packages: the import name is mapped to the package name", "'scikit-learn'" in so + se, so + se)
+    check("packages: standard and local modules are not reported",
+          "'json'" not in so + se and "'helper'" not in so + se, so + se)
+    (lab / "requirements.txt").write_text("catboost>=1.2\nscikit_learn\n")
+    rc, so, se = hl(lab, "check-spec")
+    check("packages: declared packages pass (names normalized)", rc == 0, so + se)
+    (lab / "requirements.txt").write_text("catboostx\nscikit-learn\n")
+    rc, so, se = hl(lab, "check-spec")
+    check("packages: a longer name does not count as the package", rc != 0 and "'catboost'" in so + se, so + se)
+
+
+# --------------------------------------------------------------------------- explore and prove modes
+
+SMALL_GAIN = '''import json
+def emit(split):
+    # mean 9.99 instead of 10.0, but the per-item values swing by 3: the gain may be luck
+    u = [10.0 + (3.0 if i % 2 else -3.0) - 0.01 for i in range(20)]
+    print(json.dumps({"score": sum(u) / len(u), "per_unit": u}))
+'''
+
+
+def run_modes(work):
+    """keep_rule "point" (explore) keeps an uncertain gain; "significant" (prove) does not. The report names the mode."""
+    for mode, want in (("significant", "DISCARD"), ("point", "KEEP")):
+        name = f"mode-{mode}"
+        rc, so, se = hl(work, "init", name)
+        lab = work / name
+        c = json.loads((lab / "lab.json").read_text())
+        c.update(keep_rule=mode, bootstrap=300)
+        c["finding"]["min_effect"] = 0.1
+        (lab / "lab.json").write_text(json.dumps(c, indent=2))
+        for f in ("SPEC.md", "APPROVAL.md"):
+            (lab / f).write_text((lab / f).read_text().replace("TODO", "filled"))
+        (lab / "eval" / "evaluate.py").write_text(EVALUATOR)
+        (lab / "src" / "sol.py").write_text(BASE_SOL)
+        (lab / "data" / "holdout").mkdir(parents=True, exist_ok=True)
+        (lab / "data" / "holdout" / "h.txt").write_text("x")
+        hl(lab, "baseline")
+        subprocess.run([sys.executable, TTY, str(lab), name, sys.executable, HL, "freeze"],
+                       capture_output=True, text=True, env=ENV, timeout=120)
+        (lab / "src" / "sol.py").write_text(SMALL_GAIN)
+        rc, so, se = hl(lab, "run", "-m", "a small change whose gain is within the noise")
+        check(f"modes: {mode} gives {want} for a gain within the noise", want in so, so + se)
+        hl(lab, "report")
+        rep = (lab / "REPORT.md").read_text() if (lab / "REPORT.md").exists() else ""
+        word = "exploration" if mode == "point" else "proof"
+        check(f"modes: the report names the {word} mode", f"- Mode: {word}" in rep, rep[-800:])
+
+
 def main():
     work = Path(tempfile.mkdtemp(prefix="honestlab-robust-"))
     print(f"python: {sys.version.split()[0]}  work: {work}")
@@ -459,6 +521,8 @@ def main():
         run_per_unit_baseline(work)
         run_native(work)
         run_noisy(work)
+        run_packages(work)
+        run_modes(work)
     finally:
         subprocess.run(["chmod", "-R", "u+w", str(work)], capture_output=True)
         shutil.rmtree(work, ignore_errors=True)

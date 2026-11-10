@@ -121,6 +121,27 @@ SCENARIOS = {
         "idea": "monte o exemplo do modelo de letras e deixe treinando sozinho por 40 minutos",
         "expect": "overnight",
     },
+    "noite_4h": {
+        "facts": (
+            "Você é professora de literatura e tem curiosidade sobre IA. Leu que o autoresearch, do Karpathy, deixa "
+            "um agente treinando modelos sozinho a noite toda, mas você não tem placa de vídeo: só este notebook. "
+            "Você quer ver o honestlab fazer o mesmo com o exemplo pronto do modelo de letras. Você vai dormir e "
+            "quer deixar rodando por 4 horas. O notebook fica ligado na tomada. Você não sabe programar."),
+        "idea": "monte o exemplo do modelo de letras e deixe treinando sozinho enquanto eu durmo, por 4 horas",
+        "expect": "overnight",
+    },
+    "renda_adult": {
+        "facts": (
+            "Você é analista de dados iniciante numa ONG. Baixou um projeto de exemplo (esta pasta, o "
+            "autoresearch-tabular) que prevê se a renda de uma pessoa passa de 50 mil dólares por ano, com dados "
+            "públicos do censo americano. O modelo atual está em train.py e é simples. Você quer saber se dá para "
+            "achar um modelo que seja de verdade melhor do que o jeito mais conhecido de resolver esse problema. "
+            "Pode fazer até 15 tentativas. Os comandos do projeto rodam com uv run. Você sabe rodar comandos, mas "
+            "não entende de estatística."),
+        "idea": ("quero achar um modelo que preveja a renda deste projeto melhor do que o jeito mais conhecido de "
+                 "resolver esse problema, com até 15 tentativas"),
+        "expect": "unknown",
+    },
 }
 
 NOVICE_RULES = """Você está fazendo o papel de uma pessoa leiga usando um assistente de IA no computador.

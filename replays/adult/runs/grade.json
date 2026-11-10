@@ -1,0 +1,72 @@
+{
+ "oracle_rows": 16281,
+ "plain": {
+  "rows": 15060,
+  "best_blend": {
+   "auc": 0.92498,
+   "logloss": 0.28637
+  },
+  "tuned_xgb": {
+   "auc": 0.92356,
+   "logloss": 0.28861
+  },
+  "default_lgbm": {
+   "auc": 0.92339,
+   "logloss": 0.28919
+  },
+  "blend_vs_default_lgbm": {
+   "auc_gain": 0.00159,
+   "auc_gain_ci95": [
+    0.00073,
+    0.00239
+   ],
+   "logloss_drop": 0.00282,
+   "logloss_drop_ci95": [
+    0.0013,
+    0.00434
+   ],
+   "logloss_drop_rel": 0.0098
+  },
+  "blend_vs_tuned_xgb": {
+   "auc_gain": 0.00142,
+   "auc_gain_ci95": [
+    0.0008,
+    0.00202
+   ],
+   "logloss_drop": 0.00224,
+   "logloss_drop_ci95": [
+    0.00126,
+    0.0032
+   ],
+   "logloss_drop_rel": 0.0078
+  }
+ },
+ "honestlab": {
+  "rows": 16281,
+  "best_blend": {
+   "auc": 0.92694,
+   "logloss": 0.27763
+  },
+  "ref_xgboost": {
+   "auc": 0.92611,
+   "logloss": 0.27904
+  },
+  "ref_lightgbm": {
+   "auc": 0.92669,
+   "logloss": 0.27818
+  },
+  "blend_vs_ref_xgboost": {
+   "auc_gain": 0.00083,
+   "auc_gain_ci95": [
+    -9e-05,
+    0.0018
+   ],
+   "logloss_drop": 0.00142,
+   "logloss_drop_ci95": [
+    -6e-05,
+    0.00291
+   ],
+   "logloss_drop_rel": 0.0051
+  }
+ }
+}

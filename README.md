@@ -126,6 +126,14 @@ explanations had the right verdict and only true numbers. With the same results 
 autoresearch-style log (one row per attempt), 5 of 24 did. A model is not a person, so this is a
 first check, not proof. [Details](usability/RESULTS.md).
 
+**Will the rules stop creative ideas?** The rules limit what can be called a finding, not what the
+agent may try. It may change anything in the editable code, and every undone attempt is kept and can
+be tested again later. You choose how free the search is: **explore** keeps every attempt that looks
+better, so the agent can build on small or uncertain gains; **prove** keeps only gains that are
+unlikely to be luck. In both, "found" needs proof on held-out data. The cost is real: with noisy
+data, a true gain close to the margin is often reported as "not found"
+([calibration](stress/RESULTS.md)). "Not found" means "not proven with this data", not "false".
+
 **Can the agent cheat?** honestlab is built for an agent that means well but may cut corners or
 overclaim, and it makes cheating hard and visible. When you approve, the measuring code, the data
 and the success rule are fingerprinted and made read-only, and honestlab's own records must match
@@ -217,9 +225,9 @@ AlphaEvolve finds. What it does is tell you honestly whether your idea holds up.
   [Details](stress/RESULTS.md).
 - **Tests.** 51 hook decisions in the formats of the three agents, 83 end-to-end cases, 48 cases
   for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the
-  stress test, 64 robustness cases (malformed evaluator output, damaged records, odd paths, two
-  runs at once, native libraries, run-to-run noise), 24 overnight mode cases, 17 ablation cases, 11 reproduction cases,
-  30 machine-speed drift cases and 22 explain-back checker cases
+  stress test, 73 robustness cases (malformed evaluator output, damaged records, odd paths, two
+  runs at once, native libraries, run-to-run noise, undeclared packages, explore and prove modes), 24 overnight mode cases, 17 ablation cases, 11 reproduction cases,
+  30 machine-speed drift cases, 22 explain-back checker cases and 36 measure cases (AUC, F1, RMSE, median, days in time order)
   (`bash tests/run_all.sh`). Every claim on
   this page is mapped to the command that checks it in [VERIFICATION.md](VERIFICATION.md).
 

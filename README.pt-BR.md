@@ -125,6 +125,15 @@ explicações tinham o veredito certo e só números verdadeiros. Com os mesmos 
 de registro do autoresearch (uma linha por tentativa), 5 de 24 tinham. Um modelo não é uma pessoa,
 então isto é uma primeira conferência, não uma prova. [Detalhes](usability/RESULTS.md) (em inglês).
 
+**As regras vão barrar ideias criativas?** As regras limitam o que pode ser chamado de achado, não o
+que o agente pode tentar. Ele pode mudar qualquer coisa no código editável, e toda tentativa desfeita
+fica guardada e pode ser testada de novo depois. Você escolhe quão livre é a busca: **explorar**
+guarda toda tentativa que parecer melhor, para o agente construir em cima de ganhos pequenos ou
+incertos; **provar** só guarda ganhos que dificilmente são sorte. Nos dois, "encontrei" exige prova em
+dados guardados. O custo é real: com dados ruidosos, um ganho verdadeiro perto da margem muitas vezes
+sai como "não encontrou" ([calibração](stress/RESULTS.md), em inglês). "Não encontrou" quer dizer "não
+provado com estes dados", não "falso".
+
 **O agente pode trapacear?** O honestlab foi feito para um agente bem-intencionado que pode
 cortar caminho ou exagerar, e torna a trapaça difícil e visível. Quando você aprova, o código que
 mede, os dados e a regra de sucesso recebem uma impressão digital e ficam somente leitura, e os
@@ -220,9 +229,9 @@ AlphaEvolve acha. O que ele faz é dizer, com honestidade, se a sua ideia se sus
   teste, um computador. [Detalhes](stress/RESULTS.md) (em inglês).
 - **Testes.** 51 decisões dos ganchos nos formatos dos três agentes, 83 casos de ponta a ponta, 48
   casos da aprovação e do destrancamento pela conversa e do plugin, 17 repetições dos ataques do
-  teste de estresse, 64 casos de robustez (saída malformada do avaliador, registros danificados,
-  caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos), 24
-  casos do modo noite, 17 casos de ablação, 11 casos de reprodução, 30 casos de variação de velocidade da máquina e 22 casos do conferidor de explicação (`bash tests/run_all.sh`). Cada afirmação desta
+  teste de estresse, 73 casos de robustez (saída malformada do avaliador, registros danificados,
+  caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos, pacotes não declarados, modos explorar e provar), 24
+  casos do modo noite, 17 casos de ablação, 11 casos de reprodução, 30 casos de variação de velocidade da máquina, 22 casos do conferidor de explicação e 36 casos de medidas (AUC, F1, RMSE, mediana, dias em ordem no tempo) (`bash tests/run_all.sh`). Cada afirmação desta
   página está ligada ao comando que a confere no [VERIFICATION.md](VERIFICATION.md) (em inglês).
 
 **Estado: inicial (0.5).** Testado ao vivo com o Claude Code 2.1 no Linux, incluindo o plugin e a

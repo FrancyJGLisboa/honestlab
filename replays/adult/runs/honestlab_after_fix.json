@@ -1,0 +1,62 @@
+{
+  "scenario": "renda_adult",
+  "version": "replay",
+  "expect": "unknown",
+  "completed": true,
+  "human_messages": 4,
+  "human_commands": 0,
+  "confused": 0,
+  "minutes": 40.9,
+  "lab": {
+    "frozen": true,
+    "experiments": 15,
+    "references": [
+      "catboost-ajustado",
+      "lgbm-padrao"
+    ]
+  },
+  "report_file": true,
+  "plain_verdict": true,
+  "log": [
+    {
+      "role": "novice",
+      "text": "Use honestlab: quero achar um modelo que preveja a renda deste projeto melhor do que o jeito mais conhecido de resolver esse problema, com até 15 tentativas."
+    },
+    {
+      "role": "agent",
+      "seconds": 29,
+      "text": "Entendi o seu pedido. Quer um modelo que preveja se a renda de uma pessoa passa de 50 mil dólares por ano (base Adult Income deste projeto). Ele precisa ganhar do método mais conhecido, em até 15 tentativas.\n\nJá li o projeto e já sei o seguinte:\n- A medida do projeto é a **AUC**, que vai de 0,5 (chute) a 1 (perfeito). Quanto mais alta, melhor.\n- Hoje o ponto de partida é uma regressão logística simples.\n- Pelos arquivos, só `train.py` pode ser editado.\n\nPreciso de quatro respostas curtas. Se não souber alguma, escreva \"pode escolher\" e eu escolho.\n\n1. **Com o que comparar?** Eu sugiro bater um gradient boosting bem ajustado (LightGBM/XGBoost), que é o jeito mais conhecido para dados em tabela. Serve, ou você tem outro método em mente?\n2. **Quanto melhor precisa ficar para valer a pena?** A AUC deste problema já fica perto de 0,92 a 0,93, então o espaço para melhorar é pequeno. Eu sugiro exigir pelo menos +0,003 de AUC sobre o boosting. Serve?\n3. **Posso usar pacotes novos?** Por exemplo LightGBM, XGBoost e CatBoost. Eles entram no `pyproject.toml`.\n4. **Posso baixar os dados de novo da fonte pública (UCI)?** Eu guardaria uma parte separada para a prova final, que ninguém vê até o fim.\n\nQuando você responder, eu monto a regra do teste e te mostro uma página para aprovar."
+    },
+    {
+      "role": "novice",
+      "text": "Respostas:\n\n1. Pode ser esse, o gradient boosting bem ajustado.\n2. Não entendo bem esse número de +0,003. Pode escolher por mim.\n3. Pode instalar os pacotes novos que precisar.\n4. Pode baixar os dados de novo, sim. Guarde a parte separada para a prova final."
+    },
+    {
+      "role": "agent",
+      "seconds": 720,
+      "text": "O contrato está pronto e as medidas batem com a página de aprovação. O agente ainda não rodou nenhuma tentativa. Falta só a sua aprovação.\n\n**O que a página diz (versão curta):**\n- **Pergunta:** em até 15 tentativas, dá para prever se a renda passa de 50 mil dólares por ano melhor que um gradient boosting bem ajustado?\n- **Medida:** perda logarítmica (logloss), menor é melhor. Usei ela no lugar da AUC porque a AUC não permite o teste estatístico. A AUC também é calculada e mostrada.\n- **Comparação, medida nos dados de desenvolvimento:**\n  - O que o projeto usa hoje (regressão logística): 0,384.\n  - LightGBM padrão: 0,277.\n  - CatBoost ajustado, o mais forte: 0,276.\n- **Sucesso:** chegar a 0,273 ou menos (pelo menos 1% melhor que o CatBoost). Tem de valer nos dados de desenvolvimento e nos guardados, com teste estatístico.\n- **Dados guardados:** o arquivo oficial de teste da base (16.281 pessoas). Ninguém olha até o fim.\n- **Limitação principal:** os dados são de 1994 e dos EUA. Acho provável o resultado ser \"não encontrou\", porque ganhar do boosting nesta base costuma render diferenças minúsculas. Isso é uma estimativa minha, não uma medição.\n\nSobre o seu \"+0,003\": escolhi 1% de melhora sobre o CatBoost, que dá cerca de 0,0028 de logloss. Parece pouco, mas é uma meta dura porque o CatBoost já está perto do teto.\n\n**Para aprovar:**\n1. Digite `aprovar` na conversa.\n2. A honestlab mostra a página e um código de 4 dígitos que só você vê.\n3. Responda `sim` e o código, por exemplo `sim 4821`.\n\nTem de ser você, porque assim nem eu consigo mudar a regra no meio do caminho. Depois da aprovação, rodo as 15 tentativas sozinho. Estimo de 30 minutos a 1 hora no total."
+    },
+    {
+      "role": "novice",
+      "text": "aprovar"
+    },
+    {
+      "role": "agent",
+      "seconds": 2,
+      "text": "UserPromptSubmit operation blocked by hook:\nhonestlab: PARA APROVAR, ENVIE  sim 2806   (leia a página abaixo antes)\n\n# Página de aprovação: honestlab\n\n**A pergunta:** Em até 15 tentativas, dá para criar um modelo que preveja melhor se a renda de uma pessoa passa de 50 mil dólares por ano do que um gradient boosting (o método mais conhecido para dados em tabela) bem ajustado?\n\n**Como vamos medir:** pela perda logarítmica (logloss) das probabilidades previstas. Menor é melhor. Um chute sem informação dá cerca de 0,55 e um modelo bom dá cerca de 0,28. A AUC do seu projeto também é calculada e mostrada, mas não decide.\n\n**De onde vêm os dados:** da base pública Adult do repositório UCI (censo dos EUA de 1994), baixada em 10/11/2026. Uso permitido (licença CC BY 4.0).\n\n**Com o que vamos comparar:** (1) o que o projeto usa hoje, regressão logística: 0,384. (2) LightGBM padrão: 0,277. (3) CatBoost ajustado, o mais forte: 0,276. Para vencer, é preciso bater o CatBoost.\n\n**O que conta como sucesso:** chegar a 0,273 ou menos (pelo menos 1% melhor que o CatBoost), tanto nos dados de desenvolvimento quanto nos guardados para o final, com um teste estatístico que descarte sorte. Pela minha experiência, é uma meta difícil: ganhar do boosting nesta base costuma render diferenças bem pequenas. Um resultado \"não encontrou\" é provável e útil.\n\n**Dados guardados para a prova final:** o arquivo oficial de teste da base (16.281 pessoas). Nem eu nem o agente olhamos para ele até o fim.\n\n**O que fica trancado depois da aprovação:** a pergunta, a medida, os dados e a regra de sucesso.\n\n**O que o agente vai fazer:** até 15 tentativas, sozinho, cada uma registrada. Só muda o arquivo `lab/src/solution.py`. Cada tentativa leva de segundos a cerca de 2 minutos; no total, de 30 minutos a 1 hora.\n\n**Limitações:** (1) os dados são de 1994 e dos EUA, então o resultado não vale automaticamente para outra época ou país. (2) Usei a perda logarítmica no lugar da AUC porque a AUC não permite o teste estatístico; as duas costumam andar juntas, mas não sempre. (3) Ajustei o CatBoost só com 4 combinações; um ajuste mais longo poderia deixá-lo um pouco melhor.\n\n**Para aprovar:** no Claude Code, digite `aprovar` na conversa. Em outro agente, abra um terminal nesta pasta, digite `honestlab freeze` e depois `sim`.\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados; o agente não poderá mudá-los depois.\n\nPara aprovar, envie exatamente:  sim 2806\n(O código vale 15 minutos e o agente não o vê.) Para não aprovar, só continue a conversa."
+    },
+    {
+      "role": "novice",
+      "text": "sim 2806"
+    },
+    {
+      "role": "agent",
+      "seconds": 1682,
+      "text": "**Veredito: não encontrado.** Em 15 tentativas não achei um modelo que bata o CatBoost ajustado pela margem combinada de 1%.\n\n- **Melhor tentativa (E0007):** uma média de CatBoost e LightGBM, sem as colunas `fnlwgt` e `education`. Chegou a 0,2740 de logloss (medida de erro das probabilidades; menor é melhor) nos dados de desenvolvimento. O CatBoost sozinho faz 0,2762, então a melhora foi de cerca de 0,8%. A meta era 0,2734.\n- **Certeza:** a medida é direta e a melhora sobre o CatBoost é de ordem pequena. Não calculei se esses 0,8% são estatisticamente significativos contra o CatBoost. Não rodei o teste nos dados guardados, porque a regra só manda fazer isso quando a meta é atingida. Esses dados continuam intocados, com 0 de 3 usos.\n- **O que funcionou e o que não:**\n  - Misturar CatBoost e LightGBM foi o salto principal (de 0,2762 para 0,2748).\n  - Tirar colunas repetidas ajudou um pouco.\n  - XGBoost, rede neural, atributos novos e segundo CatBoost não ajudaram.\n  - Várias ideias pequenas melhoraram só 0,04% a 0,08%, dentro do acaso.\n- **Onde pode falhar:** os dados são de 1994 nos EUA. Eu também ajustei o CatBoost com apenas 4 combinações, então um ajuste mais longo poderia deixá-lo um pouco melhor.\n\nSe quiser, dá para fazer uma nova rodada com outras ideias ou outra margem. Isso exige que você destrave o contrato, digitando `destrancar`.\n\nO relatório está em `lab/REPORT.md`. Os gráficos de todas as tentativas estão em `lab/PROGRESS.html`, que abre no navegador com duplo clique.\n\nPara repetir a alguém: \"Misturar dois boostings melhorou 0,8% sobre o melhor método conhecido, abaixo da meta de 1%; não encontrado.\""
+    },
+    {
+      "role": "novice",
+      "text": "DONE"
+    }
+  ]
+}

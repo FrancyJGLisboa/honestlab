@@ -52,6 +52,8 @@ DEFAULT_CONFIG = {
     "repeats": 1,
     "keep_rule": "significant",
     "keep_alpha": 0.1,
+    "aggregate": "mean",
+    "block_size": 1,
     "remeasure_best": False,
     "bootstrap": 2000,
     "finding": {"compare_to": "strongest", "min_effect": None, "effect": "absolute", "alpha": 0.05},
@@ -671,6 +673,7 @@ class _Runs:
 
     def __init__(self):
         self.scores, self.unit_runs, self.logs, self.extras, self.warn = [], [], [], {}, None
+        self.kind = "mean"
 
     def add(self, root, cfg, split, r, reps):
         s, ex, log, err = run_evaluator(root, cfg, split, {"HONESTLAB_REPEAT": str(r), "HONESTLAB_SEED": str(r)})
@@ -679,7 +682,12 @@ class _Runs:
             self.extras = ex
             return (f"repeat {r + 1}/{reps}: " + err) if reps > 1 else err
         pu = ex.pop("per_unit", None)
-        if pu is not None:
+        self.kind = cfg.get("aggregate") or "mean"
+        if pu is not None and self.kind == "auc":
+            self.warn, pu = _check_auc_units(pu, s)
+        elif pu is not None and self.kind == "custom":
+            self.warn, pu = _check_custom_units(pu, s, measure_fn(root, cfg))
+        elif pu is not None:
             if not isinstance(pu, list) or not pu or not all(
                     isinstance(x, (int, float)) and not isinstance(x, bool) and _finite(x) for x in pu):
                 self.warn, pu = "per_unit ignored: it must be a non-empty list of finite numbers", None
@@ -692,16 +700,95 @@ class _Runs:
         return None
 
     def sample(self):
-        return _make_sample(self.scores, self.unit_runs, self.extras, self.warn)
+        return _make_sample(self.scores, self.unit_runs, self.extras, self.warn, self.kind)
 
 
-def _make_sample(scores, unit_runs, extras, warn):
+def block_size(cfg: dict) -> int:
+    """lab.json "block_size": run length for the bootstrap when items are in time order (1 = independent)."""
+    try:
+        return max(1, int(cfg.get("block_size") or 1))
+    except (TypeError, ValueError):
+        return 1
+
+
+_MEASURE_CACHE = {}
+
+
+def measure_fn(root: Path, cfg: dict):
+    """The lab's own measure for "aggregate": "custom": the function `measure(items) -> float` in the
+    protected file named by "aggregate_file". None for the built-in aggregates or when it cannot load."""
+    if cfg.get("aggregate") != "custom" or not cfg.get("aggregate_file"):
+        return None
+    import importlib.util
+    p = (Path(root) / cfg["aggregate_file"]).resolve()
+    try:
+        key = (str(p), p.stat().st_mtime_ns)
+    except OSError:
+        return None
+    if key not in _MEASURE_CACHE:
+        try:
+            spec = importlib.util.spec_from_file_location(f"honestlab_measure_{abs(hash(key))}", p)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            fn = getattr(mod, "measure", None)
+        except Exception:  # noqa: BLE001
+            fn = None
+        _MEASURE_CACHE[key] = fn if callable(fn) else None
+    return _MEASURE_CACHE[key]
+
+
+def _check_custom_units(pu, s, fn):
+    """per_unit for "aggregate": "custom": one item per instance, any JSON value the measure reads."""
+    if fn is None:
+        return "per_unit ignored: the measure file (lab.json aggregate_file) has no working measure(items)", None
+    if not isinstance(pu, list) or not pu:
+        return "per_unit ignored: with \"aggregate\": \"custom\" it must be a non-empty list of items", None
+    try:
+        v = float(fn(pu))
+    except Exception as e:  # noqa: BLE001
+        return f"per_unit ignored: measure(items) failed on the evaluator's items ({type(e).__name__}: {e})", None
+    if not _finite(v) or abs(v - s) > 1e-6 * max(1.0, abs(s)):
+        return (f"per_unit ignored: measure(per_unit) gives {v:.6g}, not the metric ({s:.6g}); the evaluator must "
+                "print the items the measure is computed from"), None
+    return None, pu
+
+
+def _check_auc_units(pu, s):
+    """per_unit for "aggregate": "auc": one [label, prediction] pair per item. Returns (warning, pairs or None)."""
+    from . import stats
+    ok = isinstance(pu, list) and pu and all(
+        isinstance(x, list) and len(x) == 2 and x[0] in (0, 1) and not isinstance(x[0], bool)
+        and isinstance(x[1], (int, float)) and not isinstance(x[1], bool) and _finite(x[1]) for x in pu)
+    if not ok:
+        return ("per_unit ignored: with \"aggregate\": \"auc\" it must be a non-empty list of [label, prediction] "
+                "pairs, label 0 or 1, prediction a finite number"), None
+    a = stats.auc(pu)
+    if a is None:
+        return "per_unit ignored: it needs items of both labels (0 and 1) to compute AUC", None
+    if abs(a - s) > 1e-4:
+        return (f"per_unit ignored: the AUC of its pairs ({a:.6g}) is not the metric ({s:.6g}); per_unit must be "
+                "the [label, prediction] pair of every item the metric is computed on"), None
+    return None, [[int(x[0]), float(x[1])] for x in pu]
+
+
+def _make_sample(scores, unit_runs, extras, warn, kind="mean"):
     reps = len(scores)
+    if warn:
+        extras["honestlab_warning"] = warn
+    if kind == "custom":
+        sample = {"score": sum(scores) / len(scores), "units": None, "repeats": scores}
+        if all(u is not None for u in unit_runs) and len({len(u) for u in unit_runs}) == 1:
+            sample["item_runs"] = unit_runs
+        return sample, extras
+    if kind == "auc":
+        sample = {"score": sum(scores) / len(scores), "units": None, "repeats": scores}
+        if all(u is not None for u in unit_runs) and len({len(u) for u in unit_runs}) == 1 and \
+                len({tuple(p[0] for p in u) for u in unit_runs}) == 1:
+            sample["auc_runs"] = unit_runs
+        return sample, extras
     units = None
     if all(u is not None for u in unit_runs) and len({len(u) for u in unit_runs}) == 1:
         units = [sum(col) / len(col) for col in zip(*unit_runs)]
-    if warn:
-        extras["honestlab_warning"] = warn
     sample = {"score": sum(scores) / len(scores), "units": units, "repeats": scores}
     if units is not None and reps >= 2:
         sample["unit_runs"] = unit_runs  # lets the comparison count run-to-run noise
@@ -751,6 +838,67 @@ def spec_sections(text: str) -> dict:
         elif current is not None:
             out[current].append(line)
     return {k: "\n".join(v).strip() for k, v in out.items()}
+
+
+# Import names whose package has another name on PyPI.
+_DIST_NAMES = {"sklearn": "scikit-learn", "cv2": "opencv-python", "PIL": "pillow", "yaml": "pyyaml",
+               "bs4": "beautifulsoup4", "skimage": "scikit-image", "dateutil": "python-dateutil",
+               "Crypto": "pycryptodome", "Levenshtein": "python-levenshtein"}
+DEP_FILES = ("pyproject.toml", "requirements.txt", "requirements-dev.txt", "setup.cfg", "setup.py",
+             "environment.yml", "Pipfile")
+
+
+def _norm_dist(name: str) -> str:
+    import re
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def undeclared_packages(root: Path, cfg: dict) -> list:
+    """Third-party packages that the evaluator or the editable code imports but no dependency file declares.
+
+    Returns [(package, file)]. A package installed only in a local .venv makes the result fail on another
+    computer, so it must be written in pyproject.toml or requirements.txt.
+    """
+    import ast
+    import re
+    std = getattr(sys, "stdlib_module_names", None)
+    if std is None:  # Python 3.9: no reliable list of standard modules, so skip the check
+        return []
+    files = []
+    for rel in list(cfg.get("editable", [])) + [tok.strip("\"'") for tok in cfg.get("evaluator", "").split()
+                                                  if tok.strip("\"'").endswith(".py")]:
+        files += [f for f in iter_files(root, rel) if f.suffix == ".py"]
+    local = set()
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_NAMES and d != "node_modules" and not d.startswith(".")]
+        local.update(dirnames)
+        local.update(f[:-3] for f in filenames if f.endswith(".py"))
+    declared = ""
+    for base in {root, root / lab_rel(cfg, "")}:
+        for name in DEP_FILES:
+            if (base / name).is_file():
+                declared += "\n" + (base / name).read_text(encoding="utf-8", errors="replace")
+    declared = _norm_dist(declared)
+    found = {}
+    for f in files:
+        try:
+            tree = ast.parse(f.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                mods = [n.name.split(".")[0] for n in node.names]
+            elif isinstance(node, ast.ImportFrom) and not node.level and node.module:
+                mods = [node.module.split(".")[0]]
+            else:
+                continue
+            for m in mods:
+                if m in std or m in local or m == "honestlab":
+                    continue
+                dist = _norm_dist(_DIST_NAMES.get(m, m))
+                if not re.search(r"(?<![a-z0-9-])" + re.escape(dist) + r"(?![a-z0-9])", declared):
+                    found.setdefault(_DIST_NAMES.get(m, m), str(f.relative_to(root)))
+    return sorted(found.items())
 
 
 def check_spec(root: Path, cfg: dict) -> list:
@@ -805,10 +953,35 @@ def check_spec(root: Path, cfg: dict) -> list:
         problems.append("lab.json: finding.effect must be 'absolute' (metric units) or 'relative' (fraction)")
     if not (0 < float(fnd.get("alpha") or 0) < 0.5):
         problems.append("lab.json: finding.alpha must be between 0 and 0.5")
+    bs = cfg.get("block_size", 1)
+    if not isinstance(bs, int) or isinstance(bs, bool) or bs < 1:
+        problems.append("lab.json: block_size must be a whole number of 1 or more (1 when items are independent; "
+                        "for items in time order, about the number of neighbours that move together)")
+    agg = cfg.get("aggregate", "mean")
+    if agg not in ("mean", "auc", "custom"):
+        problems.append("lab.json: aggregate must be 'mean' (per_unit values are averaged), 'auc' (per_unit holds "
+                        "[label, prediction] pairs) or 'custom' (a measure(items) function in aggregate_file)")
+    if agg == "custom":
+        af = cfg.get("aggregate_file") or ""
+        if not af or not (root / af).is_file():
+            problems.append("lab.json: with aggregate 'custom', aggregate_file must name the file that defines "
+                            "measure(items), for example eval/measure.py")
+        else:
+            if not any(is_under(af, p) for p in cfg.get("protected", [])):
+                problems.append(f"lab.json: aggregate_file '{af}' must be inside a protected path (for example eval/), "
+                                "so the measure cannot change after approval")
+            if measure_fn(root, cfg) is None:
+                problems.append(f"{af}: it must define a function measure(items) that returns a number")
+    if cfg.get("aggregate") == "auc" and cfg.get("direction") != "maximize":
+        problems.append("lab.json: with aggregate 'auc' the direction must be 'maximize' (higher AUC is better)")
     if cfg.get("keep_rule") not in ("significant", "point"):
         problems.append("lab.json: keep_rule must be 'significant' or 'point'")
     if not isinstance(cfg.get("repeats"), int) or cfg["repeats"] < 1:
         problems.append("lab.json: repeats must be a positive integer")
+    for pkg, where in undeclared_packages(root, cfg):
+        problems.append(f"package '{pkg}' is imported in {where} but no dependency file declares it: add it to "
+                        "pyproject.toml or requirements.txt so the result runs on another computer "
+                        "(if the project forbids new packages, do not use it)")
     return problems
 
 

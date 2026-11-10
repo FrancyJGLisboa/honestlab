@@ -1,0 +1,1 @@
+{"scenario": "renda_adult", "version": "replay", "expect": "unknown", "completed": true, "human_messages": 4, "human_commands": 0, "confused": 0, "minutes": 40.9, "lab": {"frozen": true, "experiments": 15, "references": ["catboost-ajustado", "lgbm-padrao"]}, "report_file": true, "plain_verdict": true}

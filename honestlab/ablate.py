@@ -79,12 +79,12 @@ def _apply(root: Path, text: str, reverse: bool, index: bool = False) -> str:
         Path(name).unlink(missing_ok=True)
 
 
-def verdict_of(full: dict, without: dict, direction: str, alpha: float, budget: int):
+def verdict_of(full: dict, without: dict, direction: str, alpha: float, budget: int, measure=None, block=1):
     """How much the full candidate beats the version without this part (positive = the part helps)."""
-    cmp = stats.compare(full, without, direction, alpha, budget)
+    cmp = stats.compare(full, without, direction, alpha, budget, measure, block)
     if stats.significant(cmp):
         word = "helps"
     else:
-        rev = stats.compare(without, full, direction, alpha, budget)
+        rev = stats.compare(without, full, direction, alpha, budget, measure, block)
         word = "hurts" if stats.significant(rev) else "no clear effect"
     return word, cmp
