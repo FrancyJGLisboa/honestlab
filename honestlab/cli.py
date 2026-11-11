@@ -90,6 +90,10 @@ def cmd_init(a):
     if a.here:
         return init_here(a)
     target = Path(a.path).resolve()
+    parent = core.find_root()
+    if parent is not None and parent != target and core.find_root(target) == parent:
+        raise LabError("A lab inside another lab mixes their rules. Create the new lab next to this one, for "
+                       f"example: honestlab init ../{target.name}")
     target.mkdir(parents=True, exist_ok=True)
     if (target / core.CONFIG).exists() and not a.force:
         raise LabError(f"{target} is already a honestlab project (use --force to rewrite templates).")
@@ -136,6 +140,10 @@ def cmd_init(a):
         cfg_t, st_t = core.load_config(target), core.load_state(target)
         _reference_add(target, cfg_t, st_t, ref_name, desc)
     out(f"Created honestlab project '{name}' in {target}")
+    if parent is not None and parent != target:
+        core.add_followup(parent, target)
+        out(f"Follow-up question of the lab in {parent}. Work on it with `cd {target} && honestlab ...` and "
+            "absolute file paths. The person approves it in this same chat by typing approve (aprovar).")
     if skipped:
         out(f"Kept existing files: {', '.join(skipped)}")
     out("")
@@ -282,12 +290,12 @@ def _install(root, cfg, st, name, patch=None):
     return ""
 
 
-def _measure_side_by_side(root, cfg, st, ref_name, cand_patch, split):
+def _measure_side_by_side(root, cfg, st, ref_name, cand_patch, split, extra_env=None):
     """The known method and the candidate, measured in alternation on one split. The tree ends at HEAD."""
     def put(which):
         return _install(root, cfg, st, ref_name if which == "a" else "candidate", cand_patch)
     try:
-        return core.evaluate_paired(root, cfg, split, put)
+        return core.evaluate_paired(root, cfg, split, put, extra_env)
     finally:
         _revert_editable(root, cfg)
 
@@ -671,7 +679,7 @@ def unfreeze_unlock(root, cfg, st, via: str, reason: str = "", evidence: dict = 
     refs = st.get("references") or {}
     for r in refs.values():
         r["holdout"] = None
-    st.update(frozen=False, hashes={}, baseline=None, best=None, best_id=None,
+    st.update(frozen=False, hashes={}, baseline=None, best=None, best_id=None, event_done=False,
               baseline_holdout=None, freeze_commit=None, references=refs)
     core.save_state(root, st)
     entry = {"type": "unfreeze", "id": "unfreeze", "reason": reason, "via": via}
@@ -987,6 +995,27 @@ def cmd_finding_new(a):
     if st["holdout_runs"] >= cfg["max_holdout_runs"]:
         raise LabError(f"Holdout budget exhausted ({cfg['max_holdout_runs']} runs). Reusing the holdout turns it "
                        "into a dev set. A human must provide a fresh holdout (unfreeze, replace, re-freeze).")
+    placebo_res = {}
+    for pname in cfg.get("placebos") or []:
+        # A fake version of the test (shuffled answers, a date when nothing happened, an outcome the change
+        # cannot touch). A real effect vanishes there; a gain that stays comes from something else.
+        out(f"Fake test '{pname}': measuring '{ref_name}' and {cand_id} side by side on dev ...")
+        p_ref, p_cand, _, _, e = _measure_side_by_side(root, cfg, st, ref_name, cand_patch, "dev",
+                                                       {"HONESTLAB_PLACEBO": pname})
+        if e:
+            raise LabError(f"Fake test '{pname}' could not run: {e}. No holdout run was spent.")
+        pcmp = stats.compare(p_cand, p_ref, cfg["direction"], float(fnd["alpha"]), int(cfg["bootstrap"]),
+                             measure=core.measure_fn(root, cfg), block=core.block_size(cfg))
+        placebo_res[pname] = {"comparison": pcmp, "passed": not stats.significant(pcmp)}
+        if stats.significant(pcmp):
+            core.append_ledger(root, {"type": "placebo_failed", "id": cand_id, "placebo": pname, "comparison": pcmp,
+                                      "claim": claim})
+            core.commit(root, f"honestlab: {cand_id} fails fake test {pname}")
+            raise LabError(
+                f"The fake test '{pname}' shows a gain too: {stats.describe(pcmp)}. A real effect should vanish "
+                "there, so this gain probably comes from something other than the claim (a leak, a trend, another "
+                "change at the same time). No holdout run was spent.", 2)
+        out(f"Fake test '{pname}' passed: no clear gain ({stats.describe(pcmp)}).")
     out(f"Dev check passed against '{ref_name}'. Running the holdout split once; it will be compared with "
         f"'{hold_name}', the strongest registered solution on holdout ...")
     if again:
@@ -1050,7 +1079,7 @@ def cmd_finding_new(a):
                               "holdout_confirmed": confirmed, "error": err, "best_id": cand_id,
                               "promoted_discarded": cand_patch is not None,
                               "measured_again": again, "recorded_scores": recorded if again else None,
-                              "experiments_tried": n_exp})
+                              "placebos": placebo_res or None, "experiments_tried": n_exp})
     core.commit(root, f"honestlab: {fid} candidate (holdout {'confirmed' if confirmed else 'NOT confirmed'})")
     if confirmed:
         out(f"{fid}: holdout confirms against '{hold_name}' (strongest on holdout): {stats.describe(hold_cmp)}.")
@@ -1066,6 +1095,70 @@ def cmd_finding_new(a):
             out(f"Note: '{hold_name}' looked weaker on dev but is the strongest registered method on new data.")
         out("Not a finding: the improvement does not hold against the strongest known method on new data "
             "(overfitting, noise, or a stronger reference). Record it as a negative result.")
+
+
+def cmd_event(a):
+    """Event test: did the event move the number more than on dates when nothing happened?"""
+    root, cfg, st = ctx()
+    plan, probs = core.event_plan(cfg)
+    if plan is None and not probs:
+        raise LabError("This lab has no event test: lab.json has no \"event\" (date, fakes, side).")
+    if probs:
+        raise LabError("The event test is not set up correctly: " + "; ".join(probs))
+    if not st["frozen"]:
+        raise LabError("The event test needs an approved, locked lab: the model of the normal value, the window "
+                       "and the fake dates must be fixed before anyone sees the result.")
+    require_integrity(root, cfg, st)
+    if st.get("event_done"):
+        raise LabError("The event test already ran for this approval (see `honestlab history`). Running it again "
+                       "with a changed model would let the result choose the model. Only the human can unlock.")
+    if core.changed_paths(root):
+        raise LabError("There are unmeasured changes. Revert them first: the event test uses the approved model.")
+    if st.get("freeze_commit") and core.git(root, "diff", st["freeze_commit"], "HEAD", "--", *cfg["editable"]).stdout:
+        raise LabError("The model of the normal value changed after approval (kept attempts). The event test uses "
+                       "only the approved model, because attempts tuned on the fake dates would make them look "
+                       "calm. Ask the human to unlock, approve the new model, and lock again.")
+    if st["holdout_runs"] >= cfg["max_holdout_runs"]:
+        raise LabError(f"Holdout budget exhausted ({cfg['max_holdout_runs']} runs).")
+    fakes = {}
+    out(f"Event test: measuring the gap at {len(plan['fakes'])} fake dates (dev data, before the event) ...")
+    for d in plan["fakes"]:
+        smp, _, _, err = core.evaluate(root, cfg, "dev", {"HONESTLAB_EVENT_DATE": d})
+        if err:
+            raise LabError(f"The evaluator failed at fake date {d}: {err}. The event date was not measured.")
+        fakes[d] = smp["score"]
+    out(f"Measuring the gap at the event date {plan['date']} (holdout data, once) ...")
+    smp, _, _, err = core.evaluate(root, cfg, "holdout", {"HONESTLAB_EVENT_DATE": plan["date"]})
+    st["holdout_runs"] += 1
+    st["event_done"] = True
+    real = smp["score"] if smp else None
+    rank = core.event_rank(real, fakes, plan["side"]) if real is not None else None
+    alpha = float(cfg["finding"]["alpha"])
+    need = cfg["finding"].get("min_effect")
+    size = None if real is None else (real if plan["side"] == "up" else (-real if plan["side"] == "down" else abs(real)))
+    too_small = bool(need is not None and size is not None and size < float(need))
+    passed = bool(rank and rank["p"] <= alpha and not too_small)
+    core.save_state(root, st)
+    core.append_ledger(root, {"type": "event_test", "id": "event", "date": plan["date"], "side": plan["side"],
+                              "gap": real, "fake_gaps": fakes, "rank": rank, "alpha": alpha, "passed": passed,
+                              "min_effect": need, "too_small": too_small,
+                              "error": err})
+    core.commit(root, f"honestlab: event test at {plan['date']} ({'passed' if passed else 'not passed'})")
+    if err:
+        raise LabError(f"The evaluator failed at the event date: {err}. This look is recorded and counted.")
+    word = {"up": "as large or larger", "down": "as low or lower", "both": "as far from zero or farther"}[plan["side"]]
+    out(f"Gap at {plan['date']}: {fmt(real)} {cfg['metric']}.")
+    out(f"Fake dates: {rank['as_large']} of {rank['n_fakes']} gave a gap {word}. "
+        f"Chance of a gap this size on a date when nothing happened: about {rank['p']:.3g} (bar: {alpha:g}).")
+    if too_small and rank["p"] <= alpha:
+        out(f"NOT PASSED: the gap is unusual, but smaller than the approved margin ({need} {cfg['metric']}).")
+    elif passed:
+        out("PASSED: the change at the event date is unusual compared with normal dates. This does not show "
+            "that the event caused it: anything else that happened in the same window could too. Name those "
+            "other events in the report.")
+    else:
+        out("NOT PASSED: changes this large also happen on dates when nothing special happened. The data does "
+            "not show an effect of the event beyond normal movement.")
 
 
 def cmd_finding_verify(a):
@@ -1348,6 +1441,8 @@ def build_parser():
     f.add_argument("id")
     f.set_defaults(fn=cmd_finding_verify)
 
+    sub.add_parser("event", help="event test: compare the gap at the event date with fake dates (once, after "
+                   "approval)").set_defaults(fn=cmd_event)
     s = sub.add_parser("reproduce", help="measure again from a clean copy of the lab's history; same verdict?")
     s.add_argument("id", nargs="?", help="a finding, e.g. F001 (default: the starting point, references and best)")
     s.set_defaults(fn=cmd_reproduce)

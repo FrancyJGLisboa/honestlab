@@ -136,3 +136,33 @@ data" and "holdout data" mean the paths it prints.
       leaks from the answers into the inputs: fix that first.
     - **The score moves the right way.** A clearly worse solution scores worse, so the
       direction (`minimize` or `maximize`) is right.
+12. **Fake tests** (`"placebos"` in `lab.json`, up to five short names). Each one is a version of
+    the test where a real effect must vanish. The evaluator reads the name from the
+    `HONESTLAB_PLACEBO` environment variable and runs that version. Before the held-out
+    data is used, `honestlab finding new` measures the known method and the candidate on
+    each fake test, and refuses the finding if the gain stays. Add them when they are cheap:
+    - `shuffled`: train on the answers in a random order (catches leaks), as in step 11.
+    - For a claim about a cause (an event, a policy, a new rule), a fake date when nothing
+      happened, and an outcome the cause cannot touch. Write the claim's assumption in SPEC
+      "What counts as a finding": the fake tests check it; they do not prove the cause.
+13. **Event questions** ("did this event change that number?": a policy, an export ban, a
+    new rule, a launch on a known date). This fits honestlab. Do not leave the lab for it.
+    Use the event test instead of the search loop:
+    - Put the data up to the day before the event in the dev split and the data from the
+      event date on in the holdout split. Do not look at the holdout data: the method must
+      be fixed before anyone sees the result.
+    - The editable code is the model of the normal value: what the number would be without
+      the event, from its usual drivers (for a price, its main costs and its own last value).
+    - The evaluator reads `HONESTLAB_EVENT_DATE`. With it set, fit the model on data before
+      that date only and print the gap: the mean of real minus normal over the window that
+      starts at that date. Without it, print the model's error in normal months (any honest
+      number: it is only the starting measure).
+    - In `lab.json`: `"event": {"date": "2021-10", "fakes": {"from": "2010-01", "to": "2021-05"},
+      "side": "up"}`. Fake dates are dates when nothing special happened. Stop them one
+      window before the event, so no fake window includes it. At least 19 are needed.
+    - On the approval page, say in plain words: the date, the window, what the normal value
+      uses, the fake dates, and that one look at the result is allowed.
+    - List in SPEC "What counts as a finding" the other events in the same weeks. The test
+      can show the change is unusual. It cannot tell apart two events in the same window.
+    After approval, run `honestlab event` once, then `honestlab report`. Do not run attempts
+    with `honestlab run` first: a model changed after approval is refused.

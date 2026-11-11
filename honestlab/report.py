@@ -16,6 +16,9 @@ T = {
         "v_fragile": "Sinal promissor, mas frágil: há indícios de melhora, mas eles não se confirmaram com segurança.",
         "v_not_found": "Não encontrou: nenhuma tentativa superou o melhor método conhecido pela margem combinada.",
         "v_not_started": "Ainda não começou: o contrato não foi aprovado.",
+        "v_event_unusual": "Incomum: na data do evento o número mudou mais do que em quase todas as datas comuns. Isso sozinho não prova que o evento foi a causa.",
+        "v_event_normal": "Não mostrou efeito: mudanças desse tamanho também acontecem em datas comuns.",
+        "v_event_pending": "Aprovado, ainda não medido: o teste de evento não rodou.",
         "conf_h": "Confiança",
         "plain_h": "Em palavras simples",
         "numbers_h": "Os números",
@@ -29,6 +32,11 @@ T = {
         "mode_point": "exploração (guardou toda tentativa que pareceu melhor, mesmo sem prova; só o achado exige prova)",
         "mode_sig": "prova (só guardou tentativas cuja melhora é improvável de ser sorte)",
         "newdata": "Em dados novos (trancados até o fim)",
+        "placebo_ok": "Testes falsos de {fid} (versões do teste em que um efeito real some): {names}: nenhum mostrou ganho",
+        "event_ok": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). PASSOU: a mudança é incomum. Isso não prova a causa: outro fato na mesma janela também pode explicá-la",
+        "event_small": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: a mudança é incomum, mas menor que a margem aprovada ({need})",
+        "event_bad": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: mudanças desse tamanho também acontecem em datas comuns",
+        "placebo_bad": "Teste falso '{name}' derrubou {cand}: o ganho apareceu também onde não deveria, então não veio da causa alegada",
         "newdata_line": "{cand} ({fid}) {c} contra {r} de {ref}: {pct}{better}",
         "better_w": " melhor", "worse_w": " pior",
         "ci_units": "; faixa provável da diferença: {lo} a {hi} em `{metric}`",
@@ -42,6 +50,9 @@ T = {
         "n_fragile": "Faça um teste para a frente: congele a previsão do próximo período e compare quando o resultado real sair. Mais dados também ajudam a decidir.",
         "n_not_found": "O melhor método conhecido continua sendo o melhor. Opções: trazer dados ou variáveis diferentes, mudar a pergunta, ou ficar com o método atual com mais confiança.",
         "n_untested": "Ainda falta a checagem: testar o melhor candidato nos dados guardados e passar pela revisão independente (o agente faz isso).",
+        "n_event_unusual": "Liste os outros fatos da mesma janela e procure um dado que só o evento atinge (outro produto, outra região). Só isso separa as causas.",
+        "n_event_normal": "Com estes dados não dá para ver um efeito do evento. Opções: dados mais frequentes (semanais), outra janela aprovada antes, ou aceitar que o efeito, se existe, é pequeno.",
+        "n_event_pending": "Peça ao agente para rodar o teste de evento (`honestlab event`).",
         "n_not_started": "Leia a página de aprovação e, se concordar, digite `aprovar` na conversa do Claude Code (ou `honestlab freeze` num terminal nesta pasta).",
         "c_found": "Alta: passou nos dados novos com margem estatística e na revisão independente.",
         "c_found_point": "Média: passou nos dados novos, mas sem teste estatístico (o avaliador não deu resultados por item).",
@@ -92,6 +103,9 @@ T = {
         "v_fragile": "Promising but fragile: there are signs of improvement, but they were not confirmed with confidence.",
         "v_not_found": "Not found: no attempt beat the best known method by the agreed margin.",
         "v_not_started": "Not started: the contract has not been approved.",
+        "v_event_unusual": "Unusual: at the event date the number moved more than on almost every ordinary date. This alone does not prove that the event caused it.",
+        "v_event_normal": "No effect shown: changes this large also happen on ordinary dates.",
+        "v_event_pending": "Approved, not yet measured: the event test has not run.",
         "conf_h": "Confidence",
         "plain_h": "In plain words",
         "numbers_h": "The numbers",
@@ -105,6 +119,11 @@ T = {
         "mode_point": "exploration (kept every attempt that looked better, even without proof; only a finding needs proof)",
         "mode_sig": "proof (kept only attempts whose gain is unlikely to be luck)",
         "newdata": "On new data (locked until the end)",
+        "placebo_ok": "Fake tests for {fid} (versions of the test where a real effect vanishes): {names}: none showed a gain",
+        "event_ok": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). PASSED: the change is unusual. This does not prove the cause: another event in the same window can explain it too",
+        "event_small": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: the change is unusual but smaller than the approved margin ({need})",
+        "event_bad": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: changes this large also happen on ordinary dates",
+        "placebo_bad": "Fake test '{name}' sank {cand}: the gain also appeared where it should not, so it did not come from the claimed cause",
         "newdata_line": "{cand} ({fid}) {c} against {r} for {ref}: {pct}{better}",
         "better_w": " better", "worse_w": " worse",
         "ci_units": "; likely range of the difference: {lo} to {hi} in `{metric}`",
@@ -118,6 +137,9 @@ T = {
         "n_fragile": "Run a forward test: freeze the forecast for the next period and compare when the real result is out. More data also helps decide.",
         "n_not_found": "The best known method is still the best. Options: bring different data or variables, change the question, or keep the current method with more confidence.",
         "n_untested": "The check is still missing: test the best candidate on the data kept for the end and get the independent review (the agent does this).",
+        "n_event_unusual": "List the other events in the same window and look for data that only the event touches (another product, another region). Only that separates the causes.",
+        "n_event_normal": "With this data no effect of the event is visible. Options: more frequent data (weekly), another window approved in advance, or accept that any effect is small.",
+        "n_event_pending": "Ask the agent to run the event test (`honestlab event`).",
         "n_not_started": "Read the approval page and, if you agree, type `approve` in the Claude Code chat (or `honestlab freeze` in a terminal in this folder).",
         "c_found": "High: it held on new data with a statistical margin and passed the independent review.",
         "c_found_point": "Medium: it held on new data, but without a statistical test (the evaluator gave no per-item results).",
@@ -215,8 +237,11 @@ def build(root, cfg, st):
 
     # verdict
     conf, next_key = "", None
-    if not st.get("frozen") and not exps:
+    evs = [e for e in led if e.get("type") == "event_test" and e.get("rank")]
+    if not st.get("frozen") and not exps and not evs:
         verdict = "not_started"
+    elif cfg.get("event") and not exps and not finds:
+        verdict = ("event_unusual" if evs[-1].get("passed") else "event_normal") if evs else "event_pending"
     elif any(f.get("status") == "verified" for f in finds.values()):
         verdict = "found"
         f = next(f for f in finds.values() if f.get("status") == "verified")
@@ -312,6 +337,18 @@ def build(root, cfg, st):
                 txt += L["ci_units"].format(lo=_fmt(hc.get("lo")), hi=_fmt(hc.get("hi")), metric=cfg["metric"])
             lines.append(f"- {L['newdata']}: {txt}")
             tested.append(f.get("best_id"))
+    for fid, f in sorted(finds.items()):
+        if f.get("placebos"):
+            lines.append("- " + L["placebo_ok"].format(fid=fid, names=", ".join(sorted(f["placebos"]))))
+    for e in led:
+        if e.get("type") == "event_test" and e.get("rank"):
+            r = e["rank"]
+            key = "event_ok" if e.get("passed") else ("event_small" if e.get("too_small") else "event_bad")
+            lines.append("- " + L[key].format(
+                date=e.get("date"), gap=_fmt(e.get("gap")), k=r["as_large"], n=r["n_fakes"], p=r["p"],
+                alpha=e.get("alpha") or 0.05, need=e.get("min_effect")))
+        if e.get("type") == "placebo_failed":
+            lines.append("- " + L["placebo_bad"].format(name=e.get("placebo"), cand=e.get("id")))
     if tested and st.get("best_id") not in tested:
         lines.append(f"- {L['not_tested'].format(best=st.get('best_id'), cand=', '.join(tested))}")
     lines.append("")

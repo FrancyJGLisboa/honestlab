@@ -54,6 +54,8 @@ DEFAULT_CONFIG = {
     "keep_alpha": 0.1,
     "aggregate": "mean",
     "block_size": 1,
+    "placebos": [],
+    "event": None,
     "remeasure_best": False,
     "bootstrap": 2000,
     "finding": {"compare_to": "strongest", "min_effect": None, "effect": "absolute", "alpha": 0.05},
@@ -192,6 +194,25 @@ def duration_words(seconds: float) -> str:
 def load_local(root: Path) -> dict:
     p = root / LOCAL_FILE
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+
+
+def followups(root: Path) -> list:
+    """Labs created from this one with `honestlab init <path>` (follow-up questions), as existing roots."""
+    try:
+        paths = load_local(root).get("followups") or []
+    except (OSError, ValueError):
+        return []
+    return [Path(x) for x in paths if isinstance(x, str) and (Path(x) / CONFIG).is_file()]
+
+
+def add_followup(root: Path, lab: Path) -> None:
+    data = load_local(root)
+    lst = [x for x in data.get("followups") or [] if isinstance(x, str)]
+    if str(lab) not in lst:
+        lst.append(str(lab))
+    data["followups"] = lst
+    exclude_local(root)
+    save_local(root, data)
 
 
 def save_local(root: Path, data: dict) -> None:
@@ -625,7 +646,7 @@ def _finite(x) -> bool:
         return False
 
 
-def evaluate(root: Path, cfg: dict, split: str):
+def evaluate(root: Path, cfg: dict, split: str, extra_env=None):
     """Run the evaluator `repeats` times. Return (sample, extras, log, error).
 
     sample = {"score": mean metric, "units": per-instance scores or None, "repeats": [metric per run]}
@@ -633,13 +654,13 @@ def evaluate(root: Path, cfg: dict, split: str):
     reps = max(1, int(cfg.get("repeats") or 1))
     acc = _Runs()
     for r in range(reps):
-        err = acc.add(root, cfg, split, r, reps)
+        err = acc.add(root, cfg, split, r, reps, extra_env)
         if err:
             return None, acc.extras, "\n".join(acc.logs), err
     return acc.sample() + ("\n".join(acc.logs), None)
 
 
-def evaluate_paired(root: Path, cfg: dict, split: str, put):
+def evaluate_paired(root: Path, cfg: dict, split: str, put, extra_env=None):
     """Measure two versions of the code in alternation: A B, B A, A B, ... (`repeats` runs each).
 
     put("a") and put("b") switch the code and return an error text or "". A slow or busy machine
@@ -655,7 +676,7 @@ def evaluate_paired(root: Path, cfg: dict, split: str, put):
             if e:
                 put("b")
                 return None, None, {}, "", f"could not switch the code to measure it: {e}"
-            err = acc[which].add(root, cfg, split, r, reps)
+            err = acc[which].add(root, cfg, split, r, reps, extra_env)
             if err:
                 put("b")
                 who = "the current best, measured again" if which == "a" else "the change"
@@ -675,8 +696,10 @@ class _Runs:
         self.scores, self.unit_runs, self.logs, self.extras, self.warn = [], [], [], {}, None
         self.kind = "mean"
 
-    def add(self, root, cfg, split, r, reps):
-        s, ex, log, err = run_evaluator(root, cfg, split, {"HONESTLAB_REPEAT": str(r), "HONESTLAB_SEED": str(r)})
+    def add(self, root, cfg, split, r, reps, extra_env=None):
+        env = {"HONESTLAB_REPEAT": str(r), "HONESTLAB_SEED": str(r)}
+        env.update(extra_env or {})
+        s, ex, log, err = run_evaluator(root, cfg, split, env)
         self.logs.append(log)
         if err:
             self.extras = ex
@@ -901,6 +924,75 @@ def undeclared_packages(root: Path, cfg: dict) -> list:
     return sorted(found.items())
 
 
+_DATE = r"\d{4}-\d{2}(?:-\d{2})?"
+
+
+def _month_range(a: str, b: str) -> list:
+    y, m = int(a[:4]), int(a[5:7])
+    out = []
+    while f"{y:04d}-{m:02d}" <= b and len(out) < 10000:
+        out.append(f"{y:04d}-{m:02d}")
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return out
+
+
+def event_plan(cfg: dict):
+    """lab.json "event": the date of the event, the fake dates and the side. Return (plan, problems).
+
+    "fakes" is a list of dates or {"from": "YYYY-MM", "to": "YYYY-MM"} (every month in between).
+    """
+    import math
+    import re
+    ev = cfg.get("event")
+    if ev is None:
+        return None, []
+    if not isinstance(ev, dict):
+        return None, ["lab.json: event must be an object with date, fakes and side"]
+    probs = []
+    date = ev.get("date")
+    if not isinstance(date, str) or not re.fullmatch(_DATE, date):
+        probs.append("lab.json: event.date must be a date written YYYY-MM or YYYY-MM-DD")
+        return None, probs
+    fk = ev.get("fakes")
+    if isinstance(fk, dict):
+        a, b = fk.get("from"), fk.get("to")
+        if not (isinstance(a, str) and isinstance(b, str) and re.fullmatch(r"\d{4}-\d{2}", a)
+                and re.fullmatch(r"\d{4}-\d{2}", b) and a <= b):
+            probs.append('lab.json: event.fakes as a range must be {"from": "YYYY-MM", "to": "YYYY-MM"}, from <= to')
+            fk = []
+        else:
+            fk = _month_range(a, b)
+    if not isinstance(fk, list) or not all(isinstance(x, str) and re.fullmatch(_DATE, x) for x in fk):
+        probs.append("lab.json: event.fakes must be a list of dates (YYYY-MM or YYYY-MM-DD) or a month range")
+        fk = []
+    fk = sorted(set(fk))
+    if any(len(x) != len(date) for x in fk):
+        probs.append("lab.json: event.fakes must use the same date format as event.date")
+    if any(x >= date for x in fk):
+        probs.append("lab.json: every fake date must come before event.date: a fake date after the event "
+                     "would include the event's own effect")
+    alpha = float((cfg.get("finding") or {}).get("alpha") or 0.05)
+    need = max(1, math.ceil(1 / alpha) - 1) if 0 < alpha < 1 else 19
+    if len(fk) < need:
+        probs.append(f"lab.json: event.fakes has {len(fk)} dates; at least {need} are needed. With fewer, even "
+                     f"the largest possible gap cannot pass the test at alpha {alpha:g}")
+    if len(fk) > 1000:
+        probs.append("lab.json: event.fakes has more than 1000 dates; use fewer (each one runs the evaluator once)")
+    side = ev.get("side", "up")
+    if side not in ("up", "down", "both"):
+        probs.append("lab.json: event.side must be 'up' (the event raised the number), 'down' or 'both'")
+    return {"date": date, "fakes": fk, "side": side}, probs
+
+
+def event_rank(real: float, fakes: dict, side: str) -> dict:
+    """How many fake dates give a gap at least as large as the real one. p = (1 + k) / (1 + N)."""
+    def size(x):
+        return x if side == "up" else (-x if side == "down" else abs(x))
+    k = sum(size(v) >= size(real) for v in fakes.values())
+    n = len(fakes)
+    return {"as_large": k, "n_fakes": n, "p": (1 + k) / (1 + n)}
+
+
 def check_spec(root: Path, cfg: dict) -> list:
     import re
     problems = []
@@ -953,6 +1045,13 @@ def check_spec(root: Path, cfg: dict) -> list:
         problems.append("lab.json: finding.effect must be 'absolute' (metric units) or 'relative' (fraction)")
     if not (0 < float(fnd.get("alpha") or 0) < 0.5):
         problems.append("lab.json: finding.alpha must be between 0 and 0.5")
+    pl = cfg.get("placebos", [])
+    import re as _re
+    if not isinstance(pl, list) or len(pl) > 5 or not all(
+            isinstance(x, str) and _re.fullmatch(r"[a-z0-9_-]{1,40}", x) for x in pl):
+        problems.append("lab.json: placebos must be a list of up to 5 short names (lowercase letters, digits, - or _); "
+                        "the evaluator receives each one in HONESTLAB_PLACEBO and runs the fake version of the test")
+    problems += event_plan(cfg)[1]
     bs = cfg.get("block_size", 1)
     if not isinstance(bs, int) or isinstance(bs, bool) or bs < 1:
         problems.append("lab.json: block_size must be a whole number of 1 or more (1 when items are independent; "

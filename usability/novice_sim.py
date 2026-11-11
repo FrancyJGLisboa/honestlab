@@ -130,6 +130,18 @@ SCENARIOS = {
         "idea": "monte o exemplo do modelo de letras e deixe treinando sozinho enquanto eu durmo, por 4 horas",
         "expect": "overnight",
     },
+    "ureia_china": {
+        "facts": (
+            "Você é analista de mercado de fertilizantes numa empresa agrícola no Brasil. Em outubro de 2021 a "
+            "China passou a exigir inspeção para exportar fertilizantes, e o preço da ureia disparou. Você quer "
+            "saber se foi a medida da China que subiu o preço, ou se foi só o gás natural, que também subiu muito. "
+            "Você não tem dados nesta pasta. Sabe que o Banco Mundial publica preços mensais de ureia e de gás "
+            "(a 'Pink Sheet'). Você entende de mercado, mas não de estatística nem de programação. Pode esperar "
+            "umas 2 horas."),
+        "idea": ("quero saber se a inspeção de exportação de fertilizantes da China, em outubro de 2021, subiu o "
+                 "preço da ureia além do que o gás natural explica"),
+        "expect": "cause",
+    },
     "renda_adult": {
         "facts": (
             "Você é analista de dados iniciante numa ONG. Baixou um projeto de exemplo (esta pasta, o "
@@ -241,7 +253,7 @@ def report_verdict(work: Path) -> bool:
     """True when REPORT.md opens with one of honestlab's plain-language verdicts."""
     for rel in ("REPORT.md", "lab/REPORT.md"):
         f = work / rel
-        if f.exists() and re.search(r"(Encontrou|Sinal promissor|Não encontrou|Found|Promising but fragile|Not found)",
+        if f.exists() and re.search(r"(Encontrou|Sinal promissor|Não encontrou|Incomum|Não mostrou efeito|Found|Promising but fragile|Not found|Unusual|No effect shown)",
                                     f.read_text(encoding="utf-8")):
             return True
     return False

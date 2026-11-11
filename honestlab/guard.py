@@ -18,6 +18,7 @@ so a missed match here cannot corrupt a result: it only gets caught later.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import os
 import re
 import sys
@@ -62,7 +63,7 @@ GIT_HISTORY = re.compile(
     r"\bgit\b[^|;&\n]*?\s(commit|reset|rebase|filter-branch|filter-repo|update-ref|replace|"
     r"cherry-pick|revert|merge|am|notes)\b|\bgit\b[^|;&\n]*?\spush\b[^|;&\n]*(--force|\s-f\b)")
 HUMAN_ONLY = re.compile(r"\bhonestlab\s+(freeze|unfreeze|guard\s+prompt)\b")
-HONESTLAB_ONLY = re.compile(r"^\s*honestlab\s+(run|status|history|finding|check-spec|doctor|baseline|data|reference|report|init|setup)\b[^;&|`$<>\n]*$")
+HONESTLAB_ONLY = re.compile(r"^\s*honestlab\s+(run|status|history|finding|event|check-spec|doctor|baseline|data|reference|report|init|setup)\b[^;&|`$<>\n]*$")
 # Ways to approve or to learn the approval code without the person: honestlab's internals, the pending-code
 # file and Claude Code's session transcripts (which also hold the message shown to the person).
 APPROVAL_TAMPER = re.compile(
@@ -171,11 +172,68 @@ def _deny(reason: str, copilot: bool) -> int:
     return 2
 
 
+CD_FIRST = re.compile(r"^\s*cd\s+(['\"]?)([^'\"&;|\n]+?)\1\s*(?:&&|;)")
+
+
+def _route(root, payload: dict):
+    """The follow-up lab a call works on, or None.
+
+    A follow-up lab (created from this one with `honestlab init <path>`) has its own rules. A call goes to it
+    when every file it names is inside it, or when a shell command starts with `cd <that lab> &&`.
+    Return (lab, reason to deny or "").
+    """
+    labs = core.followups(root)
+    if not labs:
+        return None, ""
+    name, args, _ = _extract(payload)
+    kind = _kind(name, args)
+    cwd = Path(payload.get("cwd") or root)
+    if kind == "shell":
+        cmd = _command_text(args)
+        m = CD_FIRST.match(cmd)
+        if not m:
+            return None, ""
+        dirs = [m.group(2).strip()]
+    elif kind in ("write", "read"):
+        dirs = [x for x in _strings(args, PATH_KEYS) if x.strip()]
+        if not dirs:
+            return None, ""
+    else:
+        return None, ""
+    found = set()
+    for d in dirs:
+        try:
+            p = (cwd / os.path.expanduser(d)).resolve()
+        except (OSError, RuntimeError):
+            return None, ""
+        found.add(next((lab for lab in labs if p == lab.resolve() or lab.resolve() in p.parents), None))
+    if len(found) != 1 or None in found:
+        return None, ""
+    lab = found.pop()
+    text = "\n".join(_strings(args)).replace(str(lab.resolve()), "").replace(str(lab), "")
+    first = str(root.resolve())
+    if re.search(re.escape(first) + r"(?![\w.-])", text) or re.search(re.escape(str(root)) + r"(?![\w.-])", text) \
+            or (kind == "shell" and re.search(r"(^|[\s/'\"=])\.\.([/\s'\"]|$)", text)):
+        return lab, ("work on one lab per call: a call on the follow-up lab must not name the first lab's "
+                     "folder or use '..'. Use absolute paths inside the follow-up lab.")
+    return lab, ""
+
+
 def pre(payload: dict) -> int:
     root = core.find_root(payload.get("cwd")) or core.find_root()
     if root is None:
         return 0
     name, args, copilot = _extract(payload)
+    try:
+        lab, why = _route(root, payload)
+    except Exception:
+        lab, why = None, ""
+    if lab is not None:
+        if why:
+            _log(root, "pre", "deny", name, why)
+            return _deny(why, copilot)
+        root = lab
+        payload = dict(payload, cwd=str(lab))
     try:
         code = _pre(root, payload)
     except core.LabError as e:

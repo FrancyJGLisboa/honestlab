@@ -107,6 +107,31 @@ move together: the bootstrap then draws runs of that many neighbours (a moving-b
 about 24% (single days: 47%); on 500 days, 11%. So blocks help, and the held-out later period stays
 the main check.
 
+Fake tests: `"placebos": ["shuffled", "fake_date"]` (up to five short names). Before the held-out data
+is used, `honestlab finding new` measures the known method and the candidate side by side on dev with
+`HONESTLAB_PLACEBO` set to each name; the evaluator runs that fake version of the test (answers in a
+random order, an event moved to a date when nothing happened, an outcome the change cannot touch). If
+the candidate still beats the known method there with a clear margin (the interval above zero), the
+finding is refused, the ledger records `placebo_failed`, and no held-out look is spent. The report
+lists the fake tests each finding passed or failed.
+
+Event test: `"event": {"date": "2021-10", "fakes": {"from": "2010-01", "to": "2021-05"}, "side": "up"}`
+answers "did this event change that number?". The fake dates are a list (`YYYY-MM` or `YYYY-MM-DD`) or a
+month range, all before the event date, at least `1/alpha - 1` of them (19 at alpha 0.05). After
+approval, `honestlab event` runs the evaluator once per fake date on dev and once at the event date on
+holdout, with `HONESTLAB_EVENT_DATE` set; the evaluator prints the gap (real minus the normal value over
+its window) under the metric's name. The result is the rank of the real gap among the fake gaps:
+p = (1 + k) / (1 + N), where k fake dates gave a gap as large or larger (`side`: `up`, `down` or `both`).
+It passes when p <= `finding.alpha` and the gap is at least `finding.min_effect` (in metric units). The event date counts as one held-out look, runs once per approval,
+and is refused when the editable model changed after approval (attempts tuned on the fake dates would
+make them look calm). A pass shows the change is unusual; it cannot separate two events in the same window.
+
+Follow-up questions: `honestlab init ../next` run inside a lab creates a second lab next to it and lists it in
+the first lab's `.honestlab/local.json`. A lab inside another lab is refused. The guard applies the second
+lab's rules to a call when every file the call names is inside that lab, or when a shell command starts
+with `cd <that lab> &&`; such a call must not name the first lab's folder or use `..`. When the first lab
+is locked, `aprovar`/`approve` in the chat shows the waiting follow-up lab's page, and the code locks it.
+
 How free the search is: `"keep_rule": "significant"` (the default, "prove") keeps an attempt only when
 its gain is unlikely to be luck. `"keep_rule": "point"` ("explore") keeps every attempt that beats the
 current best, so the agent can build on small or uncertain gains. The finding gate is the same in both
@@ -143,6 +168,7 @@ honestlab finding new -m "claim"                holdout confirmation; opens find
 honestlab finding new --candidate E00NN -m ..   promote a reverted experiment that met the dev bar
 honestlab finding ablate F00N                   undo each part of the change and measure it (dev only)
 honestlab finding verify F00N                   record the review verdict
+honestlab event                                 event test: the gap at the event date ranked among fake dates (once)
 honestlab reproduce [F00N]                      measure again from a clean copy of the history; same verdict?
 honestlab report                                write REPORT.md
 honestlab doctor                                installation and integrity checks

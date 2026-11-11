@@ -15,4 +15,7 @@ echo "== reproduction ==";               python3 "$T/reproduce_test.py" "$L" | t
 echo "== machine-speed drift ==";        python3 "$T/drift_test.py" "$L" | tail -1
 echo "== explain-back checker ==";       python3 "$T/explain_back_test.py" | tail -1
 echo "== measures beyond the mean ==";  python3 "$T/measure_test.py" "$L" | tail -1
+echo "== fake tests ==";                 python3 "$T/placebo_test.py" "$L" | tail -1
+echo "== event test ==";                 python3 "$T/event_test.py" "$L" | tail -1
+echo "== follow-up questions ==";        python3 "$T/followup_test.py" "$L" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"

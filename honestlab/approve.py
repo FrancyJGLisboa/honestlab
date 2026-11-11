@@ -166,8 +166,22 @@ def handle(payload: dict) -> int:
     pt = core.is_pt(cfg)
     if unlock:
         return _ask_unlock(root, cfg, pt) if st.get("frozen") else 0
-    if asks and st.get("frozen"):
-        return 0
+    follow = None
+    if st.get("frozen") and not (confirms and _pending_path(root).is_file()):
+        # The first lab is locked: approval goes to the one follow-up lab that waits for it (created from this
+        # lab with `honestlab init <path>`). A pending code there also belongs to that lab.
+        waiting = [lab for lab in core.followups(root) if not core.load_state(lab).get("frozen")]
+        if confirms:
+            waiting = [lab for lab in waiting if _pending_path(lab).is_file()] or waiting
+        if len(waiting) > 1 and asks:
+            names = ", ".join(lab.name for lab in waiting)
+            return _context(f"honestlab: the person typed 'approve', but {len(waiting)} follow-up labs wait for "
+                            f"approval ({names}). Approve one at a time: finish one, then create the next.")
+        if len(waiting) != 1:
+            return 0
+        follow = root = waiting[0]
+        cfg, st = core.load_config(root), core.load_state(root)
+        pt = core.is_pt(cfg)
     from .cli import freeze_preflight, freeze_lock  # late import: cli imports this module lazily too
 
     if asks:
@@ -180,6 +194,9 @@ def handle(payload: dict) -> int:
                 + ("'aprovar'." if pt else "'approve'."))
         code = _new_code(root, "approve", _snapshot(root, cfg))
         page = (root / core.approval_rel(cfg)).read_text(encoding="utf-8").strip()
+        if follow is not None:
+            page = ((f"(Pergunta seguinte, laboratório novo: {root.name})" if pt else
+                     f"(Follow-up question, new lab: {root.name})") + "\n\n" + page)
         if pt:
             msg = (f"honestlab: PARA APROVAR, ENVIE  sim {code}   (leia a página abaixo antes)\n\n"
                    f"{page}\n\n---\nEsta é a página real, lida do arquivo pelo honestlab (não pelo agente).\n"
@@ -240,6 +257,8 @@ def handle(payload: dict) -> int:
     note = (f"honestlab: the person approved in the chat. The lab is frozen ({n} protected files are "
             "hash-locked and read-only). Tell the person in one sentence that it is approved and locked, "
             "then continue with the experiments (phase 4 of the honestlab skill). "
+            + (f"This is the follow-up lab in {root}: run its commands with `cd {root} && honestlab ...`. "
+               if follow is not None else "")
             + ("The person speaks Portuguese: reply in Portuguese." if pt else "Reply in the person's language."))
     print(json.dumps({"systemMessage": ("Aprovado e trancado pelo honestlab." if pt else
                                         "Approved and locked by honestlab."),

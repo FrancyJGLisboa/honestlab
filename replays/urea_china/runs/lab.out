@@ -1,0 +1,1 @@
+{"scenario": "ureia_china", "version": "step5", "expect": "cause", "completed": false, "human_messages": 13, "human_commands": 0, "confused": 5, "minutes": 26.0, "lab": {"frozen": false, "experiments": 0, "references": []}, "report_file": false, "plain_verdict": false}

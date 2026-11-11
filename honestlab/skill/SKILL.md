@@ -61,6 +61,9 @@ there.
   'encontrei' com prova em dados guardados." Explore fits new ideas, small data and gains
   that may add up. Prove fits noisy measures and small gains. If they do not know, choose
   prove.
+- If the question is whether an event on a known date changed a number ("a proibição de
+  outubro subiu o preço?"), it fits honestlab: use the event test (`frame.md`, step 13). Ask
+  the date, the number, and what else happened in the same weeks.
 - If the idea needs data that the person does not have, do not reject the idea. Public
   sources often have it (`frame.md`, step 1). Stop only when the data does not exist yet.
 
@@ -120,6 +123,16 @@ When the best result reaches the margin on the approval page, or `honestlab repo
   them that `PROGRESS.html` shows every attempt as a chart, and that it opens in a browser
   with a double-click.
   "Não encontrou" is a normal and useful result: say what it means for them.
+
+## A follow-up question in the same chat
+When the lab is locked and the person asks a new question (a control product, another region, another
+measure), do not unlock the first lab and do not leave honestlab. From the first lab's folder run
+`honestlab init ../<short-name> --language <pt|en>`. The new lab has its own rules and its own approval:
+- Work on it with absolute paths inside it, and start shell commands with `cd <new lab> && ...`.
+  One lab per call: a call on the new lab must not name the first lab's folder or use `..`.
+- Frame it as usual (Phase 2), then ask the person to type `aprovar` in this same chat. honestlab shows
+  them the new lab's page, because the first lab is already locked.
+- The report of each lab stays in its own folder. Tell the person where both are.
 
 ## Never (each rule protects the test itself)
 - Never run `honestlab freeze`, `honestlab unfreeze` or `honestlab guard prompt`: only the

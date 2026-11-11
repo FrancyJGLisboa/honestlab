@@ -1,0 +1,35 @@
+{
+  "project": "ureia_china",
+  "language": "pt",
+  "metric": "score",
+  "direction": "minimize",
+  "evaluator": "{python} eval/evaluate.py",
+  "timeout_sec": 600,
+  "min_improvement": 0.0,
+  "editable": [
+    "src/model.py"
+  ],
+  "protected": [
+    "eval",
+    "data",
+    "lab.json",
+    "SPEC.md"
+  ],
+  "holdout_dir": "data/holdout",
+  "max_holdout_runs": 3,
+  "finding": {
+    "compare_to": "strongest",
+    "min_effect": 0.1,
+    "effect": "absolute",
+    "alpha": 0.05
+  },
+  "block_size": 3,
+  "event": {
+    "date": "2021-10",
+    "fakes": {
+      "from": "2010-01",
+      "to": "2021-05"
+    },
+    "side": "up"
+  }
+}

@@ -95,7 +95,7 @@ a trading strategy's profit over time, which need a block bootstrap.
   than three lines of plain numpy. Second and third place swap on our computer. See
   `replays/sorting/RESULTS.md`.
 
-## Step 5: cause, not only prediction (idea, not designed yet)
+## Step 5: cause, not only prediction (first piece done: fake tests)
 
 Today honestlab tests whether something helps to predict. It does not test whether something causes
 another thing: A can predict B because a third factor moves both. People often want the cause.
@@ -112,6 +112,27 @@ Two paths:
    - **Fake date:** the same test at a date when nothing happened. It must show about zero.
    - **Fake outcome:** the same test on something the event cannot touch. It must show zero.
    - The verdict names its assumption: "likely causal effect, if assumption X holds".
+
+**Done (first piece):** fake tests are machine-checked. `"placebos"` in `lab.json` names fake versions
+of the test; `honestlab finding new` runs each one before the held-out data and refuses a gain that stays
+(`tests/placebo_test.py`). A first case with real data: `replays/urea_china/RESULTS.md`
+(China's October 2021 fertilizer export checks). Urea rose about 84% above what gas prices explain, and only
+1 of 137 fake dates came close, but the checks cannot be told apart from China's power cuts and the record
+gas prices of the same weeks. When a simulated analyst asked honestlab the same question, the agent
+found more than we did (only urea jumped; China's exports fell only in December; an Indian tender closed 12
+days before the checks) but left the lab: nothing was locked.
+
+Second piece done: the **event test** (`"event"` in `lab.json`, `honestlab event`, framing step 13). The
+data after the event sits in the sealed holdout, the normal-value model and the fake dates are locked at
+approval, and honestlab ranks the real gap among the fake gaps once (`tests/event_test.py`, 18 cases).
+Measured on the urea rerun (`replays/urea_china/RESULTS.md`, run 2): the agent stayed in the lab, locked the
+method before the result, and reported "unusual, not proof of cause"; confused replies fell from 5 to 3. The
+run showed a new gap: a follow-up question (a control product) needs a second lab, and the first lab's lock
+blocks it in the same session.
+Third piece done: a follow-up question in the same chat (`honestlab init ../next` from inside a lab; the
+guard applies each lab's own rules; `aprovar` approves the waiting follow-up lab; `tests/followup_test.py`,
+18 cases). Not yet measured with the simulated analyst. Next piece: a design that only one event touches (a
+product or region the event did not reach), using a follow-up lab as the control.
 
 The designs are standard econometrics (difference-in-differences, placebo tests). Libraries such as
 DoWhy already offer similar refutation tests. What would be new is making them mandatory and locked
@@ -149,7 +170,8 @@ his public texts, not his opinion. Two ideas came out of it:
    held-out data (ideally a different test, not another slice of the same data) and the ledger. Same
    rigor, less text. autoresearch won people over by being three files.
 2. **Sanity checks before the first attempt** (first version in `frame.md` step 11: guess, scrambled
-   answers, direction; written as agent steps, not yet checked by honestlab), from the "Recipe": the measure must give the expected
+   answers, direction; written as agent steps. The scrambled-answers check can now be machine-checked as
+   the `shuffled` fake test of Step 5), from the "Recipe": the measure must give the expected
    value for a model that guesses (for example the loss at the start of training) and for one that
    memorizes a small batch. Neural networks fail silently, so a broken evaluator should be caught before
    a night of experiments, not after.
