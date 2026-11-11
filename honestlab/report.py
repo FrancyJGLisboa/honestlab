@@ -35,6 +35,7 @@ T = {
         "placebo_ok": "Testes falsos de {fid} (versões do teste em que um efeito real some): {names}: nenhum mostrou ganho",
         "event_ok": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). PASSOU: a mudança é incomum. Isso não prova a causa: outro fato na mesma janela também pode explicá-la",
         "event_small": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: a mudança é incomum, mas menor que a margem aprovada ({need})",
+        "sanity_ok": "Conferência do avaliador antes da primeira tentativa: a solução inicial ({base}) ganha com folga das versões quebradas {items}",
         "event_ctl": "Comparado com o controle '{ctl}' (uma série parecida que o evento não atinge): série atingida {t}, controle {c}. A diferença é o que foi testado. O controle mudou tanto quanto ou mais em {k} de {n} datas falsas",
         "event_ctl_moved": "AVISO: o controle '{ctl}' também mudou de forma incomum na data do evento. Ou o evento o atingiu, ou algo atingiu as duas séries. A diferença pode esconder parte do efeito",
         "event_bad": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: mudanças desse tamanho também acontecem em datas comuns",
@@ -124,6 +125,7 @@ T = {
         "placebo_ok": "Fake tests for {fid} (versions of the test where a real effect vanishes): {names}: none showed a gain",
         "event_ok": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). PASSED: the change is unusual. This does not prove the cause: another event in the same window can explain it too",
         "event_small": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: the change is unusual but smaller than the approved margin ({need})",
+        "sanity_ok": "Evaluator check before the first attempt: the starting solution ({base}) clearly beats the broken versions {items}",
         "event_ctl": "Compared with the control '{ctl}' (a similar series the event does not reach): treated series {t}, control {c}. The difference is what was tested. The control moved as far or farther on {k} of {n} fake dates",
         "event_ctl_moved": "WARNING: the control '{ctl}' also moved unusually at the event date. Either the event reached it, or something hit both series. The difference may hide part of the effect",
         "event_bad": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: changes this large also happen on ordinary dates",
@@ -344,6 +346,10 @@ def build(root, cfg, st):
     for fid, f in sorted(finds.items()):
         if f.get("placebos"):
             lines.append("- " + L["placebo_ok"].format(fid=fid, names=", ".join(sorted(f["placebos"]))))
+    bl = [e for e in led if e.get("type") == "baseline" and e.get("sanity")]
+    if bl:
+        items = ", ".join(f"'{k}' = {_fmt(v.get('score'))}" for k, v in sorted(bl[-1]["sanity"].items()))
+        lines.append("- " + L["sanity_ok"].format(base=_fmt(bl[-1].get("score")), items=items))
     for e in led:
         if e.get("type") == "event_test" and e.get("rank"):
             r = e["rank"]

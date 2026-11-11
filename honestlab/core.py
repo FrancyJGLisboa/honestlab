@@ -55,6 +55,7 @@ DEFAULT_CONFIG = {
     "aggregate": "mean",
     "block_size": 1,
     "placebos": [],
+    "sanity": [],
     "event": None,
     "remeasure_best": False,
     "bootstrap": 2000,
@@ -1056,6 +1057,12 @@ def check_spec(root: Path, cfg: dict) -> list:
             isinstance(x, str) and _re.fullmatch(r"[a-z0-9_-]{1,40}", x) for x in pl):
         problems.append("lab.json: placebos must be a list of up to 5 short names (lowercase letters, digits, - or _); "
                         "the evaluator receives each one in HONESTLAB_PLACEBO and runs the fake version of the test")
+    sn = cfg.get("sanity", [])
+    if not isinstance(sn, list) or len(sn) > 5 or not all(
+            isinstance(x, str) and _re.fullmatch(r"[a-z0-9_-]{1,40}", x) for x in sn):
+        problems.append("lab.json: sanity must be a list of up to 5 short names (lowercase letters, digits, - or _); "
+                        "the evaluator receives each one in HONESTLAB_SANITY and measures a broken solution "
+                        "(for example 'guess': a model that always gives the same answer)")
     problems += event_plan(cfg)[1]
     bs = cfg.get("block_size", 1)
     if not isinstance(bs, int) or isinstance(bs, bool) or bs < 1:

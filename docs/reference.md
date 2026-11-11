@@ -107,6 +107,13 @@ move together: the bootstrap then draws runs of that many neighbours (a moving-b
 about 24% (single days: 47%); on 500 days, 11%. So blocks help, and the held-out later period stays
 the main check.
 
+Sanity checks: `"sanity": ["guess"]` (up to five short names). At `honestlab baseline` the evaluator runs once
+more on dev for each name with `HONESTLAB_SANITY` set and measures a broken solution (for example one that
+always gives the same answer). The starting solution must beat it on the point estimate and, with per-item
+scores, with the interval above zero. If not, the baseline is refused: the evaluator ignores the solution,
+the broken version is not broken, or the answers leak into the inputs. The ledger, the approval summary and
+the report name the checks.
+
 Fake tests: `"placebos": ["shuffled", "fake_date"]` (up to five short names). Before the held-out data
 is used, `honestlab finding new` measures the known method and the candidate side by side on dev with
 `HONESTLAB_PLACEBO` set to each name; the evaluator runs that fake version of the test (answers in a

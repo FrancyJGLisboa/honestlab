@@ -182,7 +182,7 @@ Needed pieces:
 Limit: the guard checks each call by its target lab. It cannot tell which subagent made a call, so a
 subagent could still touch another family's lab before that lab is approved.
 
-## Step 7: less ceremony for experienced researchers (idea, not designed yet)
+## Step 7: less ceremony for experienced researchers (idea 2 started: sanity checks)
 
 Thought experiment: how would a researcher in the style of Karpathy's public writing (the autoresearch
 `program.md`, nanoGPT, "A Recipe for Training Neural Networks") use honestlab? This is our reading of
@@ -198,5 +198,8 @@ his public texts, not his opinion. Two ideas came out of it:
    value for a model that guesses (for example the loss at the start of training) and for one that
    memorizes a small batch. Neural networks fail silently, so a broken evaluator should be caught before
    a night of experiments, not after.
+   **Done (first piece):** `"sanity": ["guess"]` in `lab.json`. `honestlab baseline` measures each broken
+   solution and refuses a measure that cannot tell the starting solution from it (`tests/sanity_test.py`,
+   9 cases). Still open: the "memorizes a small batch" check for training runs.
 
 Related: several agents on several machines at once is Step 6.

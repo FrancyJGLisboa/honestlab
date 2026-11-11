@@ -126,7 +126,10 @@ data" and "holdout data" mean the paths it prints.
 10. Red-team the evaluator: list in SPEC "Known ways to cheat this metric" three ways a
     solution could score well without being good, and close each one you can.
 11. Sanity checks, before the approval page. A broken evaluator fails silently and wastes the
-    whole run. In a scratch copy (not in the editable paths), check and write the results in
+    whole run. Let honestlab check the first one: add `"sanity": ["guess"]` to `lab.json` and make
+    the evaluator measure a solution that always gives the same answer when `HONESTLAB_SANITY`
+    is `guess`. `honestlab baseline` then refuses a measure that cannot tell the starting
+    solution from that guess. In a scratch copy (not in the editable paths), check and write the results in
     SPEC "Evaluator":
     - **A guess scores like a guess.** A solution that ignores the inputs (the average, the
       most common answer, or random) gives the expected chance value, for example AUC near

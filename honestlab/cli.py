@@ -370,6 +370,7 @@ def cmd_baseline(a):
                            "(seed 0, then seed 1). The result changes from run to run (training, sampling or timing), "
                            "so one run per attempt cannot tell a real gain from luck. Set \"repeats\": 3 (or more) "
                            "in lab.json, seed the randomness from HONESTLAB_SEED, and run `honestlab baseline` again.")
+    sanity = _sanity_checks(root, cfg, sample)
     core.save_sample(root, "baseline-dev", sample)
     st.update(baseline=score, best=score, best_id="baseline")
     core.save_state(root, st)
@@ -388,9 +389,12 @@ def cmd_baseline(a):
                               "references": {n: r["dev"] for n, r in refs.items()},
                               "uncertainty": "per_unit" if (sample["units"] or sample.get("auc_runs")) else
                                              ("repeats" if len(sample["repeats"]) > 1 else "none"),
-                              "extras": extras, "env": core.env_info(cfg)})
+                              "sanity": sanity or None, "extras": extras, "env": core.env_info(cfg)})
     core.commit(root, f"honestlab: baseline {cfg['metric']}={score:.6g}")
     out(f"Baseline {cfg['metric']} = {score:.6g} ({cfg['direction']}).")
+    for name, r in sorted(sanity.items()):
+        out(f"Sanity check '{name}' passed: a broken solution scores {r['score']:.6g}, clearly "
+            f"worse than the starting solution ({stats_describe(r['comparison'])}).")
     for n, r in sorted(refs.items()):
         out(f"Reference {n}: {r['dev']:.6g}")
     if not sample["units"] and not sample.get("auc_runs") and len(sample["repeats"]) < 2:
@@ -401,6 +405,37 @@ def cmd_baseline(a):
             "best known method with `honestlab reference add <name>` so the bar is not a weak starting point.")
     out(f"Next: the person reads {core.approval_rel(cfg)} and approves it: `aprovar`/`approve` in the Claude Code chat, "
         "or `honestlab freeze` in a terminal.")
+
+
+def stats_describe(cmp):
+    from . import stats
+    return stats.describe(cmp) if cmp else "point estimates only"
+
+
+def _sanity_checks(root, cfg, base) -> dict:
+    """Measure each broken solution named in lab.json "sanity" (HONESTLAB_SANITY) and require the starting
+    solution to beat it clearly. A measure that cannot tell a real solution from a guess is broken (it ignores
+    the solution, or the answers leak into the inputs), and every result built on it would be noise."""
+    from . import stats
+    res = {}
+    for name in cfg.get("sanity") or []:
+        smp, _, log, err = core.evaluate(root, cfg, "dev", {"HONESTLAB_SANITY": name})
+        if err:
+            out(log[-2000:])
+            raise LabError(f"Sanity check '{name}' could not run: {err}. The evaluator must run the broken version "
+                           "when HONESTLAB_SANITY is set.")
+        cmp = stats.compare(base, smp, cfg["direction"], float(cfg["finding"]["alpha"]), int(cfg["bootstrap"]),
+                            measure=core.measure_fn(root, cfg), block=core.block_size(cfg))
+        clear = core.better(cfg, base["score"], smp["score"]) and (cmp is None or cmp["lo"] is None
+                                                                    or stats.significant(cmp))
+        if not clear:
+            raise LabError(
+                f"Baseline refused: the measure cannot tell the starting solution ({base['score']:.6g}) from the "
+                f"broken one '{name}' ({smp['score']:.6g}; {stats_describe(cmp)}). Either the evaluator ignores the "
+                "solution, the broken version is not broken, or the answers leak into the inputs. Fix the evaluator "
+                "before approval: every result measured with it would be noise.", 2)
+        res[name] = {"score": smp["score"], "comparison": cmp}
+    return res
 
 
 def cmd_reference_add(a):
@@ -604,6 +639,8 @@ def freeze_summary(cfg, st) -> list:
               f"holdout CI excluding zero at alpha {fnd['alpha']}/{cfg['max_holdout_runs']}",
               f"Protected:  {', '.join(core.protected_paths(cfg))}",
               f"Editable:   {', '.join(cfg['editable'])} (+ {', '.join(core.free_dirs(cfg))})"]
+    if cfg.get("sanity"):
+        lines.append(f"Sanity:     the starting solution clearly beats {', '.join(cfg['sanity'])} (checked at baseline)")
     return lines
 
 

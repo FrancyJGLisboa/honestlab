@@ -18,4 +18,5 @@ echo "== measures beyond the mean ==";  python3 "$T/measure_test.py" "$L" | tail
 echo "== fake tests ==";                 python3 "$T/placebo_test.py" "$L" | tail -1
 echo "== event test ==";                 python3 "$T/event_test.py" "$L" | tail -1
 echo "== follow-up questions ==";        python3 "$T/followup_test.py" "$L" | tail -1
+echo "== sanity checks ==";              python3 "$T/sanity_test.py" "$L" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"
