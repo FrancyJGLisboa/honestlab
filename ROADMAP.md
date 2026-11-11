@@ -234,7 +234,7 @@ main lab to belong to another user, or to live on another machine.
 cannot tell which subagent made a call. The design does not judge whether the hypotheses are good ideas:
 it only makes sure that none of them fools anyone by luck.
 
-## Step 7: less ceremony for experienced researchers (idea 2 started: sanity checks)
+## Step 7: less ceremony for experienced researchers (both ideas built; the batch check still open)
 
 Thought experiment: how would a researcher in the style of Karpathy's public writing (the autoresearch
 `program.md`, nanoGPT, "A Recipe for Training Neural Networks") use honestlab? This is our reading of
@@ -244,6 +244,9 @@ his public texts, not his opinion. Two ideas came out of it:
    approval page and no ten-section SPEC. Keep only what makes the result honest: the locked bar, the
    held-out data (ideally a different test, not another slice of the same data) and the ledger. Same
    rigor, less text. autoresearch won people over by being three files.
+   **Done:** `honestlab init --researcher`: a three-section SPEC, no APPROVAL.md, a page generated from SPEC
+   and lab.json at approval; the gate, the held-out data and the ledger unchanged (`tests/researcher_test.py`,
+   11 cases). Not measured yet: whether an experienced researcher finds it fast enough.
 2. **Sanity checks before the first attempt** (first version in `frame.md` step 11: guess, scrambled
    answers, direction; written as agent steps. The scrambled-answers check can now be machine-checked as
    the `shuffled` fake test of Step 5), from the "Recipe": the measure must give the expected

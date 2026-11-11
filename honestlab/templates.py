@@ -140,6 +140,21 @@ TODO: rules from the project's own files (README, program.md, AGENTS.md, depende
 TODO: at least three, and how the evaluator closes each one.
 """
 
+SPEC_RESEARCHER = """# SPEC: {name} (researcher mode)
+
+<!-- Three sections. The bar, the held-out data and the ledger work as in guided mode;
+     `honestlab freeze` shows a page generated from this file and lab.json. -->
+
+## Question
+TODO: one falsifiable sentence.
+
+## Metric
+TODO: what eval/evaluate.py prints, its unit and direction (must match lab.json).
+
+## What counts as a finding
+TODO: the bar (also in lab.json "finding") and the strongest known method it is measured against.
+"""
+
 LAB_JSON_GENERIC = {
     "project": "{name}",
     "language": "{language}",
@@ -713,7 +728,7 @@ def _skill_entries(agents) -> dict:
     return out
 
 
-def project_files(name: str, example=None, agents=AGENTS, language="en") -> dict:
+def project_files(name: str, example=None, agents=AGENTS, language="en", researcher=False) -> dict:
     lang = "pt" if language.startswith("pt") else "en"
     files = {
         "AGENTS.md": AGENTS_MD,
@@ -734,9 +749,14 @@ def project_files(name: str, example=None, agents=AGENTS, language="en") -> dict
         files["eval/evaluate.py"] = _example_file("charlm", "evaluate.py")
         files["src/model.py"] = _example_file("charlm", "model.py")
     else:
-        files["SPEC.md"] = SPEC_GENERIC.format(name=name)
+        files["SPEC.md"] = (SPEC_RESEARCHER if researcher else SPEC_GENERIC).format(name=name)
         files["lab.json"] = _json(LAB_JSON_GENERIC, name, lang)
-        files["APPROVAL.md"] = APPROVAL_TODO[lang].format(name=name)
+        if researcher:
+            cfg = json.loads(files["lab.json"])
+            cfg["mode"] = "researcher"
+            files["lab.json"] = json.dumps(cfg, indent=2) + "\n"
+        else:
+            files["APPROVAL.md"] = APPROVAL_TODO[lang].format(name=name)
         files["eval/evaluate.py"] = EVAL_STUB
     files.update(_skill_entries([a for a in agents if not (a == "claude" and via_plugin())]))
     if "claude" in agents:

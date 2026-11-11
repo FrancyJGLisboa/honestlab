@@ -127,6 +127,12 @@ after a split, the held-out alpha is also divided by the number of families. Aft
 section "The team": the number of families, attempts and hypotheses tested, and one row per hypothesis
 (not tested; tested with no gain kept; gained in its family; confirmed or not on the held-out data).
 
+Researcher mode: `honestlab init <dir> --researcher` (or `"mode": "researcher"` in lab.json) for people who know
+the method. SPEC.md needs only Question, Metric and What counts as a finding, and there is no APPROVAL.md:
+`honestlab freeze` and `aprovar`/`approve` in the chat show a page generated from those sections and the
+locked settings. Everything that makes the result honest is unchanged: the bar, the held-out data and its
+looks, the sanity checks, fake tests and the ledger.
+
 Sanity checks: `"sanity": ["guess"]` (up to five short names). At `honestlab baseline` the evaluator runs once
 more on dev for each name with `HONESTLAB_SANITY` set and measures a broken solution (for example one that
 always gives the same answer). The starting solution must beat it on the point estimate and, with per-item
@@ -182,6 +188,7 @@ evaluator's variables (frames, `gc`, `inspect`). These rules are a tripwire, not
 ```
 honestlab setup                                 install the honestlab skill for your user (once)
 honestlab init [dir] [--example binpack|charlm] [--agents claude,codex,copilot] [--language en|pt]
+honestlab init [dir] --researcher               three-section SPEC, generated approval page
 honestlab init --here [--editable a,b] [--lab-dir lab] [--branch name | --no-branch]
 honestlab data add FILE --split dev|holdout     copy data into the lab (before approval)
 honestlab reference add NAME --from FILE -m ..  register a known method (before approval)

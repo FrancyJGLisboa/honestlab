@@ -227,7 +227,7 @@ AlphaEvolve finds. What it does is tell you honestly whether your idea holds up.
   for approving and unlocking in the chat and for the plugin, 17 replays of the attacks from the
   stress test, 73 robustness cases (malformed evaluator output, damaged records, odd paths, two
   runs at once, native libraries, run-to-run noise, undeclared packages, explore and prove modes), 24 overnight mode cases, 17 ablation cases, 11 reproduction cases,
-  30 machine-speed drift cases, 22 explain-back checker cases, 36 measure cases (AUC, F1, RMSE, median, days in time order), 12 fake-test cases, 26 event-test cases, 18 follow-up question cases, 9 sanity-check cases, 15 hypothesis-list cases and 30 team cases
+  30 machine-speed drift cases, 22 explain-back checker cases, 36 measure cases (AUC, F1, RMSE, median, days in time order), 12 fake-test cases, 26 event-test cases, 18 follow-up question cases, 9 sanity-check cases, 15 hypothesis-list cases, 11 researcher-mode cases and 30 team cases
   (`bash tests/run_all.sh`). Every claim on
   this page is mapped to the command that checks it in [VERIFICATION.md](VERIFICATION.md).
 

@@ -113,7 +113,8 @@ def cmd_init(a):
         if importlib.util.find_spec("numpy") is None:
             raise LabError(f"The charlm example needs numpy for the Python that runs honestlab ({sys.executable}). "
                            f"Install it with `{sys.executable} -m pip install numpy`, then run this again.")
-    files = templates.project_files(name, example=a.example, agents=agents, language=a.language)
+    files = templates.project_files(name, example=a.example, agents=agents, language=a.language,
+                                    researcher=bool(getattr(a, "researcher", False)) and not a.example)
     written, skipped = [], []
     for rel, content in files.items():
         p = target / rel
@@ -403,7 +404,8 @@ def cmd_baseline(a):
     if not refs:
         out("Note: no strong reference registered. Findings will be compared with this baseline only; register the "
             "best known method with `honestlab reference add <name>` so the bar is not a weak starting point.")
-    out(f"Next: the person reads {core.approval_rel(cfg)} and approves it: `aprovar`/`approve` in the Claude Code chat, "
+    what = "the generated page (researcher mode)" if core.researcher(cfg) else core.approval_rel(cfg)
+    out(f"Next: the person reads {what} and approves it: `aprovar`/`approve` in the Claude Code chat, "
         "or `honestlab freeze` in a terminal.")
 
 
@@ -651,6 +653,22 @@ def freeze_summary(cfg, st, root=None) -> list:
     return lines
 
 
+def approval_text(root, cfg, st) -> str:
+    """The page the person approves: APPROVAL.md, or in researcher mode a page generated from SPEC and lab.json."""
+    ap = root / core.approval_rel(cfg)
+    if not core.researcher(cfg) and ap.is_file():
+        return ap.read_text(encoding="utf-8").strip()
+    secs = core.spec_sections((root / core.spec_rel(cfg)).read_text(encoding="utf-8"))
+    lines = [f"# Approval (researcher mode): {cfg.get('project')}", ""]
+    for name in core.SPEC_SECTIONS_RESEARCHER:
+        lines += [f"**{name}.** {(secs.get(name) or '').strip()}", ""]
+    lines += [f"**Held-out data:** {cfg.get('holdout_dir')}/, at most {cfg['max_holdout_runs']} looks, "
+              "used only by `honestlab finding new` (or `honestlab event`).",
+              f"**Keep rule:** {cfg.get('keep_rule')}.", ""]
+    lines += ["```", *freeze_summary(cfg, st, root), "```"]
+    return "\n".join(lines)
+
+
 def freeze_lock(root, cfg, st, via: str, evidence: dict = None) -> int:
     """Measure the holdout, hash and lock. Returns the number of protected files."""
     sample, extras, log, err = core.evaluate(root, cfg, "holdout")
@@ -688,10 +706,9 @@ def cmd_freeze(a):
             return
         raise
     require_human("freeze")
-    ap = root / core.approval_rel(cfg)
     bar = "=" * 72
     out(bar)
-    out(ap.read_text(encoding="utf-8").strip())
+    out(approval_text(root, cfg, st))
     out(bar)
     for line in freeze_summary(cfg, st, root):
         out(line)
@@ -1558,6 +1575,9 @@ def build_parser():
     s.add_argument("--branch", help="with --here: branch to create (default: honestlab/<name>)")
     s.add_argument("--no-branch", action="store_true", help="with --here: stay on the current branch")
     s.add_argument("--language", help="language of the approval page and report: pt or en (default: from LANG)")
+    s.add_argument("--researcher", action="store_true",
+                   help="researcher mode: a three-section SPEC and a generated approval page; same bar, held-out "
+                        "data and ledger")
     s.set_defaults(fn=cmd_init)
 
     sub.add_parser("check-spec", help="verify SPEC.md and lab.json are complete").set_defaults(fn=cmd_check_spec)

@@ -193,7 +193,8 @@ def handle(payload: dict) -> int:
                 f"{e}. Fix this, show the person the approval page again, and ask them to type "
                 + ("'aprovar'." if pt else "'approve'."))
         code = _new_code(root, "approve", _snapshot(root, cfg))
-        page = (root / core.approval_rel(cfg)).read_text(encoding="utf-8").strip()
+        from .cli import approval_text
+        page = approval_text(root, cfg, st)
         if follow is not None:
             page = ((f"(Pergunta seguinte, laboratório novo: {root.name})" if pt else
                      f"(Follow-up question, new lab: {root.name})") + "\n\n" + page)

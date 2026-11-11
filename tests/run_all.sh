@@ -20,5 +20,6 @@ echo "== event test ==";                 python3 "$T/event_test.py" "$L" | tail 
 echo "== follow-up questions ==";        python3 "$T/followup_test.py" "$L" | tail -1
 echo "== sanity checks ==";              python3 "$T/sanity_test.py" "$L" | tail -1
 echo "== locked hypothesis list ==";     python3 "$T/hypotheses_test.py" "$L" | tail -1
+echo "== researcher mode ==";            python3 "$T/researcher_test.py" "$L" | tail -1
 echo "== team ==";                       python3 "$T/team_test.py" "$L" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"

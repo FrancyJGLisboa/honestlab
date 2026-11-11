@@ -41,6 +41,13 @@ there.
 - Run `honestlab status` again and note the paths it prints (approval page, SPEC, editable
   code, data folders, report). Below, names like "the approval page" mean those paths.
 
+## Researcher mode
+If the person says they know the method ("modo pesquisador", "researcher mode", "sem cerimônia", "I know
+what I'm doing"), use `honestlab init --researcher`. The SPEC has three sections (Question, Metric, What
+counts as a finding) and there is no APPROVAL.md: honestlab generates the page from SPEC and lab.json. Ask
+only what you cannot read from their files, in technical words if they use them. The held-out data, the
+bar, the sanity checks and the ledger work exactly as in guided mode.
+
 ## Phase 1: understand (first human moment)
 - If the person brought an idea, restate it in one sentence.
 - If they brought a project but no idea, follow `scout.md`, then offer the best one to

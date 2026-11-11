@@ -36,6 +36,14 @@ SPEC_SECTIONS = [
     "Known ways to cheat this metric",
 ]
 
+# Researcher mode (lab.json "mode": "researcher"): the three sections that make a result honest. The bar,
+# the held-out data and the ledger stay the same; the approval page is generated from these and lab.json.
+SPEC_SECTIONS_RESEARCHER = ["Question", "Metric", "What counts as a finding"]
+
+
+def researcher(cfg: dict) -> bool:
+    return cfg.get("mode") == "researcher"
+
 DEFAULT_CONFIG = {
     "project": "experiment",
     "language": "en",
@@ -1062,7 +1070,7 @@ def check_spec(root: Path, cfg: dict) -> list:
     if not spec.exists():
         return [f"{spec_name} is missing"]
     secs = spec_sections(spec.read_text(encoding="utf-8"))
-    for name in SPEC_SECTIONS:
+    for name in (SPEC_SECTIONS_RESEARCHER if researcher(cfg) else SPEC_SECTIONS):
         body = secs.get(name)
         if body is None:
             problems.append(f"{spec_name}: section '## {name}' is missing")
@@ -1072,7 +1080,9 @@ def check_spec(root: Path, cfg: dict) -> list:
             problems.append(f"{spec_name}: section '{name}' still contains TODO")
     ap_name = approval_rel(cfg)
     ap = root / ap_name
-    if not ap.exists() or not ap.read_text(encoding="utf-8").strip():
+    if researcher(cfg):
+        pass  # the approval page is generated from SPEC and lab.json
+    elif not ap.exists() or not ap.read_text(encoding="utf-8").strip():
         problems.append(f"{ap_name} is missing: the one-page plain-language summary the human approves")
     elif "TODO" in re.sub(r"<!--.*?-->", "", ap.read_text(encoding="utf-8"), flags=re.S):
         problems.append(f"{ap_name} still contains TODO")
@@ -1141,6 +1151,8 @@ def check_spec(root: Path, cfg: dict) -> list:
                 problems.append(f"{af}: it must define a function measure(items) that returns a number")
     if cfg.get("aggregate") == "auc" and cfg.get("direction") != "maximize":
         problems.append("lab.json: with aggregate 'auc' the direction must be 'maximize' (higher AUC is better)")
+    if cfg.get("mode", "guided") not in ("guided", "researcher"):
+        problems.append("lab.json: mode must be 'guided' (the default) or 'researcher'")
     if cfg.get("keep_rule") not in ("significant", "point"):
         problems.append("lab.json: keep_rule must be 'significant' or 'point'")
     if not isinstance(cfg.get("repeats"), int) or cfg["repeats"] < 1:
