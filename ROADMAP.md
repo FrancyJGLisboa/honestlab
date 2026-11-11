@@ -149,7 +149,7 @@ in advance, the same rule honestlab applies to predictions.
 Limits: two events at the same time cannot be told apart, and a case with no unaffected group to
 compare with has no answer. Effort is unknown until a design exists.
 
-## Step 6: a map of hypotheses (idea, not designed yet)
+## Step 6: a map of hypotheses (designed 2026-11-11; pieces 1 to 4 of 5 built)
 
 Today the agent picks its ideas alone, one at a time, and honestlab makes sure none of them fools anyone
 by luck. The testing is systematic. Coming up with the ideas is not.
@@ -181,6 +181,56 @@ Needed pieces:
 
 Limit: the guard checks each call by its target lab. It cannot tell which subagent made a call, so a
 subagent could still touch another family's lab before that lab is approved.
+
+### Design (2026-11-11)
+
+One contract, many workers. All families share the main lab's evaluator, data and bar, so they do not
+need separate approvals. Each family works in its own copy of the locked lab, and the held-out data never
+leaves the main lab.
+
+**Roles.**
+- The person approves once: the question, the bar and the locked list of hypotheses.
+- The main agent (coordinator) writes the list, starts one subagent per family, and promotes candidates.
+- Each family subagent works only in its own copy and only on its family's hypotheses.
+- A reviewer subagent sees only the claim and the change, never the team's work.
+- The `honestlab` program keeps the order, records every attempt and computes every verdict.
+
+**Flow.**
+1. **List before approval.** The coordinator writes `hypotheses.json`: id, family, one sentence, lens, and
+   the prior-work tag (`known`, `similar`, `nothing found`). The approval page shows the count per family.
+   The file is protected, so the list is locked with the rest.
+2. **Split after approval.** `honestlab team split` makes one copy per family next to the main lab
+   (`../<lab>-<family>`): the same evaluator, dev data and hashes, its own ledger, and no holdout folder.
+   The copy records the main lab's freeze hash, so it inherits the approval.
+3. **Work in parallel.** Each subagent runs `honestlab run -m "H07: ..."` in its copy. A run must name a
+   hypothesis id of that family; other ids are refused. The guard keeps each subagent in its copy
+   (follow-up routing, Step 5).
+4. **Collect.** `honestlab team collect` reads each copy's ledger (hash chain checked), records a summary
+   and the best patch in the main lab's ledger, and counts the hypotheses tested.
+5. **Promote.** `honestlab finding new --family <name>` applies that family's best patch in the main lab
+   and runs the usual gate: dev bar, fake tests, then the held-out data. The held-out alpha is divided by
+   the number of families promoted, as well as by the number of looks.
+6. **Report.** `honestlab team report` lists every hypothesis: not tested, tried and dropped, candidate,
+   confirmed or rejected, with the attempts per family.
+
+**Why this is safer than one agent.** The held-out data is not in the copies at all: not in their files and
+not in their git history (tested). To read it, a family subagent must reach outside its copy into the main
+lab, which the guard refuses by name. That is a step toward the "layer 3" gap noted on 2026-11-11, not the
+end of it: the main lab's files can still be read by the same computer user. Making it impossible needs the
+main lab to belong to another user, or to live on another machine.
+
+**Build order** (each piece with its own tests):
+1. `hypotheses.json`: check-spec rules, protected, counted on the approval page; `run -m` must name an id. **Done** (`tests/hypotheses_test.py`, 15 cases).
+2. `team split`: copies without the holdout, inherited approval, follow-up routing. **Done** (`tests/team_test.py`, 15 cases).
+3. `team collect` and `finding new --family` with the corrected alpha. **Done** (in `tests/team_test.py`).
+4. `team report`. **Done**, as a section of the normal `REPORT.md` (one document for the person): every
+   hypothesis with its family, prior-search tag and status (`tests/team_test.py`, now 28 cases).
+5. Skill text for the coordinator, the family subagents and the reviewer; one simulated run with 3
+   families where only one has a real effect.
+
+**Limits.** N families run N evaluators at once, so a slow evaluator needs a large machine. The guard
+cannot tell which subagent made a call. The design does not judge whether the hypotheses are good ideas:
+it only makes sure that none of them fools anyone by luck.
 
 ## Step 7: less ceremony for experienced researchers (idea 2 started: sanity checks)
 

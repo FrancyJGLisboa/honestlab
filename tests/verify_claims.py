@@ -140,7 +140,7 @@ else:
     clean = bool(g) and g.group(1) == g.group(2) and all(f == "0" for _, f in e)
     flat = re.sub(r"\s+", " ", README)
     m = re.search(r"(\d+) hook decisions.*?(\d+) end-to-end cases, (\d+) cases for approving.*?(\d+) replays.*?"
-                  r"(\d+) robustness cases.*?(\d+) overnight mode cases.*?(\d+) ablation cases.*?(\d+) reproduction cases.*?(\d+) machine-speed drift cases.*?(\d+) explain-back checker cases.*?(\d+) measure cases.*?(\d+) fake-test cases.*?(\d+) event-test cases.*?(\d+) follow-up question cases.*?(\d+) sanity-check cases", flat)
+                  r"(\d+) robustness cases.*?(\d+) overnight mode cases.*?(\d+) ablation cases.*?(\d+) reproduction cases.*?(\d+) machine-speed drift cases.*?(\d+) explain-back checker cases.*?(\d+) measure cases.*?(\d+) fake-test cases.*?(\d+) event-test cases.*?(\d+) follow-up question cases.*?(\d+) sanity-check cases.*?(\d+) hypothesis-list cases.*?(\d+) team cases", flat)
     claimed = tuple(int(x) for x in m.groups()) if m else None
     report("V10", clean and got == claimed, "the README's test counts match a fresh run, all passing",
            f"run {got}, README {claimed}")

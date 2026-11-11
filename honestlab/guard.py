@@ -63,7 +63,7 @@ GIT_HISTORY = re.compile(
     r"\bgit\b[^|;&\n]*?\s(commit|reset|rebase|filter-branch|filter-repo|update-ref|replace|"
     r"cherry-pick|revert|merge|am|notes)\b|\bgit\b[^|;&\n]*?\spush\b[^|;&\n]*(--force|\s-f\b)")
 HUMAN_ONLY = re.compile(r"\bhonestlab\s+(freeze|unfreeze|guard\s+prompt)\b")
-HONESTLAB_ONLY = re.compile(r"^\s*honestlab\s+(run|status|history|finding|event|check-spec|doctor|baseline|data|reference|report|init|setup)\b[^;&|`$<>\n]*$")
+HONESTLAB_ONLY = re.compile(r"^\s*honestlab\s+(run|status|history|finding|event|team|check-spec|doctor|baseline|data|reference|report|init|setup)\b[^;&|`$<>\n]*$")
 # Ways to approve or to learn the approval code without the person: honestlab's internals, the pending-code
 # file and Claude Code's session transcripts (which also hold the message shown to the person).
 APPROVAL_TAMPER = re.compile(

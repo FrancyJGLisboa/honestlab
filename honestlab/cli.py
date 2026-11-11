@@ -625,7 +625,7 @@ def freeze_preflight(root, cfg, st) -> None:
                        "again so the frozen state is the measured one. (Editing only SPEC or APPROVAL text is fine.)")
 
 
-def freeze_summary(cfg, st) -> list:
+def freeze_summary(cfg, st, root=None) -> list:
     fnd = cfg["finding"]
     s_name, s_dev = _strongest(cfg, st)
     target = fnd["compare_to"] if fnd["compare_to"] != "strongest" else s_name
@@ -639,6 +639,13 @@ def freeze_summary(cfg, st) -> list:
               f"holdout CI excluding zero at alpha {fnd['alpha']}/{cfg['max_holdout_runs']}",
               f"Protected:  {', '.join(core.protected_paths(cfg))}",
               f"Editable:   {', '.join(cfg['editable'])} (+ {', '.join(core.free_dirs(cfg))})"]
+    hyps = core.hypotheses(root, cfg)[0] if root is not None else None
+    if hyps:
+        fam = {}
+        for h in hyps:
+            fam[h.get("family")] = fam.get(h.get("family"), 0) + 1
+        lines.append(f"Hypotheses: {len(hyps)} locked, in {len(fam)} families ("
+                     + ", ".join(f"{k}: {v}" for k, v in sorted(fam.items())) + ")")
     if cfg.get("sanity"):
         lines.append(f"Sanity:     the starting solution clearly beats {', '.join(cfg['sanity'])} (checked at baseline)")
     return lines
@@ -686,7 +693,7 @@ def cmd_freeze(a):
     out(bar)
     out(ap.read_text(encoding="utf-8").strip())
     out(bar)
-    for line in freeze_summary(cfg, st):
+    for line in freeze_summary(cfg, st, root):
         out(line)
     confirm_name(cfg, ("\nAo aprovar, a pergunta, a medida, os dados e a regra de sucesso ficam trancados. "
                        "O agente não poderá mudá-los depois.") if core.is_pt(cfg) else
@@ -753,6 +760,28 @@ def cmd_run(a):
     if len(hyp) < 8:
         raise LabError('State the hypothesis: honestlab run -m "<what you changed and why it should help>"')
     require_integrity(root, cfg, st)
+    hyp_ids = None
+    hyps, _ = core.hypotheses(root, cfg)
+    if hyps is not None:
+        # The list was locked at approval: every attempt names the hypothesis it tests, so the count of
+        # hypotheses tried is known and none can be added after seeing results.
+        fam = (cfg.get("team") or {}).get("family")
+        known = {h.get("id") for h in hyps if isinstance(h, dict) and (not fam or h.get("family") == fam)}
+        other = {h.get("id"): h.get("family") for h in hyps if isinstance(h, dict) and fam and h.get("family") != fam}
+        hyp_ids = core.hypothesis_ids(hyp)
+        if not hyp_ids:
+            raise LabError(f'Name the hypothesis this attempt tests, from {cfg["hypotheses"]}: '
+                           f'honestlab run -m "H01: <what you changed>". Known ids: {", ".join(sorted(known)[:12])}'
+                           + (" ..." if len(known) > 12 else ""))
+        foreign = [x for x in hyp_ids if x in other]
+        if foreign:
+            raise LabError(f"{', '.join(foreign)} belongs to family '{other[foreign[0]]}', not to this copy's family "
+                           f"'{fam}'. Each family's hypotheses are tested in that family's copy.")
+        unknown = [x for x in hyp_ids if x not in known]
+        if unknown:
+            raise LabError(f"{', '.join(unknown)} is not in the locked list {cfg['hypotheses']}. A new idea "
+                           "cannot be added after approval, because the count of hypotheses tried decides how "
+                           "much evidence a finding needs. Test a listed one, or ask the person to unlock.")
     editable = cfg["editable"]
     allowed = editable + core.free_dirs(cfg)
     changed = core.changed_paths(root)
@@ -819,7 +848,8 @@ def cmd_run(a):
 
     st["next_exp"] += 1
     core.save_state(root, st)
-    core.append_ledger(root, {"type": "experiment", "id": exp_id, "hypothesis": hyp, "decision": decision,
+    core.append_ledger(root, {"type": "experiment", "id": exp_id, "hypothesis": hyp, "hypothesis_ids": hyp_ids,
+                              "decision": decision,
                               "score": score, "best_before": best_before, "vs": best_id, "error": err,
                               "best_again": again and again["score"],
                               "comparison": cmp, "files": src_changed, "extras": extras})
@@ -971,19 +1001,25 @@ def cmd_history(a):
 def cmd_finding_new(a):
     from . import stats
     root, cfg, st = ctx()
+    if cfg.get("team"):
+        raise LabError("This is a family copy without the held-out data. Findings are promoted from the main lab "
+                       f"({cfg['team'].get('main')}), which alone holds it.")
     if not st["frozen"]:
         raise LabError("Findings require a frozen project.")
     require_integrity(root, cfg, st)
     claim = (a.message or "").strip()
     if len(claim) < 10:
         raise LabError('State the claim: honestlab finding new -m "<one-sentence claim>"')
-    cand_id = getattr(a, "candidate", None) or st["best_id"]
+    fam = getattr(a, "family", None)
+    cand_id = f"T-{fam}" if fam else (getattr(a, "candidate", None) or st["best_id"])
     if cand_id in (None, "baseline"):
         raise LabError("No experiment has beaten the baseline yet. Nothing to promote.")
     if any(core.is_under(p, d) for p in core.changed_paths(root) for d in cfg["editable"]):
         raise LabError("The editable paths have unmeasured changes. Measure them with `honestlab run` or revert them first.")
     cand_patch = None
-    if cand_id != st["best_id"]:
+    if fam:
+        cand_patch = _family_candidate(root, cfg, fam, cand_id)
+    elif cand_id != st["best_id"]:
         # A discarded experiment can be promoted if it meets the pre-registered bar on dev: the per-step keep test
         # (significance against the current best) is stricter than the finding rule and must not hide a candidate.
         exp = next((e for e in core.read_ledger(root) if e.get("type") == "experiment" and e.get("id") == cand_id), None)
@@ -1071,7 +1107,11 @@ def cmd_finding_new(a):
     st["holdout_runs"] += 1
     fid = f"F{st['next_finding']:03d}"
     st["next_finding"] += 1
-    alpha_h = float(fnd["alpha"]) / int(cfg["max_holdout_runs"])  # Bonferroni over confirmatory holdout looks
+    from . import team as _team
+    n_fam = max(1, _team.families_count(root))
+    # Bonferroni over confirmatory holdout looks, and over the families of a team: each family had its own
+    # search, so one of them can win by luck more easily than a single search.
+    alpha_h = float(fnd["alpha"]) / int(cfg["max_holdout_runs"]) / n_fam
     hold_cmp = None
     if again:
         core.save_sample(root, f"{fid}-reference-dev", ref_dev)
@@ -1116,7 +1156,8 @@ def cmd_finding_new(a):
                               "holdout_confirmed": confirmed, "error": err, "best_id": cand_id,
                               "promoted_discarded": cand_patch is not None,
                               "measured_again": again, "recorded_scores": recorded if again else None,
-                              "placebos": placebo_res or None, "experiments_tried": n_exp})
+                              "placebos": placebo_res or None, "experiments_tried": n_exp,
+                              "family": fam, "team_families": n_fam if n_fam > 1 else None})
     core.commit(root, f"honestlab: {fid} candidate (holdout {'confirmed' if confirmed else 'NOT confirmed'})")
     if confirmed:
         out(f"{fid}: holdout confirms against '{hold_name}' (strongest on holdout): {stats.describe(hold_cmp)}.")
@@ -1232,6 +1273,56 @@ def cmd_event(a):
     else:
         out("NOT PASSED: changes this large also happen on dates when nothing special happened. The data does "
             "not show an effect of the event beyond normal movement.")
+
+
+def _family_candidate(root, cfg, fam, cand_id):
+    """The collected patch of a family, measured on dev in this lab. Returns the patch path."""
+    import hashlib
+    col = [e for e in core.read_ledger(root) if e.get("type") == "team_collect"]
+    info = (col[-1].get("families") or {}).get(fam) if col else None
+    if info is None:
+        raise LabError(f"No collected work for family '{fam}'. Run `honestlab team collect` first.")
+    if not info.get("patch"):
+        raise LabError(f"Family '{fam}' kept no change. Nothing to promote.")
+    path = root / info["patch"]
+    text = path.read_text(encoding="utf-8") if path.is_file() else ""
+    if hashlib.sha256(text.encode()).hexdigest() != info.get("patch_sha256"):
+        raise LabError(f"{info['patch']} changed after `honestlab team collect`. Collect again.")
+    r = core.git(root, "apply", "--check", str(path), check=False)
+    if r.returncode != 0:
+        raise LabError(f"The change of family '{fam}' no longer applies to this lab's code. {r.stderr.strip()[:200]}")
+    out(f"Measuring family '{fam}' ({cand_id}) on dev in this lab ...")
+    core.git(root, "apply", str(path))
+    try:
+        smp, _, _, err = core.evaluate(root, cfg, "dev")
+    finally:
+        _revert_editable(root, cfg)
+    if err:
+        raise LabError(f"Family '{fam}' failed on dev in this lab: {err}. No holdout run was spent.")
+    core.save_sample(root, f"{cand_id}-dev", smp)
+    return path
+
+
+def cmd_team_collect(a):
+    from . import team
+    root, cfg, st = ctx()
+    require_integrity(root, cfg, st)
+    res = team.collect(root, cfg, st, out)
+    best = [f for f, r in res.items() if r.get("patch")]
+    out("Next: promote a family with `honestlab finding new --family <name> -m \"<claim>\"`. "
+        f"With {len(res)} families, the held-out bar is {len(res)} times stricter." if best else
+        "No family kept a change. Report it as a negative result.")
+
+
+def cmd_team_split(a):
+    from . import team
+    root, cfg, st = ctx()
+    if not st.get("frozen"):
+        raise LabError("The team works on an approved lab: split it after the person approves the plan.")
+    require_integrity(root, cfg, st)
+    made = team.split(root, cfg, st, out)
+    out(f"Split into {len(made)} family copies. Start one subagent per copy: it works with "
+        "`cd <copy> && honestlab run -m \"H0N: ...\"`, only on its family's hypotheses. The held-out data stays here.")
 
 
 def cmd_finding_verify(a):
@@ -1506,6 +1597,7 @@ def build_parser():
     f.add_argument("-m", "--message", required=True, help="one-sentence claim")
     f.add_argument("--candidate", help="experiment id to promote (default: the current best); a discarded "
                    "experiment qualifies if it meets the pre-registered bar on dev")
+    f.add_argument("--family", help="promote the collected change of a team family (after `honestlab team collect`)")
     f.set_defaults(fn=cmd_finding_new)
     f = fs.add_parser("ablate", help="undo each part of a finding's change and measure what it contributes (dev)")
     f.add_argument("id")
@@ -1514,6 +1606,12 @@ def build_parser():
     f.add_argument("id")
     f.set_defaults(fn=cmd_finding_verify)
 
+    s = sub.add_parser("team", help="a team of agents on one approved lab (one copy per hypothesis family)")
+    ts = s.add_subparsers(dest="team_cmd", required=True)
+    ts.add_parser("split", help="make one locked copy per family, without the held-out data").set_defaults(
+        fn=cmd_team_split)
+    ts.add_parser("collect", help="bring each family's best change and counts into this lab").set_defaults(
+        fn=cmd_team_collect)
     sub.add_parser("event", help="event test: compare the gap at the event date with fake dates (once, after "
                    "approval)").set_defaults(fn=cmd_event)
     s = sub.add_parser("reproduce", help="measure again from a clean copy of the lab's history; same verdict?")

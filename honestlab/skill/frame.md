@@ -148,6 +148,11 @@ data" and "holdout data" mean the paths it prints.
     - For a claim about a cause (an event, a policy, a new rule), a fake date when nothing
       happened, and an outcome the cause cannot touch. Write the claim's assumption in SPEC
       "What counts as a finding": the fake tests check it; they do not prove the cause.
+12b. **Many ideas at once.** When the person wants several ideas tested (a hypothesis map), write
+    them first in `eval/hypotheses.json` and set `"hypotheses": "eval/hypotheses.json"` in
+    `lab.json`: id (H01, H02, ...), family, one-sentence claim, lens, and what the search found
+    (`known`, `similar`, `nothing found`). Say the count per family on the approval page. After
+    approval, start every `honestlab run -m` with the id it tests.
 13. **Event questions** ("did this event change that number?": a policy, an export ban, a
     new rule, a launch on a known date). This fits honestlab. Do not leave the lab for it.
     Use the event test instead of the search loop:

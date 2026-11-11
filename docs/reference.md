@@ -107,6 +107,26 @@ move together: the bootstrap then draws runs of that many neighbours (a moving-b
 about 24% (single days: 47%); on 500 days, 11%. So blocks help, and the held-out later period stays
 the main check.
 
+Locked list of hypotheses: `"hypotheses": "eval/hypotheses.json"` names a file inside a protected path that
+holds `{"hypotheses": [{"id": "H01", "family": "features", "claim": "...", "lens": "...", "prior": "known"}]}`
+(`prior`: `known`, `similar` or `nothing found`). `check-spec` checks the ids, families, claims and tags. The
+approval summary counts the hypotheses per family, and the list is locked with the rest. After approval each
+`honestlab run -m` must name a listed id ("H03: ..."); an unlisted id is refused, because the number of
+hypotheses tried decides how much evidence a finding needs. The report lists the hypotheses not tested.
+
+Team copies: `honestlab team split` (after approval, with a locked hypothesis list) makes one copy of the lab per
+family next to it (`../<lab>-<family>`). A copy has the evaluator, dev data and rules, its own ledger and git
+history, and no held-out data in its files or its history. Its ledger starts with the hash of the main lab's
+freeze entry (the approval it inherits). In a copy, `honestlab run -m` accepts only that family's hypothesis
+ids, and `finding new` is refused: findings are promoted from the main lab. The copies are registered as
+follow-up labs, so the guard applies each copy's rules to calls on it. `honestlab team collect` (in the main lab) checks each
+copy's ledger, its link to the main lab's approval and its locked files, then records the attempts, the
+hypotheses tested and not tested, and the family's kept change as one patch (`experiments/team-<family>.patch`).
+`honestlab finding new --family <name>` measures that patch on dev in the main lab and runs the usual gate;
+after a split, the held-out alpha is also divided by the number of families. After a collect, `honestlab report` adds a
+section "The team": the number of families, attempts and hypotheses tested, and one row per hypothesis
+(not tested; tested with no gain kept; gained in its family; confirmed or not on the held-out data).
+
 Sanity checks: `"sanity": ["guess"]` (up to five short names). At `honestlab baseline` the evaluator runs once
 more on dev for each name with `HONESTLAB_SANITY` set and measures a broken solution (for example one that
 always gives the same answer). The starting solution must beat it on the point estimate and, with per-item
@@ -179,6 +199,9 @@ honestlab finding new -m "claim"                holdout confirmation; opens find
 honestlab finding new --candidate E00NN -m ..   promote a reverted experiment that met the dev bar
 honestlab finding ablate F00N                   undo each part of the change and measure it (dev only)
 honestlab finding verify F00N                   record the review verdict
+honestlab team split                            one locked copy per hypothesis family, without the held-out data
+honestlab team collect                          bring each family's kept change and counts into the main lab
+honestlab finding new --family NAME -m ..       promote a family's change (stricter held-out bar)
 honestlab event                                 event test: the gap at the event date ranked among fake dates (once)
 honestlab reproduce [F00N]                      measure again from a clean copy of the history; same verdict?
 honestlab report                                write REPORT.md

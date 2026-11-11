@@ -35,6 +35,7 @@ T = {
         "placebo_ok": "Testes falsos de {fid} (versões do teste em que um efeito real some): {names}: nenhum mostrou ganho",
         "event_ok": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). PASSOU: a mudança é incomum. Isso não prova a causa: outro fato na mesma janela também pode explicá-la",
         "event_small": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: a mudança é incomum, mas menor que a margem aprovada ({need})",
+        "hyp_line": "Hipóteses trancadas na aprovação: {n} em {k} famílias; testadas: {t}; não testadas: {u}",
         "sanity_ok": "Conferência do avaliador antes da primeira tentativa: a solução inicial ({base}) ganha com folga das versões quebradas {items}",
         "event_ctl": "Comparado com o controle '{ctl}' (uma série parecida que o evento não atinge): série atingida {t}, controle {c}. A diferença é o que foi testado. O controle mudou tanto quanto ou mais em {k} de {n} datas falsas",
         "event_ctl_moved": "AVISO: o controle '{ctl}' também mudou de forma incomum na data do evento. Ou o evento o atingiu, ou algo atingiu as duas séries. A diferença pode esconder parte do efeito",
@@ -44,6 +45,15 @@ T = {
         "better_w": " melhor", "worse_w": " pior",
         "ci_units": "; faixa provável da diferença: {lo} a {hi} em `{metric}`",
         "not_tested": "Atenção: o melhor resultado ({best}) é diferente do achado testado em dados novos ({cand}). {best} não foi testado em dados novos.",
+        "team_h": "O time",
+        "team_intro": "{f} famílias trabalharam em cópias sem os dados guardados: {n} tentativas no total, {t} de {h} hipóteses testadas. A prova final ficou {f} vezes mais exigente, uma vez para cada família.",
+        "team_cols": "| Hipótese | Família | Ideia | Busca prévia | Situação |",
+        "st_untested": "não testada",
+        "st_dropped": "testada ({a}x), nenhuma melhora guardada",
+        "st_kept": "melhorou na família ({a}x, {k} guardadas)",
+        "st_confirmed": "melhorou; confirmada nos dados guardados ({fid})",
+        "st_failed": "melhorou; NÃO confirmada nos dados guardados ({fid})",
+        "st_pending": "melhorou na família; ainda não levada à prova final",
         "tried_h": "O que foi tentado",
         "tried": "{n} tentativa(s): {k} guardadas (melhoraram), {d} desfeitas, {e} com erro. Todas ficam registradas.",
         "top": "Melhores ideias", "fails": "Ideias que não funcionaram (exemplos)",
@@ -125,6 +135,7 @@ T = {
         "placebo_ok": "Fake tests for {fid} (versions of the test where a real effect vanishes): {names}: none showed a gain",
         "event_ok": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). PASSED: the change is unusual. This does not prove the cause: another event in the same window can explain it too",
         "event_small": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: the change is unusual but smaller than the approved margin ({need})",
+        "hyp_line": "Hypotheses locked at approval: {n} in {k} families; tested: {t}; not tested: {u}",
         "sanity_ok": "Evaluator check before the first attempt: the starting solution ({base}) clearly beats the broken versions {items}",
         "event_ctl": "Compared with the control '{ctl}' (a similar series the event does not reach): treated series {t}, control {c}. The difference is what was tested. The control moved as far or farther on {k} of {n} fake dates",
         "event_ctl_moved": "WARNING: the control '{ctl}' also moved unusually at the event date. Either the event reached it, or something hit both series. The difference may hide part of the effect",
@@ -134,6 +145,15 @@ T = {
         "better_w": " better", "worse_w": " worse",
         "ci_units": "; likely range of the difference: {lo} to {hi} in `{metric}`",
         "not_tested": "Note: the best result ({best}) is not the finding tested on new data ({cand}). {best} was not tested on new data.",
+        "team_h": "The team",
+        "team_intro": "{f} families worked in copies without the held-out data: {n} attempts in all, {t} of {h} hypotheses tested. The final check was {f} times stricter, once for each family.",
+        "team_cols": "| Hypothesis | Family | Idea | Prior search | Status |",
+        "st_untested": "not tested",
+        "st_dropped": "tested ({a}x), no gain kept",
+        "st_kept": "gained in its family ({a}x, {k} kept)",
+        "st_confirmed": "gained; confirmed on the held-out data ({fid})",
+        "st_failed": "gained; NOT confirmed on the held-out data ({fid})",
+        "st_pending": "gained in its family; not yet taken to the final check",
         "tried_h": "What was tried",
         "tried": "{n} attempt(s): {k} kept (improved), {d} undone, {e} errors. All of them are recorded.",
         "top": "Best ideas", "fails": "Ideas that did not work (examples)",
@@ -220,6 +240,43 @@ def novelty_text(L, f, path) -> str:
     if rr.get("found_missed"):
         parts.append(L["nov_missed"].format(missed=rr.get("missed")))
     return " ".join(parts)
+
+
+def _team_section(root, cfg, led, finds, L) -> list:
+    """Every hypothesis of a team: not tested, tried and dropped, gained in its family, confirmed or not."""
+    col = [e for e in led if e.get("type") == "team_collect"]
+    hyps, _ = core.hypotheses(root, cfg)
+    if not col or not hyps:
+        return []
+    fams = col[-1].get("families") or {}
+    by_fam = {}
+    for fid, f in sorted(finds.items()):
+        if f.get("family"):
+            by_fam[f["family"]] = (fid, f)
+    rows, n_att, n_tested = [], 0, 0
+    for h in hyps:
+        info = fams.get(h["family"]) or {}
+        d = (info.get("per_hypothesis") or {}).get(h["id"])
+        if not d:
+            status = L["st_untested"]
+        else:
+            n_tested += 1
+            if not d.get("kept"):
+                status = L["st_dropped"].format(a=d["attempts"])
+            else:
+                status = L["st_kept"].format(a=d["attempts"], k=d["kept"])
+                fid, f = by_fam.get(h["family"], (None, None))
+                if f is None:
+                    status = L["st_pending"]
+                elif f.get("holdout_confirmed"):
+                    status = L["st_confirmed"].format(fid=fid)
+                else:
+                    status = L["st_failed"].format(fid=fid)
+        claim = str(h.get("claim", "")).replace("|", "/")
+        rows.append(f"| {h['id']} | {h['family']} | {claim} | {h.get('prior')} | {status} |")
+    n_att = sum(int(i.get("attempts") or 0) for i in fams.values())
+    return [f"## {L['team_h']}", "", L["team_intro"].format(f=len(fams), n=n_att, t=n_tested, h=len(hyps)), "",
+            L["team_cols"], "|---|---|---|---|---|", *rows, ""]
 
 
 def build(root, cfg, st):
@@ -346,6 +403,15 @@ def build(root, cfg, st):
     for fid, f in sorted(finds.items()):
         if f.get("placebos"):
             lines.append("- " + L["placebo_ok"].format(fid=fid, names=", ".join(sorted(f["placebos"]))))
+    hyps, _ = core.hypotheses(root, cfg)
+    if hyps:
+        ids = [h.get("id") for h in hyps if isinstance(h, dict)]
+        tried = {x for e in exps for x in (e.get("hypothesis_ids") or [])}
+        untested = [x for x in ids if x not in tried]
+        lines.append("- " + L["hyp_line"].format(
+            n=len(ids), k=len({h.get("family") for h in hyps if isinstance(h, dict)}),
+            t=len([x for x in ids if x in tried]), u=", ".join(untested[:20]) + (" ..." if len(untested) > 20 else "")
+            if untested else "0"))
     bl = [e for e in led if e.get("type") == "baseline" and e.get("sanity")]
     if bl:
         items = ", ".join(f"'{k}' = {_fmt(v.get('score'))}" for k, v in sorted(bl[-1]["sanity"].items()))
@@ -376,6 +442,7 @@ def build(root, cfg, st):
     k = sum(e.get("decision") == "keep" for e in exps)
     d = sum(e.get("decision") == "discard" for e in exps)
     er = sum(e.get("decision") == "error" for e in exps)
+    lines += _team_section(root, cfg, led, finds, L)
     lines += [f"## {L['tried_h']}", "", L["tried"].format(n=n, k=k, d=d, e=er), ""]
     scored = [e for e in exps if e.get("score") is not None]
     rev = cfg["direction"] == "maximize"

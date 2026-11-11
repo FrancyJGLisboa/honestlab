@@ -56,6 +56,7 @@ DEFAULT_CONFIG = {
     "block_size": 1,
     "placebos": [],
     "sanity": [],
+    "hypotheses": None,
     "event": None,
     "remeasure_best": False,
     "bootstrap": 2000,
@@ -937,6 +938,60 @@ def _month_range(a: str, b: str) -> list:
     return out
 
 
+PRIOR_TAGS = ("known", "similar", "nothing found")
+
+
+def hypotheses(root: Path, cfg: dict):
+    """lab.json "hypotheses": the file with the locked list. Return (list or None, problems).
+
+    The file holds {"hypotheses": [{"id": "H01", "family": "features", "claim": "...", "lens": "...",
+    "prior": "known" | "similar" | "nothing found"}, ...]}.
+    """
+    import re
+    rel = cfg.get("hypotheses")
+    if rel is None:
+        return None, []
+    if not isinstance(rel, str) or not rel:
+        return None, ['lab.json: hypotheses must name the file with the list, for example "hypotheses.json"']
+    probs = []
+    if not any(is_under(rel, x) for x in cfg.get("protected", [])):
+        probs.append(f"lab.json: the hypotheses file '{rel}' must be inside a protected path (add it to "
+                     "\"protected\"), so the list is locked at approval")
+    f = root / rel
+    try:
+        data = json.loads(f.read_text(encoding="utf-8"))
+        items = data.get("hypotheses") if isinstance(data, dict) else None
+    except (OSError, ValueError) as e:
+        return None, probs + [f"{rel}: cannot read it as JSON ({e})"]
+    if not isinstance(items, list) or not items:
+        return None, probs + [f'{rel}: it must hold {{"hypotheses": [...]}} with at least one hypothesis']
+    seen = set()
+    for i, h in enumerate(items):
+        where = f"{rel}: hypothesis {i + 1}"
+        if not isinstance(h, dict):
+            probs.append(f"{where} is not an object")
+            continue
+        hid = h.get("id")
+        if not (isinstance(hid, str) and re.fullmatch(r"H\d{2,3}", hid)):
+            probs.append(f"{where}: id must look like H01 or H101")
+        elif hid in seen:
+            probs.append(f"{where}: id {hid} is used twice")
+        else:
+            seen.add(hid)
+        if not (isinstance(h.get("family"), str) and re.fullmatch(r"[a-z0-9_-]{1,30}", h["family"])):
+            probs.append(f"{where}: family must be a short name (lowercase letters, digits, - or _)")
+        if not (isinstance(h.get("claim"), str) and len(h["claim"].strip()) >= 10):
+            probs.append(f"{where}: claim must be one sentence (10 characters or more)")
+        if h.get("prior") not in PRIOR_TAGS:
+            probs.append(f"{where}: prior must be 'known', 'similar' or 'nothing found' (what the search found)")
+    return items, probs
+
+
+def hypothesis_ids(text: str) -> list:
+    import re
+    return re.findall(r"\bH\d{2,3}\b", text or "")
+
+
 def event_plan(cfg: dict):
     """lab.json "event": the date of the event, the fake dates and the side. Return (plan, problems).
 
@@ -1063,6 +1118,7 @@ def check_spec(root: Path, cfg: dict) -> list:
         problems.append("lab.json: sanity must be a list of up to 5 short names (lowercase letters, digits, - or _); "
                         "the evaluator receives each one in HONESTLAB_SANITY and measures a broken solution "
                         "(for example 'guess': a model that always gives the same answer)")
+    problems += hypotheses(root, cfg)[1]
     problems += event_plan(cfg)[1]
     bs = cfg.get("block_size", 1)
     if not isinstance(bs, int) or isinstance(bs, bool) or bs < 1:

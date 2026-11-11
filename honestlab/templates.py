@@ -324,7 +324,7 @@ All registered solutions (dev / holdout):
 {all_refs}
 
 - Dev: {dev_cmp}
-- Holdout: {hold_cmp} (alpha {alpha_h} = {alpha} / holdout budget)
+- Holdout: {hold_cmp} (alpha {alpha_h} = {alpha} / holdout budget, and / number of team families when a team was split)
 - Statistical test available: {statistical}
 - Holdout confirms: **{confirmed}**
 - Experiments tried before this candidate: {n_exp}. The dev effect is optimistically biased
