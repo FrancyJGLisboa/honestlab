@@ -174,6 +174,11 @@ def main():
         check("the held-out bar is divided by the number of families (0.05 / 3 looks / 2 families)",
               "0.008333" in claim, claim[:1500])
 
+        rc, so = hl(main_lab, "finding", "ablate", "F001")
+        check("ablate works on a family finding (it uses the family's patch)", rc == 0, so)
+        rc, so = hl(main_lab, "reproduce", "F001")
+        check("reproduce works on a family finding", rc == 0 and "Same result" in so, so)
+
         # piece 4: the team in the report
         hl(main_lab, "report")
         rep = (main_lab / "REPORT.md").read_text()

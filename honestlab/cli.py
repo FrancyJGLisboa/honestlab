@@ -1381,7 +1381,10 @@ def cmd_finding_ablate(a):
         raise LabError("The editable paths have unmeasured changes. Measure them with `honestlab run` or revert them first.")
     cand_id = entry.get("best_id")
     cand_patch = None
-    if entry.get("promoted_discarded"):
+    if entry.get("family"):
+        from . import team
+        cand_patch = root / team.patch_rel(cfg, entry["family"])
+    elif entry.get("promoted_discarded"):
         cand_patch = root / core.lab_rel(cfg, "experiments", f"{cand_id}.patch")
     elif cand_id != st["best_id"]:
         raise LabError(f"{fid} tested {cand_id}, but the code has moved on to {st['best_id']}. Ablate a finding "

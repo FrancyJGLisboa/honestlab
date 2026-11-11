@@ -113,6 +113,9 @@ def run(root: Path, cfg: dict, st: dict, fid: str = None) -> dict:
             sha = core.head(clone) if cand_id not in (None, "baseline") else None
         patch = (clone / core.lab_rel(ccfg, "experiments", f"{cand_id}.patch")) if finding and \
             finding.get("promoted_discarded") else None
+        if finding and finding.get("family"):
+            from . import team
+            patch = clone / team.patch_rel(ccfg, finding["family"])
 
         def cand(split):
             if sha is None:

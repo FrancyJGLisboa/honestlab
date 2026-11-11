@@ -149,7 +149,7 @@ in advance, the same rule honestlab applies to predictions.
 Limits: two events at the same time cannot be told apart, and a case with no unaffected group to
 compare with has no answer. Effort is unknown until a design exists.
 
-## Step 6: a map of hypotheses (designed 2026-11-11; pieces 1 to 4 of 5 built)
+## Step 6: a map of hypotheses (built 2026-11-11: 5 of 5 pieces; tested on one synthetic run)
 
 Today the agent picks its ideas alone, one at a time, and honestlab makes sure none of them fools anyone
 by luck. The testing is systematic. Coming up with the ideas is not.
@@ -226,7 +226,9 @@ main lab to belong to another user, or to live on another machine.
 4. `team report`. **Done**, as a section of the normal `REPORT.md` (one document for the person): every
    hypothesis with its family, prior-search tag and status (`tests/team_test.py`, now 28 cases).
 5. Skill text for the coordinator, the family subagents and the reviewer; one simulated run with 3
-   families where only one has a real effect.
+   families where only one has a real effect. **Done** (`honestlab/skill/team.md`; run in `replays/team_sim/RESULTS.md`:
+   3 subagents in parallel, 0 guard denials, only the real effect confirmed; the run found an ablate and
+   reproduce bug for family findings, fixed).
 
 **Limits.** N families run N evaluators at once, so a slow evaluator needs a large machine. The guard
 cannot tell which subagent made a call. The design does not judge whether the hypotheses are good ideas:

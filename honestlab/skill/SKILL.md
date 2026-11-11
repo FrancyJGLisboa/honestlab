@@ -124,6 +124,11 @@ When the best result reaches the margin on the approval page, or `honestlab repo
   with a double-click.
   "Não encontrou" is a normal and useful result: say what it means for them.
 
+## Many ideas at once: a team
+When the person wants several ideas tested at once, or the good ideas form two or more families, follow
+`team.md`: a locked list of hypotheses before approval, then one subagent per family, each in its own
+copy of the lab without the held-out data. You coordinate; honestlab decides.
+
 ## A follow-up question in the same chat
 When the lab is locked and the person asks a new question (a control product, another region, another
 measure), do not unlock the first lab and do not leave honestlab. From the first lab's folder run
