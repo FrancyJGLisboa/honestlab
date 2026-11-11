@@ -159,6 +159,21 @@ The idea:
 Limits: more hypotheses means more chance of a false find, and a stricter bar can hide small real
 effects. It needs data that already exists and an automatic score, like the rest of honestlab.
 
+**A team of subagents, with the program as the judge** (noted 2026-11-11). Today one agent does all the
+work, and the only subagent is the independent reviewer of a finding (`honestlab/skill/finding.md`). The
+target: the main agent splits the task, starts one subagent per hypothesis family, and each subagent works
+in its own follow-up lab (`honestlab init ../<family>`, Step 5). The main agent never decides a verdict:
+the `honestlab` program keeps the order, records each check in each lab's ledger, and computes the verdict.
+Needed pieces:
+
+1. One approval for the whole locked list of hypotheses, instead of one approval per follow-up lab.
+2. A bar that counts every hypothesis tested across the team (today each lab counts only its own).
+3. A team report that reads every lab's ledger and lists all attempts, also the failed ones.
+4. A reviewer subagent that never saw the team's work, for every candidate finding.
+
+Limit: the guard checks each call by its target lab. It cannot tell which subagent made a call, so a
+subagent could still touch another family's lab before that lab is approved.
+
 ## Step 7: less ceremony for experienced researchers (idea, not designed yet)
 
 Thought experiment: how would a researcher in the style of Karpathy's public writing (the autoresearch
