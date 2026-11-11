@@ -1120,32 +1120,63 @@ def cmd_event(a):
                        "calm. Ask the human to unlock, approve the new model, and lock again.")
     if st["holdout_runs"] >= cfg["max_holdout_runs"]:
         raise LabError(f"Holdout budget exhausted ({cfg['max_holdout_runs']} runs).")
-    fakes = {}
-    out(f"Event test: measuring the gap at {len(plan['fakes'])} fake dates (dev data, before the event) ...")
+    ctl = plan.get("control")
+
+    def gap_at(split, d):
+        """The gap at date d: treated minus control when the lab has a control. Return (gap, parts, error)."""
+        env = {"HONESTLAB_EVENT_DATE": d}
+        if not ctl:
+            smp, _, _, e = core.evaluate(root, cfg, split, env)
+            return (smp["score"] if smp else None), None, e
+        parts = {}
+        for series in ("treated", ctl):
+            smp, _, _, e = core.evaluate(root, cfg, split, dict(env, HONESTLAB_EVENT_SERIES=series))
+            if e:
+                return None, None, f"{series}: {e}"
+            parts[series] = smp["score"]
+        return parts["treated"] - parts[ctl], parts, None
+
+    fakes, fake_parts = {}, {}
+    what = f"the gap (treated minus '{ctl}')" if ctl else "the gap"
+    out(f"Event test: measuring {what} at {len(plan['fakes'])} fake dates (dev data, before the event) ...")
     for d in plan["fakes"]:
-        smp, _, _, err = core.evaluate(root, cfg, "dev", {"HONESTLAB_EVENT_DATE": d})
+        g, parts, err = gap_at("dev", d)
         if err:
             raise LabError(f"The evaluator failed at fake date {d}: {err}. The event date was not measured.")
-        fakes[d] = smp["score"]
-    out(f"Measuring the gap at the event date {plan['date']} (holdout data, once) ...")
-    smp, _, _, err = core.evaluate(root, cfg, "holdout", {"HONESTLAB_EVENT_DATE": plan["date"]})
+        fakes[d] = g
+        if parts:
+            fake_parts[d] = parts
+    out(f"Measuring {what} at the event date {plan['date']} (holdout data, once) ...")
+    real, real_parts, err = gap_at("holdout", plan["date"])
     st["holdout_runs"] += 1
     st["event_done"] = True
-    real = smp["score"] if smp else None
     rank = core.event_rank(real, fakes, plan["side"]) if real is not None else None
+    ctl_rank = None
+    if ctl and real_parts:
+        # The control must stay calm at the event date. If it moves as unusually as the treated series, the
+        # event reached it too, or a shock hit both: the difference then hides part of the effect or all of it.
+        ctl_rank = core.event_rank(real_parts[ctl], {d: v[ctl] for d, v in fake_parts.items()}, "both")
     alpha = float(cfg["finding"]["alpha"])
     need = cfg["finding"].get("min_effect")
     size = None if real is None else (real if plan["side"] == "up" else (-real if plan["side"] == "down" else abs(real)))
     too_small = bool(need is not None and size is not None and size < float(need))
     passed = bool(rank and rank["p"] <= alpha and not too_small)
+    ctl_moved = bool(ctl_rank and ctl_rank["p"] <= alpha)
     core.save_state(root, st)
     core.append_ledger(root, {"type": "event_test", "id": "event", "date": plan["date"], "side": plan["side"],
                               "gap": real, "fake_gaps": fakes, "rank": rank, "alpha": alpha, "passed": passed,
-                              "min_effect": need, "too_small": too_small,
-                              "error": err})
+                              "min_effect": need, "too_small": too_small, "control": ctl,
+                              "parts": real_parts, "fake_parts": fake_parts or None, "control_rank": ctl_rank,
+                              "control_moved": ctl_moved, "error": err})
     core.commit(root, f"honestlab: event test at {plan['date']} ({'passed' if passed else 'not passed'})")
     if err:
         raise LabError(f"The evaluator failed at the event date: {err}. This look is recorded and counted.")
+    if real_parts:
+        out(f"Treated series: {fmt(real_parts['treated'])}. Control '{ctl}': {fmt(real_parts[ctl])}. "
+            f"Control: {ctl_rank['as_large']} of {ctl_rank['n_fakes']} fake dates moved it as far or farther.")
+        if ctl_moved:
+            out(f"WARNING: the control '{ctl}' also moved unusually at the event date. Either the event reached "
+                "it, or something hit both series. Say so in the report; the difference may hide part of the effect.")
     word = {"up": "as large or larger", "down": "as low or lower", "both": "as far from zero or farther"}[plan["side"]]
     out(f"Gap at {plan['date']}: {fmt(real)} {cfg['metric']}.")
     out(f"Fake dates: {rank['as_large']} of {rank['n_fakes']} gave a gap {word}. "
@@ -1153,9 +1184,14 @@ def cmd_event(a):
     if too_small and rank["p"] <= alpha:
         out(f"NOT PASSED: the gap is unusual, but smaller than the approved margin ({need} {cfg['metric']}).")
     elif passed:
-        out("PASSED: the change at the event date is unusual compared with normal dates. This does not show "
-            "that the event caused it: anything else that happened in the same window could too. Name those "
-            "other events in the report.")
+        if ctl:
+            out(f"PASSED: the treated series moved unusually more than the control '{ctl}'. Anything that hit "
+                f"both series is removed. Still not removed: anything else that hit the treated series and not "
+                f"'{ctl}' in the same window. Name those in the report.")
+        else:
+            out("PASSED: the change at the event date is unusual compared with normal dates. This does not show "
+                "that the event caused it: anything else that happened in the same window could too. Name those "
+                "other events in the report.")
     else:
         out("NOT PASSED: changes this large also happen on dates when nothing special happened. The data does "
             "not show an effect of the event beyond normal movement.")

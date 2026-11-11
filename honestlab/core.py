@@ -978,10 +978,15 @@ def event_plan(cfg: dict):
                      f"the largest possible gap cannot pass the test at alpha {alpha:g}")
     if len(fk) > 1000:
         probs.append("lab.json: event.fakes has more than 1000 dates; use fewer (each one runs the evaluator once)")
+    ctl = ev.get("control")
+    if ctl is not None and not (isinstance(ctl, str) and re.fullmatch(r"[a-z0-9_-]{1,40}", ctl) and ctl != "treated"):
+        probs.append("lab.json: event.control must be a short name (lowercase letters, digits, - or _, not "
+                     "'treated'); the evaluator receives it in HONESTLAB_EVENT_SERIES and measures the control series")
+        ctl = None
     side = ev.get("side", "up")
     if side not in ("up", "down", "both"):
         probs.append("lab.json: event.side must be 'up' (the event raised the number), 'down' or 'both'")
-    return {"date": date, "fakes": fk, "side": side}, probs
+    return {"date": date, "fakes": fk, "side": side, "control": ctl}, probs
 
 
 def event_rank(real: float, fakes: dict, side: str) -> dict:

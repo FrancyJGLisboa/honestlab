@@ -35,6 +35,8 @@ T = {
         "placebo_ok": "Testes falsos de {fid} (versões do teste em que um efeito real some): {names}: nenhum mostrou ganho",
         "event_ok": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). PASSOU: a mudança é incomum. Isso não prova a causa: outro fato na mesma janela também pode explicá-la",
         "event_small": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: a mudança é incomum, mas menor que a margem aprovada ({need})",
+        "event_ctl": "Comparado com o controle '{ctl}' (uma série parecida que o evento não atinge): série atingida {t}, controle {c}. A diferença é o que foi testado. O controle mudou tanto quanto ou mais em {k} de {n} datas falsas",
+        "event_ctl_moved": "AVISO: o controle '{ctl}' também mudou de forma incomum na data do evento. Ou o evento o atingiu, ou algo atingiu as duas séries. A diferença pode esconder parte do efeito",
         "event_bad": "Teste de evento em {date}: diferença {gap}; {k} de {n} datas falsas deram uma diferença igual ou maior (chance {p:.3g}, limite {alpha:g}). NÃO PASSOU: mudanças desse tamanho também acontecem em datas comuns",
         "placebo_bad": "Teste falso '{name}' derrubou {cand}: o ganho apareceu também onde não deveria, então não veio da causa alegada",
         "newdata_line": "{cand} ({fid}) {c} contra {r} de {ref}: {pct}{better}",
@@ -122,6 +124,8 @@ T = {
         "placebo_ok": "Fake tests for {fid} (versions of the test where a real effect vanishes): {names}: none showed a gain",
         "event_ok": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). PASSED: the change is unusual. This does not prove the cause: another event in the same window can explain it too",
         "event_small": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: the change is unusual but smaller than the approved margin ({need})",
+        "event_ctl": "Compared with the control '{ctl}' (a similar series the event does not reach): treated series {t}, control {c}. The difference is what was tested. The control moved as far or farther on {k} of {n} fake dates",
+        "event_ctl_moved": "WARNING: the control '{ctl}' also moved unusually at the event date. Either the event reached it, or something hit both series. The difference may hide part of the effect",
         "event_bad": "Event test at {date}: gap {gap}; {k} of {n} fake dates gave a gap as large or larger (chance {p:.3g}, bar {alpha:g}). NOT PASSED: changes this large also happen on ordinary dates",
         "placebo_bad": "Fake test '{name}' sank {cand}: the gain also appeared where it should not, so it did not come from the claimed cause",
         "newdata_line": "{cand} ({fid}) {c} against {r} for {ref}: {pct}{better}",
@@ -347,6 +351,13 @@ def build(root, cfg, st):
             lines.append("- " + L[key].format(
                 date=e.get("date"), gap=_fmt(e.get("gap")), k=r["as_large"], n=r["n_fakes"], p=r["p"],
                 alpha=e.get("alpha") or 0.05, need=e.get("min_effect")))
+            if e.get("control") and e.get("parts") and e.get("control_rank"):
+                cr = e["control_rank"]
+                lines.append("- " + L["event_ctl"].format(ctl=e["control"], t=_fmt(e["parts"].get("treated")),
+                                                          c=_fmt(e["parts"].get(e["control"])), k=cr["as_large"],
+                                                          n=cr["n_fakes"]))
+                if e.get("control_moved"):
+                    lines.append("- " + L["event_ctl_moved"].format(ctl=e["control"]))
         if e.get("type") == "placebo_failed":
             lines.append("- " + L["placebo_bad"].format(name=e.get("placebo"), cand=e.get("id")))
     if tested and st.get("best_id") not in tested:

@@ -162,6 +162,11 @@ data" and "holdout data" mean the paths it prints.
       window before the event, so no fake window includes it. At least 19 are needed.
     - On the approval page, say in plain words: the date, the window, what the normal value
       uses, the fake dates, and that one look at the result is allowed.
+    - When a similar series exists that the event did not reach (the same product in another
+      region, a product outside the rule) but the other suspects did, add it as a control:
+      `"control": "<short-name>"` in `"event"`. The evaluator reads `HONESTLAB_EVENT_SERIES`
+      (`treated` or that name) and prints the gap of that series. Say on the approval page
+      why the event cannot reach the control.
     - List in SPEC "What counts as a finding" the other events in the same weeks. The test
       can show the change is unusual. It cannot tell apart two events in the same window.
     After approval, run `honestlab event` once, then `honestlab report`. Do not run attempts

@@ -47,10 +47,12 @@ EVALUATOR = '''import argparse, json, os, random, sys
 sys.path.insert(0, "src")
 ap = argparse.ArgumentParser(); ap.add_argument("--split"); a = ap.parse_args()
 import model
-rng = random.Random(7)
+series = os.environ.get("HONESTLAB_EVENT_SERIES", "treated")
+rng = random.Random(7 if series == "treated" else 11)
 months = [f"{y}-{m:02d}" for y in range(2010, 2022) for m in range(1, 13)]
 price = {d: 100 + rng.gauss(0, 5) for d in months}
-jump = float(open("data/jump.txt").read()) if a.split == "holdout" else 0.0
+jfile = "data/jump.txt" if series == "treated" else "data/jumpc.txt"
+jump = float(open(jfile).read()) if a.split == "holdout" and os.path.exists(jfile) else 0.0
 for d in months:
     if d >= "2021-10":
         price[d] += jump
@@ -66,7 +68,7 @@ print(json.dumps({"gap": gap}))
 MODEL = "def predict(history, k):\n    return [history[-1]] * k\n"
 
 
-def make_lab(parent, name, event, jump, min_effect=1):
+def make_lab(parent, name, event, jump, min_effect=1, jumpc=None):
     rc, so = hl(parent, "init", name)
     assert rc == 0, so
     lab = parent / name
@@ -80,6 +82,8 @@ def make_lab(parent, name, event, jump, min_effect=1):
     (lab / "src" / "model.py").write_text(MODEL)
     (lab / "data").mkdir(exist_ok=True)
     (lab / "data" / "jump.txt").write_text(str(jump))
+    if jumpc is not None:
+        (lab / "data" / "jumpc.txt").write_text(str(jumpc))
     (lab / "data" / "holdout").mkdir(parents=True, exist_ok=True)
     (lab / "data" / "holdout" / "h.txt").write_text("x")
     return lab
@@ -152,6 +156,31 @@ def main():
         rc, so = hl(lab, "event")
         check("an unusual gap below the approved margin does not pass",
               rc == 0 and "smaller than the approved margin" in so, so)
+
+        CTL = dict(GOOD, control="potash")
+        bad = make_lab(work, "badctl", dict(GOOD, control="Potash Price"), 0)
+        rc, so = hl(bad, "check-spec")
+        check("check-spec refuses a control name with spaces or capitals", rc != 0 and "event.control" in so, so)
+
+        lab = make_lab(work, "ctl_ok", CTL, 30, jumpc=0)
+        freeze(lab, "ctl_ok")
+        rc, so = hl(lab, "event")
+        check("control: a jump only in the treated series passes", rc == 0 and "PASSED" in so
+              and "NOT PASSED" not in so and "more than the control 'potash'" in so, so)
+        check("control: a calm control gives no warning", "WARNING" not in so, so)
+        e = [x for x in core.read_ledger(lab) if x.get("type") == "event_test"][-1]
+        check("control: the ledger keeps both series at every date",
+              set(e["parts"]) == {"treated", "potash"} and len(e["fake_parts"]) == 126, json.dumps(e["parts"]))
+        hl(lab, "report")
+        check("control: the report names the control", "Compared with the control 'potash'" in
+              (lab / "REPORT.md").read_text())
+
+        lab = make_lab(work, "ctl_both", CTL, 30, jumpc=30)
+        freeze(lab, "ctl_both")
+        rc, so = hl(lab, "event")
+        check("control: the same jump in both series does not pass (a shock that hit both)",
+              rc == 0 and "NOT PASSED" in so, so)
+        check("control: a control that moved too is flagged", "WARNING: the control 'potash' also moved" in so, so)
 
         lab = make_lab(work, "tuned", GOOD, 30)
         freeze(lab, "tuned")

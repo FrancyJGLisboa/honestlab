@@ -124,7 +124,11 @@ its window) under the metric's name. The result is the rank of the real gap amon
 p = (1 + k) / (1 + N), where k fake dates gave a gap as large or larger (`side`: `up`, `down` or `both`).
 It passes when p <= `finding.alpha` and the gap is at least `finding.min_effect` (in metric units). The event date counts as one held-out look, runs once per approval,
 and is refused when the editable model changed after approval (attempts tuned on the fake dates would
-make them look calm). A pass shows the change is unusual; it cannot separate two events in the same window.
+make them look calm). A pass shows the change is unusual; it cannot separate two events in the same window. With `"control": "potash"` in
+`"event"`, the evaluator runs twice per date, with `HONESTLAB_EVENT_SERIES` set to `treated` and then to the
+control's name, and honestlab ranks the difference (treated minus control). A shock that hit both series is
+removed. The control's own gap is also ranked among the fake dates (either direction); when it is unusual
+too, the output and the report warn that the event may have reached the control.
 
 Follow-up questions: `honestlab init ../next` run inside a lab creates a second lab next to it and lists it in
 the first lab's `.honestlab/local.json`. A lab inside another lab is refused. The guard applies the second
