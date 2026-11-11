@@ -149,7 +149,9 @@ def main():
         rc, so = hl(lab, "event")
         check("no jump: the test does not pass", rc == 0 and "NOT PASSED" in so, so)
         hl(lab, "report")
-        check("report: verdict 'no effect shown'", "No effect shown" in (lab / "REPORT.md").read_text())
+        rep = (lab / "REPORT.md").read_text()
+        check("report: verdict 'no effect shown'", "No effect shown" in rep)
+        check("report: an ordinary gap is not called unusual", "the change is unusual but smaller" not in rep, rep[-900:])
 
         lab = make_lab(work, "small", GOOD, 30, min_effect=100)
         freeze(lab, "small")

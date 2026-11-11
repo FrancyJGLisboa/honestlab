@@ -231,7 +231,7 @@ AlphaEvolve acha. O que ele faz é dizer, com honestidade, se a sua ideia se sus
   casos da aprovação e do destrancamento pela conversa e do plugin, 17 repetições dos ataques do
   teste de estresse, 73 casos de robustez (saída malformada do avaliador, registros danificados,
   caminhos estranhos, dois `run` ao mesmo tempo, bibliotecas nativas, variação entre treinos, pacotes não declarados, modos explorar e provar), 24
-  casos do modo noite, 17 casos de ablação, 11 casos de reprodução, 30 casos de variação de velocidade da máquina, 22 casos do conferidor de explicação, 36 casos de medidas (AUC, F1, RMSE, mediana, dias em ordem no tempo), 12 casos de testes falsos, 25 casos do teste de evento e 18 casos de pergunta seguinte (`bash tests/run_all.sh`). Cada afirmação desta
+  casos do modo noite, 17 casos de ablação, 11 casos de reprodução, 30 casos de variação de velocidade da máquina, 22 casos do conferidor de explicação, 36 casos de medidas (AUC, F1, RMSE, mediana, dias em ordem no tempo), 12 casos de testes falsos, 26 casos do teste de evento e 18 casos de pergunta seguinte (`bash tests/run_all.sh`). Cada afirmação desta
   página está ligada ao comando que a confere no [VERIFICATION.md](VERIFICATION.md) (em inglês).
 
 **Estado: inicial (0.5).** Testado ao vivo com o Claude Code 2.1 no Linux, incluindo o plugin e a

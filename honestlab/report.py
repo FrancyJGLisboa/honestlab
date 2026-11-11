@@ -347,7 +347,8 @@ def build(root, cfg, st):
     for e in led:
         if e.get("type") == "event_test" and e.get("rank"):
             r = e["rank"]
-            key = "event_ok" if e.get("passed") else ("event_small" if e.get("too_small") else "event_bad")
+            unusual = r["p"] <= (e.get("alpha") or 0.05)
+            key = "event_ok" if e.get("passed") else ("event_small" if e.get("too_small") and unusual else "event_bad")
             lines.append("- " + L[key].format(
                 date=e.get("date"), gap=_fmt(e.get("gap")), k=r["as_large"], n=r["n_fakes"], p=r["p"],
                 alpha=e.get("alpha") or 0.05, need=e.get("min_effect")))

@@ -124,7 +124,7 @@ days before the checks) but left the lab: nothing was locked.
 
 Second piece done: the **event test** (`"event"` in `lab.json`, `honestlab event`, framing step 13). The
 data after the event sits in the sealed holdout, the normal-value model and the fake dates are locked at
-approval, and honestlab ranks the real gap among the fake gaps once (`tests/event_test.py`, 25 cases with the control below).
+approval, and honestlab ranks the real gap among the fake gaps once (`tests/event_test.py`, 26 cases with the control below).
 Measured on the urea rerun (`replays/urea_china/RESULTS.md`, run 2): the agent stayed in the lab, locked the
 method before the result, and reported "unusual, not proof of cause"; confused replies fell from 5 to 3. The
 run showed a new gap: a follow-up question (a control product) needs a second lab, and the first lab's lock
@@ -137,8 +137,10 @@ Fourth piece done: a **control** in the event test (`"control"` in `"event"`). T
 treated series and a similar series the event does not reach (`HONESTLAB_EVENT_SERIES`); honestlab ranks the
 difference among the fake dates, so a shock that hit both series is removed. It also checks that the control
 stayed calm at the event date and warns when it did not. Not yet run on real data: for the urea case the
-World Bank series has no clean control (see `replays/urea_china/RESULTS.md`). Next piece: run it on a case
-with a clean control (another region's price, a product outside the export checks).
+World Bank series has no clean control (see `replays/urea_china/RESULTS.md`). First real run with a clean
+control: `replays/etanol_sp/RESULTS.md` (São Paulo's July 2023 ethanol tax, Minas Gerais as control, ANP data
+from the TerraPulse MCP). Not passed: São Paulo rose 1.7% less than Minas Gerais; a full pass-through
+(about 2.8%) would have been visible. The run found and fixed a report bug.
 
 The designs are standard econometrics (difference-in-differences, placebo tests). Libraries such as
 DoWhy already offer similar refutation tests. What would be new is making them mandatory and locked
