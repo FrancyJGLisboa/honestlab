@@ -258,3 +258,17 @@ his public texts, not his opinion. Two ideas came out of it:
    9 cases). Still open: the "memorizes a small batch" check for training runs.
 
 Related: several agents on several machines at once is Step 6.
+
+## Following Anthropic's published practices (2026-11-12)
+
+Checked against four Anthropic guides: Skill authoring best practices, Building effective agents, How we built
+our multi-agent research system, and Claude Code best practices.
+
+- The skill's measurable rules (frontmatter, length, one-level references, tables of contents, third-person
+  description) are enforced by `tests/skill_lint_test.py`.
+- `evals/`: 4 scenarios (single, null, team, event) run with Haiku, Sonnet and Opus and graded from the lab's
+  records. Final run: every scenario passes on all three models. The evaluations found three honestlab defects,
+  all fixed with tests (see `evals/README.md`).
+- Tool design: wrong paths are refused by the tool, not only discouraged in the instructions (attempts in an
+  event lab, unlisted hypotheses, findings from a family copy).
+- Still open: evaluations on real, harder problems, and with real people.

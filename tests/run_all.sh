@@ -21,5 +21,6 @@ echo "== follow-up questions ==";        python3 "$T/followup_test.py" "$L" | ta
 echo "== sanity checks ==";              python3 "$T/sanity_test.py" "$L" | tail -1
 echo "== locked hypothesis list ==";     python3 "$T/hypotheses_test.py" "$L" | tail -1
 echo "== researcher mode ==";            python3 "$T/researcher_test.py" "$L" | tail -1
+echo "== skill authoring rules ==";      python3 "$T/skill_lint_test.py" | tail -1
 echo "== team ==";                       python3 "$T/team_test.py" "$L" | tail -1
 chmod -R u+w "$W"; rm -rf "$W"

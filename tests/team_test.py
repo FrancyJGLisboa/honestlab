@@ -171,6 +171,9 @@ def main():
         check("the finding names the family and counts the families",
               f.get("family") == "features" and f.get("team_families") == 2, json.dumps(f)[:400])
         claim = (main_lab / "findings" / "F001" / "claim.md").read_text()
+        f_entry = [e for e in core.read_ledger(main_lab) if e.get("type") == "finding"][-1]
+        check("the finding counts the team's attempts too (1 here), not only the main lab's (0)",
+              f_entry.get("experiments_tried") == 1, str(f_entry.get("experiments_tried")))
         check("the held-out bar is divided by the number of families (0.05 / 3 looks / 2 families)",
               "0.008333" in claim, claim[:1500])
 

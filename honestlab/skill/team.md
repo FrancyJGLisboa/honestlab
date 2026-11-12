@@ -4,8 +4,13 @@ Use this when the person wants several ideas tested at once ("teste várias idei
 hipóteses", "use um time"), or when the list of good ideas has two or more clear families. You are the
 coordinator. You never decide a verdict: the `honestlab` program does.
 
+**When not to use it.** One idea, or ideas that all change the same lines: work alone (`experiment.md`).
+A team costs several times the tokens of one agent (Anthropic measured about 15 times the tokens of a
+chat for multi-agent research), so use it only when the families are truly independent. Scale: 2 to 5
+families, one subagent each; never more subagents than families.
+
 ## Before approval (Phase 2)
-1. Write `eval/hypotheses.json`: 2 to 5 families, 2 to 4 hypotheses each (frame.md, step 12b). One
+1. Write `eval/hypotheses.json`: 2 to 5 families, 2 to 4 hypotheses each (the format is in `frame.md`, step 12b, which you already followed in Phase 2). One
    family groups ideas that change the same part of the solution (inputs, model, data cleaning).
    For each one, search for prior work and set `prior` to what you found.
 2. Set `"hypotheses": "eval/hypotheses.json"` in `lab.json`. On the approval page, say in plain words:

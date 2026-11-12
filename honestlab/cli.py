@@ -773,6 +773,10 @@ def cmd_run(a):
     root, cfg, st = ctx()
     if not st["frozen"]:
         raise LabError("Project is not frozen. The human must review the SPEC and the evaluator, then run `honestlab freeze`.")
+    if cfg.get("event"):
+        raise LabError("This lab is an event test (lab.json \"event\"): after approval, run `honestlab event` once, "
+                       "then `honestlab report`. Attempts would tune the model of the normal value on the fake "
+                       "dates and make them look calm.")
     hyp = (a.message or "").strip()
     if len(hyp) < 8:
         raise LabError('State the hypothesis: honestlab run -m "<what you changed and why it should help>"')
@@ -972,6 +976,10 @@ def cmd_status(a):
         out("Finding:   success rule not set yet (lab.json finding.min_effect) / no measurement yet")
     else:
         out(f"Finding:   beat '{target}' by >= {fnd['min_effect']} ({fnd['effect']}) on dev and holdout")
+    if cfg.get("event") and st["frozen"]:
+        done = any(e.get("type") == "event_test" for e in core.read_ledger(root))
+        out("Event:     " + ("the event test ran; next: `honestlab report`" if done else
+                             "approved event test; next: `honestlab event` (once), then `honestlab report`"))
     out(f"Ledger:    {'OK' if ok else 'BROKEN'}: {msg}")
     rec = core.records_changed(root, cfg)
     if rec:
@@ -1018,6 +1026,10 @@ def cmd_history(a):
 def cmd_finding_new(a):
     from . import stats
     root, cfg, st = ctx()
+    if cfg.get("event"):
+        raise LabError("This lab is an event test (lab.json \"event\"): after approval, run `honestlab event` once, "
+                       "then `honestlab report`. Attempts would tune the model of the normal value on the fake "
+                       "dates and make them look calm.")
     if cfg.get("team"):
         raise LabError("This is a family copy without the held-out data. Findings are promoted from the main lab "
                        f"({cfg['team'].get('main')}), which alone holds it.")
@@ -1077,6 +1089,10 @@ def cmd_finding_new(a):
     dev_cmp = stats.compare(cand_dev, ref_dev, cfg["direction"], float(fnd["alpha"]), int(cfg["bootstrap"]),
                             measure=core.measure_fn(root, cfg), block=core.block_size(cfg))
     n_exp = st["next_exp"] - 1
+    col = [e for e in core.read_ledger(root) if e.get("type") == "team_collect"]
+    if col:
+        # A team's attempts count too: the finding was chosen from all of them, not from this lab's alone.
+        n_exp += sum(int(i.get("attempts") or 0) for i in (col[-1].get("families") or {}).values())
     if not stats.meets(dev_cmp, fnd):
         raise LabError(
             f"The candidate ({cand_id}) does not reach the pre-registered bar against '{ref_name}' on dev: "
@@ -1207,8 +1223,9 @@ def cmd_event(a):
     if st.get("event_done"):
         raise LabError("The event test already ran for this approval (see `honestlab history`). Running it again "
                        "with a changed model would let the result choose the model. Only the human can unlock.")
-    if core.changed_paths(root):
-        raise LabError("There are unmeasured changes. Revert them first: the event test uses the approved model.")
+    if any(core.is_under(p, d) for p in core.changed_paths(root) for d in cfg["editable"]):
+        raise LabError("The model of the normal value has unmeasured changes. Revert them first: the event test "
+                       "uses the approved model.")
     if st.get("freeze_commit") and core.git(root, "diff", st["freeze_commit"], "HEAD", "--", *cfg["editable"]).stdout:
         raise LabError("The model of the normal value changed after approval (kept attempts). The event test uses "
                        "only the approved model, because attempts tuned on the fake dates would make them look "

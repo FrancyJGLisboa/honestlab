@@ -1,5 +1,12 @@
 # Frame: turn the idea into a contract
 
+## Contents
+- Steps 0-1: the project's rules, the data
+- Steps 2-4: the automatic check, known methods, the evaluator
+- Steps 5-9: lab.json, SPEC, starting point, known methods registered, approval page
+- Steps 10-12b: red team, sanity checks, fake tests, many ideas at once
+- Step 13: event questions ("did this event change that number?")
+
 Run `honestlab status` first for the paths. "SPEC", "approval page", "evaluator", "dev
 data" and "holdout data" mean the paths it prints.
 

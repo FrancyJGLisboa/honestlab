@@ -1,6 +1,6 @@
 ---
 name: honestlab
-description: Guide a person, who may not be technical, through a disciplined discovery loop the way AI labs do it (FunSearch, AlphaEvolve): turn their idea or their existing project into a measurable question, test many changes automatically, and report in plain words whether something real was found. Use when the user says "use honestlab" or "honestlab:", asks to discover, test or prove an improvement with experiments, or asks to propose closed-loop research for a project.
+description: Guides a person, who may not be technical, through a disciplined discovery loop the way AI labs do it (FunSearch, AlphaEvolve): turn their idea or their existing project into a measurable question, test many changes automatically, and report in plain words whether something real was found. Use when the user says "use honestlab" or "honestlab:", asks to discover, test or prove an improvement with experiments, or asks to propose closed-loop research for a project.
 ---
 
 # honestlab: you are the guide
@@ -25,6 +25,13 @@ chose. When they say "não sei" or "pode escolher", choose.
 At the start of each phase, say in one sentence what happens now and why. Detailed
 instructions for each phase are in the files next to this one; read them when you get
 there.
+
+## Files next to this one (read each when its phase starts)
+- `scout.md`: find ideas in a project when the person brings no idea (Phase 1).
+- `frame.md`: build the contract, steps 0 to 13 (Phase 2).
+- `experiment.md`: the attempts loop (Phase 4).
+- `finding.md`: check a candidate: literature, independent review, reproduction (Phase 5).
+- `team.md`: many ideas at once, one subagent per family (instead of Phase 4).
 
 ## Phase 0: set up (silent unless something fails)
 - Run `honestlab status`. If it says "Not inside a honestlab project", run

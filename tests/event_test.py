@@ -128,7 +128,9 @@ def main():
 
         lab = make_lab(work, "real", GOOD, 30)
         freeze(lab, "real")
+        (lab / "NOTES_BY_AGENT.md").write_text("a file outside the model's code")
         rc, so = hl(lab, "event")
+        check("a new file outside the model's code does not block the event test", "unmeasured" not in so, so)
         check("a large jump at the event date passes", rc == 0 and "PASSED" in so and "0 of 126" in so, so)
         check("the pass names the limit: same-window events", "does not show that the event caused it" in so, so)
         st = json.loads((lab / ".honestlab" / "state.json").read_text())
@@ -186,10 +188,13 @@ def main():
 
         lab = make_lab(work, "tuned", GOOD, 30)
         freeze(lab, "tuned")
+        rc, so = hl(lab, "status")
+        check("status names the next step of an event lab", "next: `honestlab event`" in so, so)
         (lab / "src" / "model.py").write_text("def predict(history, k):\n    return [sum(history[-3:]) / 3] * k\n")
-        hl(lab, "run", "-m", "predict from the mean of the last three months instead of the last month")
-        rc, so = hl(lab, "event")
-        check("a model changed after approval is refused", rc != 0 and "changed after approval" in so, so)
+        rc, so = hl(lab, "run", "-m", "predict from the mean of the last three months instead of the last month")
+        check("attempts are refused in an event lab", rc != 0 and "run `honestlab event` once" in so, so)
+        rc, so = hl(lab, "finding", "new", "-m", "the mean of three months is a better normal value")
+        check("findings are refused in an event lab", rc != 0 and "run `honestlab event` once" in so, so)
     finally:
         subprocess.run(["chmod", "-R", "u+w", str(work)], capture_output=True)
         shutil.rmtree(work, ignore_errors=True)
